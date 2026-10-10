@@ -9,7 +9,7 @@
 
 namespace {
 
-constexpr int IndicatorSize = 18;
+constexpr int IndicatorSize = 16;
 constexpr int IndicatorSpacing = 6;
 
 QRect indicatorRect(const QWidget *widget)
@@ -91,6 +91,14 @@ void CustomCheckBox::paintEvent(QPaintEvent *event)
 {
     Q_UNUSED(event);
 
+    QPainter painter(this);
+    // 普通控件从自身原点绘制；表格委托可传入单元格中的目标位置。
+    paintOn(&painter, QPoint());
+}
+
+void CustomCheckBox::paintOn(QPainter *painter,
+                             const QPoint &position) const
+{
     QStyleOptionButton option;
     initStyleOption(&option);
     const QRect indicator = indicatorRect(this);
@@ -98,13 +106,15 @@ void CustomCheckBox::paintEvent(QPaintEvent *event)
     const bool checked = option.state & QStyle::State_On;
     const QColor border = indicatorColor(option);
 
-    QPainter painter(this);
-    painter.setRenderHint(QPainter::Antialiasing, true);
-    painter.setPen(QPen(border, 1.5));
-    painter.setBrush(checked ? option.palette.color(QPalette::Active,
-                                                    QPalette::Highlight)
-                             : option.palette.color(QPalette::Base));
-    painter.drawRoundedRect(box, 2.5, 2.5);
+    painter->save();
+    // 临时平移画布绘制，完成后恢复调用方的画布状态。
+    painter->translate(position);
+    painter->setRenderHint(QPainter::Antialiasing, true);
+    painter->setPen(QPen(border, 1.5));
+    painter->setBrush(checked ? option.palette.color(QPalette::Active,
+                                                     QPalette::Highlight)
+                              : option.palette.color(QPalette::Base));
+    painter->drawRoundedRect(box, 2.5, 2.5);
 
     if (checked) {
         QPainterPath check;
@@ -114,14 +124,15 @@ void CustomCheckBox::paintEvent(QPaintEvent *event)
                      indicator.top() + indicator.height() * 0.72);
         check.lineTo(indicator.left() + indicator.width() * 0.80,
                      indicator.top() + indicator.height() * 0.29);
-        painter.setPen(QPen(option.palette.color(QPalette::Active,
-                                                 QPalette::HighlightedText),
-                            2.0, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
-        painter.setBrush(Qt::NoBrush);
-        painter.drawPath(check);
+        painter->setPen(QPen(option.palette.color(QPalette::Active,
+                                                  QPalette::HighlightedText),
+                             2.0, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
+        painter->setBrush(Qt::NoBrush);
+        painter->drawPath(check);
     }
 
-    drawLabel(option, indicator, &painter, this, false);
+    drawLabel(option, indicator, painter, this, false);
+    painter->restore();
 }
 
 CustomRadioButton::CustomRadioButton(QWidget *parent)

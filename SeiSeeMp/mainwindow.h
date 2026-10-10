@@ -42,7 +42,7 @@
 
 #include "workthread.h"
 
-#define VERSION "4.0.0-alpha.3"
+#define VERSION "4.0.0-alpha.4"
 
 /*
 class zdata

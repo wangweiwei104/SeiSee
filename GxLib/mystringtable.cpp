@@ -6,6 +6,7 @@
 #include <QStyle>
 #include <QTimer>
 
+#include "../CustomWdgets/customcontrols.h"
 #include "gfxstyle.h"
 #include "mystringtable.h"
 
@@ -17,6 +18,10 @@ void MyStringTableDelegate::paint(QPainter *painter,
     QStyleOptionViewItemV4 itemOption = option;
 
     initStyleOption(&itemOption, index);
+    // 有勾选状态的单元格由 CustomCheckBox 绘制，避免委托画出系统复选框。
+    const QVariant checkState = index.data(Qt::CheckStateRole);
+    if (checkState.isValid())
+        itemOption.features &= ~QStyleOptionViewItem::HasCheckIndicator;
 
     if (_parent->SelColor().isValid() &&
         (option.state & QStyle::State_Selected)) {
@@ -27,15 +32,36 @@ void MyStringTableDelegate::paint(QPainter *painter,
         itemOption.state &= ~QStyle::State_HasFocus;
     }
 
-    //  QApplication::style()->drawControl(QStyle::CE_ItemViewItem, &itemOption,
-    //  painter);
-    QStyledItemDelegate::paint(painter, itemOption, index);
+    if (checkState.isValid()) {
+        // 保留单元格背景和文字，只绘制标准项目内容中的复选框外部分。
+        const QWidget *widget = itemOption.widget;
+        QStyle *style = widget ? widget->style() : QApplication::style();
+        style->drawControl(QStyle::CE_ItemViewItem, &itemOption, painter,
+                           widget);
+    } else {
+        QStyledItemDelegate::paint(painter, itemOption, index);
+    }
 
     if (_parent->SelColor().isValid() &&
         (option.state & QStyle::State_Selected)) {
         QBrush brush =
             QBrush(_parent->SelColor()); // viewOption.backgroundBrush;
         painter->fillRect(itemOption.rect, brush);
+    }
+
+    if (checkState.isValid()) {
+        // 复用自定义控件的状态与绘制逻辑，并将指标居中放入单元格。
+        CustomCheckBox checkBox;
+        checkBox.resize(checkBox.sizeHint());
+        checkBox.setPalette(option.palette);
+        checkBox.setFont(option.font);
+        checkBox.setLayoutDirection(option.direction);
+        checkBox.setEnabled(option.state & QStyle::State_Enabled);
+        checkBox.setChecked(checkState.toInt() != Qt::Unchecked);
+        const QPoint indicatorTopLeft(
+            option.rect.center().x() - checkBox.width() / 2,
+            option.rect.center().y() - checkBox.height() / 2);
+        checkBox.paintOn(painter, indicatorTopLeft);
     }
 
     /*
