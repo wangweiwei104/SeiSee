@@ -61,11 +61,25 @@ process
 
 ### Linux
 
-从 [GitHub Releases](https://github.com/wangweiwei104/SeiSee/releases/latest) 下载适用于 x86_64 的 `.AppImage` 文件，在终端中进入下载目录后运行：
+从 [GitHub Releases](https://github.com/wangweiwei104/SeiSee/releases/latest) 下载适用于 x86_64 的 `.AppImage`、`.deb` 或 `.rpm` 文件。
+
+- AppImage：在终端中进入下载目录后运行：
 
 ```bash
 chmod +x SeiSee-*.AppImage
 ./SeiSee-*.AppImage
+```
+
+- deb（Debian/Ubuntu）：
+
+```bash
+sudo apt install ./seisee_*.deb
+```
+
+- rpm（Fedora/CentOS）：
+
+```bash
+sudo dnf install ./seisee-*.rpm   # CentOS 7 使用 sudo yum install ./seisee-*.rpm
 ```
 
 Linux 版本以 glibc 2.17 为兼容基线，目标支持 CentOS 7 及以上、Ubuntu 20.04 及以上的 x86_64 系统。运行需要桌面环境及宿主系统所需的图形运行库。若 CentOS 7 上无法挂载 AppImage，可尝试：

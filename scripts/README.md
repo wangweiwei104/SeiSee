@@ -217,6 +217,32 @@ bash ./scripts/publish-linux-release.sh --publish
 
 更新 token 权限后，重新运行 `gh auth login` 使用有权限的认证方式登录，再重试发布。注意 `GH_TOKEN` 或 `GITHUB_TOKEN` 环境变量可能会覆盖 GitHub CLI 保存的登录凭据；如设置了这些变量，请确认它们对应的 token 也具备上述权限。不要将 token 粘贴到命令参数、脚本或日志中。
 
+## Linux deb/rpm 安装包
+
+`package-linux-deb-rpm.sh` 使用 [appimage2debrpm-converter](https://github.com/tuoyuangui/appimage2debrpm-converter) 把 `publish-linux-release.sh` 选中的 AppImage 转换为 deb 和 rpm 安装包。脚本从 `SeiSeeMp/mainwindow.h` 读取 VERSION，定位 `dist/linux/SeiSee-<VERSION>-x86_64.AppImage`，生成 `config_package.json` 包配置后调用转换器，deb 和 rpm 产物与 AppImage 一并写入 `dist/linux`。
+
+```bash
+./scripts/package-linux-deb-rpm.sh
+```
+
+也可以直接指定其他 AppImage，此时版本号从文件名解析（如 `SeiSee-4.0.0-alpha.2-x86_64.AppImage`），或用 `APPIMAGE2DEBRPM_VERSION` 显式指定：
+
+```bash
+./scripts/package-linux-deb-rpm.sh /path/to/SeiSee-4.0.0-alpha.2-x86_64.AppImage
+```
+
+### 前置条件
+
+- `python3`、`git`、`unsquashfs`（squashfs-tools）
+- deb 包：`dpkg-deb`（dpkg-dev）；缺失时自动回退到 ar+tar+gzip 构建
+- rpm 包：`rpmbuild`（rpm-build）
+
+### 说明
+
+转换器默认通过 SSH 克隆（`git@github.com:tuoyuangui/appimage2debrpm-converter.git`），失败时自动回退 HTTPS 克隆；可用 `CONVERTER_REPO_REF` 固定转换器仓库的分支或标签。包配置（维护者、许可证、主页、架构、依赖等）由脚本生成到 `config_package.json` 后传给转换器，可用 `MAINTAINER`、`HOMEPAGE`、`LICENSE`、`ARCHITECTURE`、`OUTPUT_DIR` 等环境变量覆盖，完整选项见脚本 `--help`。
+
+转换器上游不解析 AppImage 的真实版本号（恒为 1.0.0），且 `unsquashfs` 提取遇到 SELinux xattr 时会失败；脚本在临时克隆中自动打两个最小补丁（从环境变量/文件名解析版本号、提取时加 `-no-xattrs`），其余逻辑完全使用上游代码。
+
 ## 开发环境
 
 ### VS Code（Windows 和 Linux 共用）
