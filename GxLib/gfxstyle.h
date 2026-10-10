@@ -79,6 +79,7 @@ namespace GfxStyle {
 
     // MyStringTable 列宽，按当前字体中的字符宽度或内容自适应，单位为字符所占的个数。
     constexpr int TableColumnHorizontalPadding = 8;
+    constexpr int CheckIndicatorColumnExtraPadding = 4;
     constexpr int DirectoryTypeCharacterCount = 7;
     constexpr int BinaryHeaderValueCharacterCount = 6;
     constexpr int HeaderBytesCharacterCount = 7;

@@ -608,7 +608,8 @@ MainWindow::MainWindow(QWidget *parent)
     hdrListCkGrid.setColLabel(2, "Name");
     hdrListCkGrid.setColLabel(3, "Description");
     hdrListCkGrid.setColWidthToCheckIndicator(
-        0, GfxStyle::TableColumnHorizontalPadding);
+        0, GfxStyle::TableColumnHorizontalPadding +
+               GfxStyle::CheckIndicatorColumnExtraPadding);
     hdrListCkGrid.setColWidthInCharacters(
         1, GfxStyle::HeaderBytesCharacterCount,
         GfxStyle::TableColumnHorizontalPadding);
@@ -633,7 +634,8 @@ MainWindow::MainWindow(QWidget *parent)
     hdrElstCkGrid.setColLabel(2, "Name");
     hdrElstCkGrid.setColLabel(3, "Description");
     hdrElstCkGrid.setColWidthToCheckIndicator(
-        0, GfxStyle::TableColumnHorizontalPadding);
+        0, GfxStyle::TableColumnHorizontalPadding +
+               GfxStyle::CheckIndicatorColumnExtraPadding);
     hdrElstCkGrid.setColWidthInCharacters(
         1, GfxStyle::HeaderBytesCharacterCount,
         GfxStyle::TableColumnHorizontalPadding);

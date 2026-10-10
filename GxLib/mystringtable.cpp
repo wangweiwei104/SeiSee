@@ -59,8 +59,8 @@ void MyStringTableDelegate::paint(QPainter *painter,
         checkBox.setEnabled(option.state & QStyle::State_Enabled);
         checkBox.setChecked(checkState.toInt() != Qt::Unchecked);
         const QPoint indicatorTopLeft(
-            option.rect.center().x() - checkBox.width() / 2,
-            option.rect.center().y() - checkBox.height() / 2);
+            option.rect.left() + (option.rect.width() - checkBox.width()) / 2,
+            option.rect.top() + (option.rect.height() - checkBox.height()) / 2);
         checkBox.paintOn(painter, indicatorTopLeft);
     }
 
