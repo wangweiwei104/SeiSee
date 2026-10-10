@@ -283,6 +283,8 @@ MainWindow::MainWindow(QWidget *parent)
     QCoreApplication::setLibraryPaths(paths);
 
     ui->setupUi(this);
+    ui->clearTraceHighlightBtn->setToolTip(
+        tr("Clear selected trace highlight"));
     ui->exportHiResBtn->setToolTip(tr("Export high-resolution image"));
 
     ui->menuView->setStyle(new ExportDpiMenuStyle(this));
@@ -3044,6 +3046,11 @@ void MainWindow::on_axisBtn_pressed()
     AxisDlg.tL = seisSct.Tl();
 
     AxisDlg.show();
+}
+
+void MainWindow::on_clearTraceHighlightBtn_pressed()
+{
+    seisSct.setSelTr(-1);
 }
 
 void MainWindow::on_captureBtn_pressed()

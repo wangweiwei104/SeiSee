@@ -259,6 +259,8 @@ private slots:
 
     void on_axisBtn_pressed();
 
+    void on_clearTraceHighlightBtn_pressed();
+
     void on_captureBtn_pressed();
 
     void on_exportHiResBtn_pressed();
