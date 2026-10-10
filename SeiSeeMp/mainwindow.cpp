@@ -767,14 +767,6 @@ MainWindow::MainWindow(QWidget *parent)
     QWidget *axisScrollBarCorner = new QWidget(ui->seisFrame);
     applySystemPaletteBackground(axisScrollBarCorner, axisScrollBarTrackColor);
 
-    QWidget *plotViewport = seisScrl->viewport();
-    plotViewport->setAutoFillBackground(true);
-    plotViewport->setBackgroundRole(QPalette::Base);
-    QPalette plotPalette = plotViewport->palette();
-    plotPalette.setColor(QPalette::Base, Qt::white);
-    plotPalette.setColor(QPalette::Window, Qt::white);
-    plotViewport->setPalette(plotPalette);
-
     // 隐藏滚动条时保留其布局空间，由外层容器继续绘制灰色背景。
     // 目的是避免zoomALLBtn、zoomHallBtn、zoomVallBtn三个按钮执行时发生bug,在底部和右侧产生白条
     QSizePolicy horizontalScrollBarPolicy =
