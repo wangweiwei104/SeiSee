@@ -23,7 +23,8 @@ SOURCES += main.cpp\
     exportdpimenustyle.cpp \
     workthread.cpp \
     saveasdialog.cpp \
-    diffdialog.cpp
+    diffdialog.cpp \
+    metricsdialog.cpp
 
 HEADERS  += mainwindow.h \
     ../CustomWdgets/customcontrols.h \
@@ -34,7 +35,8 @@ HEADERS  += mainwindow.h \
     exportdpimenustyle.h \
     workthread.h \
     saveasdialog.h \
-    diffdialog.h
+    diffdialog.h \
+    metricsdialog.h
 
 FORMS    += mainwindow.ui \
     edithdrdialog.ui \
@@ -42,7 +44,8 @@ FORMS    += mainwindow.ui \
     aboutdialog.ui \
     axisdialog.ui \
     saveasdialog.ui \
-    diffdialog.ui
+    diffdialog.ui \
+    metricsdialog.ui
 
 # ADD THIS LINE!
 win32: RC_FILE += app.rc
@@ -131,3 +134,25 @@ else:win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../libE
 else:win32:!win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../libExprEval/release/libExprEval.lib
 else:win32:!win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../libExprEval/debug/libExprEval.lib
 else:unix: PRE_TARGETDEPS += $$OUT_PWD/../libExprEval/liblibExprEval.a
+
+win32:LIBS += -ladvapi32
+
+# Optional regression executable; the default build remains the application.
+contains(CONFIG, metrics_regression) {
+    TARGET = metrics_regression
+    QT += testlib
+    CONFIG += console testcase
+    SOURCES -= main.cpp
+    SOURCES += $$PWD/../tests/upstream_metrics_regression.cpp
+}
+
+# Metrics uses the same float FFT implementation as the existing processing library.
+INCLUDEPATH += $$PWD/../libCwp
+win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../libCwp/release/ -llibCwp
+else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../libCwp/debug/ -llibCwp
+else:unix: LIBS += -L$$OUT_PWD/../libCwp/ -llibCwp
+win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../libCwp/release/liblibCwp.a
+else:win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../libCwp/debug/liblibCwp.a
+else:win32:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../libCwp/release/libCwp.lib
+else:win32: PRE_TARGETDEPS += $$OUT_PWD/../libCwp/debug/libCwp.lib
+else:unix: PRE_TARGETDEPS += $$OUT_PWD/../libCwp/liblibCwp.a

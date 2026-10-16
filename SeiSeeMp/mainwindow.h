@@ -43,10 +43,11 @@
 #include "procparmdialog.h"
 #include "saveasdialog.h"
 #include "diffdialog.h"
+#include "metricsdialog.h"
 
 #include "workthread.h"
 
-#define VERSION "4.0.0-alpha.7"
+#define VERSION "4.0.0-alpha.8"
 
 /*
 class zdata
@@ -370,6 +371,7 @@ private slots:
     void on_actionSave_As_triggered();
 
     void on_actionDifference_triggered();
+    void on_actionMetrics_triggered();
 
     void on_btnLastTr_2_clicked();
 
@@ -421,6 +423,7 @@ private:
     EditHdrDialog EdHdrDlg;
     SaveAsDialog SaveAsDlg;
     DiffDialog DiffDlg;
+    MetricsDialog MetricsDlg;
 
     QList<DirItem> dlist;
     QStack<zdata> zstack;
@@ -525,6 +528,7 @@ private:
 
     void SetZoomC(double xs, double ys, int xc, int yc);
     void SetZoom(double xs, double ys, int xo, int yo, bool push = true);
+    void ClampZoom(double &xs, double &ys);
     void GetZoom(double &xs, double &ys, int &xo, int &yo);
 
     void Clear();

@@ -35,7 +35,9 @@
 #include <QVBoxLayout>
 #include <QWidget>
 
+#include <cmath>
 #include <functional>
+#include <limits>
 #include "Toast.h"
 #include "exportdpimenustyle.h"
 
@@ -964,23 +966,61 @@ MainWindow::~MainWindow()
 void MainWindow::SetZoomC(double xs, double ys, int xc, int yc)
 {
     double xsp, ysp;
-    int xo, yo;
+    int xop, yop;
 
-    GetZoom(xsp, ysp, xo, yo);
+    GetZoom(xsp, ysp, xop, yop);
 
-    int x = xc + xo;
-    int y = yc + yo;
+    double newXs = xs == 0 ? xsp : xs;
+    double newYs = ys == 0 ? ysp : ys;
+    const double requestedXs = newXs;
+    const double requestedYs = newYs;
+    const bool xChanged = newXs != xsp;
+    const bool yChanged = newYs != ysp;
+    const bool zoomingBothIn = newXs > xsp && newYs > ysp;
+    const bool zoomingBothOut = newXs < xsp && newYs < ysp;
+    ClampZoom(newXs, newYs);
 
-    double xa = x / xsp;
-    double ya = y / ysp;
+    const auto maxScaleForSize = [](double baseSize) {
+        if (!std::isfinite(baseSize) || baseSize <= 0)
+            return std::numeric_limits<double>::infinity();
+        return static_cast<double>(QWIDGETSIZE_MAX - 2) / baseSize;
+    };
+    const double maxXs = maxScaleForSize(seisSct.WidthPix());
+    const double maxYs = maxScaleForSize(timeAxis.HeightPix());
+    const bool reachedZoomLimit =
+        (newXs > xsp && requestedXs >= maxXs) ||
+        (newYs > ysp && requestedYs >= maxYs);
 
-    x = xa * xs;
-    y = ya * ys;
+    if (xChanged && yChanged && zoomingBothIn) {
+        const double scaleFactor =
+            qMin(newXs / xsp, newYs / ysp);
+        newXs = xsp * scaleFactor;
+        newYs = ysp * scaleFactor;
+    } else if (xChanged && yChanged && zoomingBothOut) {
+        const double scaleFactor =
+            qMax(newXs / xsp, newYs / ysp);
+        newXs = xsp * scaleFactor;
+        newYs = ysp * scaleFactor;
+    }
 
-    xo = x - xc;
-    yo = y - yc;
+    if (reachedZoomLimit) {
+        showScreenshotToast(
+            this, tr("Zoom limit reached"),
+            tr("The maximum zoom level has been reached. Use Save As to crop "
+               "and reopen the data for greater magnification."),
+            ToastPreset::WARNING);
+    }
 
-    SetZoom(xs, ys, xo, yo);
+    const auto toScrollOffset = [](double offset) {
+        const double boundedOffset =
+            qBound(0.0, offset, static_cast<double>(QWIDGETSIZE_MAX));
+        return qRound(boundedOffset);
+    };
+    const double newXOffset = (xop + xc) / xsp * newXs - xc;
+    const double newYOffset = (yop + yc) / ysp * newYs - yc;
+
+    SetZoom(newXs, newYs, toScrollOffset(newXOffset),
+            toScrollOffset(newYOffset));
 }
 
 void MainWindow::sclZoomV(double, double zy, int xc, int yc)
@@ -995,43 +1035,49 @@ void MainWindow::sclZoomH(double zx, double, int xc, int yc)
 
 void MainWindow::winZoom(QRect r)
 {
-    //    QApplication::beep ();
-
-    int x1 = r.left();
-    //  int x2 = r.right();
-    int y1 = r.top();
-    //  int y2 = r.bottom();
-
     double xsp, ysp;
     int xo, yo;
 
     GetZoom(xsp, ysp, xo, yo);
 
-    int x = x1 + xo;
-    int y = y1 + yo;
+    QWidget *viewport = seisScrl->viewport();
+    const QSize viewportSize = viewport->size();
+    if (viewportSize.width() <= 0 || viewportSize.height() <= 0)
+        return;
 
-    double xa = x / xsp;
-    double ya = y / ysp;
+    const QRect viewportRect(QPoint(0, 0), viewportSize);
+    const QRect selection =
+        r.translated(-viewport->pos()).normalized().intersected(viewportRect);
+    if (selection.width() <= 1 || selection.height() <= 1)
+        return;
 
-    double ws = seisScrl->width();
-    double hs = seisScrl->height();
+    const double requestedXs =
+        xsp * viewportSize.width() / selection.width();
+    const double requestedYs =
+        ysp * viewportSize.height() / selection.height();
+    double xs = requestedXs;
+    double ys = requestedYs;
+    ClampZoom(xs, ys);
+    if (xs < requestedXs || ys < requestedYs) {
+        showScreenshotToast(
+            this, tr("Zoom limit reached"),
+            tr("Select a larger area, or use Save As to crop and reopen the "
+               "data for greater magnification."),
+            ToastPreset::WARNING);
+        return;
+    }
 
-    double wr = r.width();
-    double hr = r.height();
+    const double newXOffset =
+        (xo + selection.left()) / xsp * xs;
+    const double newYOffset =
+        (yo + selection.top()) / ysp * ys;
+    const auto toScrollOffset = [](double offset) {
+        return qRound(qBound(0.0, offset,
+                             static_cast<double>(QWIDGETSIZE_MAX)));
+    };
 
-    double xz = ws / wr;
-    double yz = hs / hr;
-
-    double xs = xsp * xz;
-    double ys = ysp * yz;
-
-    x = xa * xs;
-    y = ya * ys;
-
-    xo = x;
-    yo = y;
-
-    SetZoom(xs, ys, xo, yo);
+    SetZoom(xs, ys, toScrollOffset(newXOffset),
+            toScrollOffset(newYOffset));
 }
 
 void MainWindow::sclZoom(double zx, double zy, int xc, int yc)
@@ -1050,6 +1096,7 @@ void MainWindow::ChangeDataDir(QString Dname, QString Find)
 
     addRecentDirectory(Dname);
     curDir = Dname;
+    MetricsDlg.curDir = QDir(curDir).absolutePath();
 
     find = Find;
 
@@ -1601,6 +1648,7 @@ int MainWindow::xprintf(QPlainTextEdit *edit, const char *fmt, ...)
 
 void MainWindow::closeEvent(QCloseEvent *event)
 {
+    MetricsDlg.shutdown();
     if (m_exportInProgress) {
         m_closeAfterExport = true;
         m_exportCancellationRequested = true;
@@ -1615,6 +1663,7 @@ void MainWindow::closeEvent(QCloseEvent *event)
     AboutDlg.close();
     AxisDlg.close();
     DiffDlg.close();
+    MetricsDlg.close();
     EdHdrDlg.close();
     ProcParmDlg.close();
     SaveAsDlg.close();
@@ -1950,6 +1999,20 @@ int MainWindow::allSectWidth()
 void MainWindow::ArrangeSections()
 {
     ui->seisFrame->setVisible(true);
+
+    double xs = seisView.Xs();
+    double ys = seisView.Ys();
+    ClampZoom(xs, ys);
+    if (xs != seisView.Xs()) {
+        seisView.setXs(xs);
+        hdrsView.setXs(xs);
+        hdrsBottomView.setXs(xs);
+    }
+    if (ys != seisView.Ys()) {
+        seisView.setYs(ys);
+        timeView.setYs(ys);
+        timeRightView.setYs(ys);
+    }
 
     int hh = timeAxis.HeightView();
     int axisHeight = qMax(hh, seisScrl->viewport()->height());
@@ -2639,6 +2702,24 @@ void MainWindow::GetZoom(double &xs, double &ys, int &xo, int &yo)
     yo = seisScrl->verticalScrollBar()->value();
 }
 
+void MainWindow::ClampZoom(double &xs, double &ys)
+{
+    const auto clampScale = [](double scale, double baseSize) {
+        if (std::isnan(scale) || scale <= 0)
+            scale = 1;
+        if (!std::isfinite(baseSize) || baseSize <= 0)
+            return scale;
+
+        const double minScale = 1.0 / baseSize;
+        const double maxScale =
+            static_cast<double>(QWIDGETSIZE_MAX - 2) / baseSize;
+        return qBound(minScale, scale, maxScale);
+    };
+
+    xs = clampScale(xs, seisSct.WidthPix());
+    ys = clampScale(ys, timeAxis.HeightPix());
+}
+
 void MainWindow::SetZoom(double xs, double ys, int xo, int yo, bool push)
 {
     double xsp, ysp;
@@ -2656,6 +2737,8 @@ void MainWindow::SetZoom(double xs, double ys, int xo, int yo, bool push)
         yo = yop;
     }
 
+    ClampZoom(xs, ys);
+
     if (push)
         zstack.push(zdata(xsp, ysp, xop, yop));
 
@@ -2668,6 +2751,10 @@ void MainWindow::SetZoom(double xs, double ys, int xo, int yo, bool push)
 
     ArrangeSections();
 
+    xo = qBound(seisScrl->horizontalScrollBar()->minimum(), xo,
+                seisScrl->horizontalScrollBar()->maximum());
+    yo = qBound(seisScrl->verticalScrollBar()->minimum(), yo,
+                seisScrl->verticalScrollBar()->maximum());
     seisScrl->setHscroll(xo);
     seisScrl->setVscroll(yo);
 
@@ -4399,4 +4486,14 @@ void MainWindow::on_ckDly_toggled(bool checked)
     }
 
     InitSeisView();
+}
+
+void MainWindow::on_actionMetrics_triggered()
+{
+    SeisFile *sf = seisSrc.Sfile();
+    if (!sf || !sf->Active()) return;
+    MetricsDlg.sf = sf;
+    MetricsDlg.curDir = QDir(curDir).absolutePath();
+    MetricsDlg.savDir = &savDir;
+    MetricsDlg.show();
 }

@@ -2,6 +2,18 @@
 
 本文件记录 SeiSee 独立维护版本的用户可见变更。版本号与 `SeiSeeMp/mainwindow.h` 中的 `VERSION` 保持一致。
 
+## [4.0.0-alpha.8] - 2026-10-16
+
+### 新增
+
+- 新增 Processing → Metrics 指标计算，支持 MSE/RMSE、PSNR、SNR、SSIM，以及单文件 TPRS，提供计算模式（Signal file / Noisy file）与估算模式（Noisy file）。
+- 增加默认保存文件名为 当前文件名-copy.原后缀
+
+### 修复
+
+- 修复 Difference 对话框文件指针未初始化引起的退出崩溃。
+- 修复大数据显示时，放大功能放大到一定程度，发生位置偏移并且无法通过缩小回到原位置的bug.设置放大上限和消息提示
+
 ## [4.0.0-alpha.7] - 2026-10-14
 
 ### 改进

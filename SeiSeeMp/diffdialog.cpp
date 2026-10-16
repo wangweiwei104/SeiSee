@@ -11,6 +11,9 @@ DiffDialog::DiffDialog(QWidget *parent)
 {
     ui->setupUi(this);
 
+    sf = nullptr;
+    sf2 = nullptr;
+    savDir = nullptr;
     running = false;
 }
 
