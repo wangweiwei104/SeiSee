@@ -1,4 +1,6 @@
+#include <QDir>
 #include <QFileDialog>
+#include <QFileInfo>
 #include <QThread>
 
 #include "gfxstyle.h"
@@ -81,8 +83,15 @@ void SaveAsDialog::on_btnSave_clicked()
 
     QString selh = ui->edIdx->text();
 
+    const QFileInfo sourceFile(
+        QString::fromLocal8Bit(sf->Fname().c_str()));
+    QString defaultFileName = sourceFile.completeBaseName() + "-copy";
+    if (!sourceFile.suffix().isEmpty())
+        defaultFileName += "." + sourceFile.suffix();
+
     QString fileName = QFileDialog::getSaveFileName(
-        this, "Save File As", curDir, "SEG-Y File (*.sgy *.segy)");
+        this, "Save File As", QDir(curDir).absoluteFilePath(defaultFileName),
+        "SEG-Y File (*.sgy *.segy)");
     if (fileName == "") {
         return;
     }
