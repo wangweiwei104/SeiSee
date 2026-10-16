@@ -1,6 +1,8 @@
 #include <QtTest>
 #include <QtWidgets>
 #include <QMimeData>
+#include <stdexcept>
+#include <limits>
 #include "mainwindow.h"
 #include "workthread.h"
 #include "customcontrols.h"
@@ -50,7 +52,8 @@ private slots:
         QVERIFY(!out.isEmpty());
         QDir().mkpath(out + "/data");
         QSettings::setDefaultFormat(QSettings::IniFormat);
-        QSettings::setPath(QSettings::IniFormat, QSettings::UserScope, out + "/settings");
+        QSettings::setPath(QSettings::IniFormat, QSettings::UserScope,
+                           qEnvironmentVariable("SEISEE_TEST_SETTINGS_ROOT",out + "/settings"));
         fixture = out + "/data/fixture.sgy";
         QFile file(fixture); QVERIFY(file.open(QIODevice::WriteOnly));
         file.write(QByteArray(3200, ' '));
@@ -79,6 +82,197 @@ private slots:
         QTest::qWait(100);
 
         window->grab().save(out + "/main_window.png");
+    }
+    void fkMatchesRequestedPythonReference() {
+        QFile reference(QFINDTESTDATA("fk_reference.json"));QVERIFY(reference.open(QIODevice::ReadOnly));
+        auto cases=QJsonDocument::fromJson(reference.readAll()).object()["cases"].toArray();
+        QCOMPARE(cases.size(),5);
+        for(auto item:cases) {
+            auto c=item.toObject();QVector<float> input;
+            for(auto v:c["input"].toArray())input.append(float(v.toDouble()));
+            auto result=calculateFk(input,c["nx"].toInt(),c["nt"].toInt(),c["dt"].toDouble(),c["dx"].toDouble(),c["preprocess"].toBool());
+            auto expected=c["amplitude"].toArray();auto f=c["frequency"].toArray();auto k=c["wavenumber"].toArray();
+            QCOMPARE(result.amplitude.size(),expected.size());QCOMPARE(result.nf,f.size());QCOMPARE(result.nk,k.size());
+            double peak=0,error=0;for(auto v:expected)peak=qMax(peak,v.toDouble());
+            for(int j=0;j<expected.size();++j)error=qMax(error,std::abs(result.amplitude[j]-expected[j].toDouble()));
+            QVERIFY2(error/qMax(peak,1e-12)<2e-5,qPrintable(QString("FK reference error %1, nx=%2 nt=%3").arg(error/qMax(peak,1e-12)).arg(result.nk).arg(c["nt"].toInt())));
+            for(int j=0;j<f.size();++j)QVERIFY(std::abs(result.df*j-f[j].toDouble())<1e-10);
+            for(int j=0;j<k.size();++j)QVERIFY(std::abs(result.k0+result.dk*j-k[j].toDouble())<1e-10);
+        }
+        QVector<float> zero(7*37,0);
+        auto result=calculateFk(zero,7,37,.002,12.5,true);
+        for(float a:result.amplitude)QCOMPARE(a,0.0f);
+        QVERIFY_EXCEPTION_THROWN(calculateFk(zero,7,37,.002,0,true),std::runtime_error);
+        QVERIFY_EXCEPTION_THROWN(calculateFk(zero,7,37,.002,12.5,true,[](){return true;}),std::runtime_error);
+        zero[0]=std::numeric_limits<float>::quiet_NaN();
+        QVERIFY_EXCEPTION_THROWN(calculateFk(zero,7,37,.002,12.5,false),std::runtime_error);
+    }
+    void fkDefaultsToVisibleRange() {
+        control<QRadioButton>(window,"rbDirNorm")->setChecked(true);
+        QMetaObject::invokeMethod(window,"on_zoomAllBtn_pressed",Qt::DirectConnection);QTest::qWait(50);
+        auto scroll=control<MyScrollArea>(window,"seismicScrollArea");
+        auto open=[this](){control<QAction>(window,"actionFkSpectrum")->trigger();return dialog<FkSpectrumDialog>();};
+        auto fk=open();QVERIFY(fk);
+        QCOMPARE(control<QSpinBox>(fk,"fkFirst")->value(),1);
+        QCOMPARE(control<QSpinBox>(fk,"fkLast")->value(),120);
+        QCOMPARE(control<QDoubleSpinBox>(fk,"fkStart")->value(),0.0);
+        QVERIFY(control<QDoubleSpinBox>(fk,"fkEnd")->value()>1900);
+        fk->close();QTRY_VERIFY(dialog<FkSpectrumDialog>()==nullptr);
+        for(int i=0;i<3;++i)QMetaObject::invokeMethod(window,"on_zoomInBtn_pressed",Qt::DirectConnection);
+        scroll->horizontalScrollBar()->setValue(0);scroll->verticalScrollBar()->setValue(0);
+        // No paint wait: defaults must use the new scale immediately.
+        fk=open();QVERIFY(fk);
+        int leftLast=control<QSpinBox>(fk,"fkLast")->value();
+        double topEnd=control<QDoubleSpinBox>(fk,"fkEnd")->value();
+        QVERIFY(leftLast<80);QVERIFY(topEnd<1000);
+        fk->close();QTRY_VERIFY(dialog<FkSpectrumDialog>()==nullptr);
+        scroll->horizontalScrollBar()->setValue(scroll->horizontalScrollBar()->maximum());
+        scroll->verticalScrollBar()->setValue(scroll->verticalScrollBar()->maximum());
+        fk=open();QVERIFY(fk);
+        int rightFirst=control<QSpinBox>(fk,"fkFirst")->value();
+        QVERIFY(rightFirst>leftLast);
+        QVERIFY(control<QDoubleSpinBox>(fk,"fkStart")->value()>topEnd);
+        QCOMPARE(control<QSpinBox>(fk,"fkLast")->value(),120);
+        double t0=control<QDoubleSpinBox>(fk,"fkStart")->value();
+        double t1=control<QDoubleSpinBox>(fk,"fkEnd")->value();
+        QVERIFY(t0<t1);QVERIFY(t1<=1998);
+        QVERIFY(std::abs(t0/2-std::round(t0/2))<1e-6);
+        control<QSpinBox>(fk,"fkFirst")->setValue(1);
+        control<QAction>(window,"actionFkSpectrum")->trigger();
+        QCOMPARE(control<QSpinBox>(fk,"fkFirst")->value(),1);
+        fk->close();QTRY_VERIFY(dialog<FkSpectrumDialog>()==nullptr);
+        fk=open();QVERIFY(fk);QCOMPARE(control<QSpinBox>(fk,"fkFirst")->value(),rightFirst);
+        fk->close();QTRY_VERIFY(dialog<FkSpectrumDialog>()==nullptr);
+        control<QRadioButton>(window,"rbDirRev")->setChecked(true);
+        fk=open();QVERIFY(fk);
+        QVERIFY(control<QSpinBox>(fk,"fkFirst")->value()<=control<QSpinBox>(fk,"fkLast")->value());
+        QVERIFY(control<QSpinBox>(fk,"fkLast")->value()-control<QSpinBox>(fk,"fkFirst")->value()<80);
+        fk->close();QTRY_VERIFY(dialog<FkSpectrumDialog>()==nullptr);
+        control<QRadioButton>(window,"rbDirNorm")->setChecked(true);
+        QMetaObject::invokeMethod(window,"on_zoomAllBtn_pressed",Qt::DirectConnection);QTest::qWait(20);
+    }
+    void fkSizePreferences() {
+        control<QAction>(window,"actionFkSpectrum")->trigger();
+        auto fk=dialog<FkSpectrumDialog>();QVERIFY(fk);
+        if(qEnvironmentVariable("SEISEE_FK_SIZE_PROBE")=="1") {
+            QCOMPARE(control<QSpinBox>(fk,"fkImageWidth")->value(),930);
+            QCOMPARE(control<QSpinBox>(fk,"fkImageHeight")->value(),510);
+            QCOMPARE(control<QWidget>(fk,"fkPlot")->size(),QSize(930,510));
+            fk->close();return;
+        }
+        control<QSpinBox>(fk,"fkImageWidth")->setValue(930);
+        control<QSpinBox>(fk,"fkImageHeight")->setValue(510);
+        fk->close();QTRY_VERIFY(dialog<FkSpectrumDialog>()==nullptr);
+        control<QAction>(window,"actionFkSpectrum")->trigger();fk=dialog<FkSpectrumDialog>();QVERIFY(fk);
+        QCOMPARE(control<QSpinBox>(fk,"fkImageWidth")->value(),930);
+        QCOMPARE(control<QSpinBox>(fk,"fkImageHeight")->value(),510);
+        fk->close();QTRY_VERIFY(dialog<FkSpectrumDialog>()==nullptr);
+        QProcess child;
+        auto environment=QProcessEnvironment::systemEnvironment();
+        environment.insert("SEISEE_FK_SIZE_PROBE","1");
+        environment.insert("SEISEE_TEST_OUT",out+"/size-probe");
+        environment.insert("SEISEE_TEST_SETTINGS_ROOT",out+"/settings");
+        child.setProcessEnvironment(environment);
+        child.start(QCoreApplication::applicationFilePath(),QStringList()<<"fkSizePreferences");
+        QVERIFY(child.waitForFinished(15000));QCOMPARE(child.exitStatus(),QProcess::NormalExit);
+        QVERIFY2(child.exitCode()==0,child.readAllStandardOutput().constData());
+    }
+    void fkRangePaletteAndLifecycle() {
+        control<QAction>(window,"actionFkSpectrum")->trigger();
+        auto fk=dialog<FkSpectrumDialog>();QVERIFY(fk);QVERIFY(!fk->isModal());
+        QCOMPARE(fk->windowModality(),Qt::NonModal);QVERIFY(QApplication::activeModalWidget()!=fk);QVERIFY(window->isEnabled());
+        control<QSpinBox>(fk,"fkFirst")->setValue(4);
+        control<QSpinBox>(fk,"fkLast")->setValue(20);
+        control<QDoubleSpinBox>(fk,"fkEnd")->setValue(500);
+        control<QDoubleSpinBox>(fk,"fkFmin")->setValue(5);
+        control<QDoubleSpinBox>(fk,"fkFmax")->setValue(80);
+        control<QDoubleSpinBox>(fk,"fkKmin")->setValue(-.02);
+        control<QDoubleSpinBox>(fk,"fkKmax")->setValue(.02);
+        control<QDoubleSpinBox>(fk,"fkCmin")->setValue(-4);
+        control<QDoubleSpinBox>(fk,"fkCmax")->setValue(2);
+        control<QPushButton>(fk,"fkCalculate")->click();QVERIFY(fk->isCalculating());
+        QTRY_VERIFY_WITH_TIMEOUT(!fk->isCalculating(),15000);
+        QVERIFY2(control<QLabel>(fk,"fkStatus")->text().startsWith("Ready |"),qPrintable(control<QLabel>(fk,"fkStatus")->text()));
+        QVERIFY(control<QPushButton>(fk,"fkSave")->isEnabled());
+        QCOMPARE(control<QDoubleSpinBox>(fk,"fkFmax")->value(),80.0);
+        QCOMPARE(control<QDoubleSpinBox>(fk,"fkCmin")->value(),-4.0);
+        control<QSpinBox>(fk,"fkLast")->setValue(25);
+        control<QDoubleSpinBox>(fk,"fkEnd")->setValue(600);
+        control<QPushButton>(fk,"fkCalculate")->click();
+        QTRY_VERIFY_WITH_TIMEOUT(!fk->isCalculating(),15000);
+        QCOMPARE(control<QDoubleSpinBox>(fk,"fkFmin")->value(),5.0);
+        QCOMPARE(control<QDoubleSpinBox>(fk,"fkFmax")->value(),80.0);
+        QCOMPARE(control<QDoubleSpinBox>(fk,"fkKmin")->value(),-.02);
+        QCOMPARE(control<QDoubleSpinBox>(fk,"fkKmax")->value(),.02);
+        QCOMPARE(control<QDoubleSpinBox>(fk,"fkCmin")->value(),-4.0);
+        QCOMPARE(control<QDoubleSpinBox>(fk,"fkCmax")->value(),2.0);
+        control<QDoubleSpinBox>(fk,"fkFmin")->setValue(5);
+        control<QDoubleSpinBox>(fk,"fkFmax")->setValue(80);
+        control<QDoubleSpinBox>(fk,"fkKmin")->setValue(-.02);
+        control<QDoubleSpinBox>(fk,"fkKmax")->setValue(.02);
+        control<QDoubleSpinBox>(fk,"fkCmin")->setValue(-4);
+        control<QDoubleSpinBox>(fk,"fkCmax")->setValue(2);
+        control<QPushButton>(fk,"fkApply")->click();
+        auto plot=control<QWidget>(fk,"fkPlot");
+        auto widthEdit=control<QSpinBox>(fk,"fkImageWidth");
+        auto heightEdit=control<QSpinBox>(fk,"fkImageHeight");
+        widthEdit->setFocus();QTest::keyClick(widthEdit,Qt::Key_A,Qt::ControlModifier);QTest::keyClicks(widthEdit,"1200");
+        QCOMPARE(widthEdit->value(),1200);QCOMPARE(plot->width(),1200);
+        heightEdit->setFocus();QTest::keyClick(heightEdit,Qt::Key_A,Qt::ControlModifier);QTest::keyClicks(heightEdit,"420");
+        QCOMPARE(heightEdit->value(),420);QCOMPARE(plot->height(),420);
+        QTest::keyClick(heightEdit,Qt::Key_Return);QVERIFY(!fk->isCalculating());
+        control<QPushButton>(fk,"fkApplySize")->click();
+        QVERIFY(fk->savePng(out+"/fk_typed_size.png"));QCOMPARE(QImage(out+"/fk_typed_size.png").size(),QSize(1200,420));
+        auto viewport=control<QScrollArea>(fk,"fkViewport");
+        QTRY_VERIFY(viewport->horizontalScrollBar()->maximum()>0);
+        fk->grab().save(out+"/fk_jet_log.png");
+        auto jet=plot->grab().toImage();
+        control<QComboBox>(fk,"fkPalette")->setCurrentIndex(1);
+        auto viridis=plot->grab().toImage();QVERIFY(jet!=viridis);
+        control<QSpinBox>(fk,"fkImageWidth")->setValue(800);
+        control<QSpinBox>(fk,"fkImageHeight")->setValue(460);
+        QCOMPARE(plot->size(),QSize(800,460));
+        control<QComboBox>(fk,"fkPalette")->setCurrentIndex(3);
+        QVERIFY(fk->savePng(out+"/fk_smooth.png"));
+        QImage smooth(out+"/fk_smooth.png");QCOMPARE(smooth.size(),QSize(800,460));
+        control<QComboBox>(fk,"fkInterpolation")->setCurrentIndex(1);
+        QVERIFY(fk->savePng(out+"/fk_nearest.png"));
+        QImage nearest(out+"/fk_nearest.png");QVERIFY(smooth!=nearest);
+        auto maxRowColors=[](const QImage& image) {
+            int count=0;
+            for(int y=40;y<image.height()-80;y+=5) {
+                QSet<QRgb> colors;
+                for(int x=80;x<image.width()-155;++x)colors.insert(image.pixel(x,y));
+                count=qMax(count,colors.size());
+            }
+            return count;
+        };
+        QVERIFY(maxRowColors(smooth)>maxRowColors(nearest));
+        control<QComboBox>(fk,"fkInterpolation")->setCurrentIndex(0);
+        control<QComboBox>(fk,"fkPalette")->setCurrentIndex(1);
+        control<QSpinBox>(fk,"fkImageWidth")->setValue(700);
+        control<QSpinBox>(fk,"fkImageHeight")->setValue(600);
+        QVERIFY(fk->savePng(out+"/fk_tall.png"));QCOMPARE(QImage(out+"/fk_tall.png").size(),QSize(700,600));
+        control<QSpinBox>(fk,"fkImageWidth")->setValue(1000);
+        control<QSpinBox>(fk,"fkImageHeight")->setValue(360);
+        control<QComboBox>(fk,"fkScale")->setCurrentIndex(1);
+        QCOMPARE(control<QDoubleSpinBox>(fk,"fkCmin")->value(),-4.0);
+        QCOMPARE(control<QDoubleSpinBox>(fk,"fkCmax")->value(),2.0);
+        control<QPushButton>(fk,"fkAutoColor")->click();
+        fk->grab().save(out+"/fk_viridis_linear.png");
+        control<QDoubleSpinBox>(fk,"fkFmin")->setValue(90);
+        control<QPushButton>(fk,"fkApply")->click();
+        QVERIFY(control<QLabel>(fk,"fkStatus")->text().contains("minimum"));
+        control<QDoubleSpinBox>(fk,"fkFmin")->setValue(5);
+        control<QSpinBox>(fk,"fkLast")->setValue(120);
+        control<QDoubleSpinBox>(fk,"fkEnd")->setValue(1998);
+        control<QPushButton>(fk,"fkCalculate")->click();QVERIFY(fk->isCalculating());
+        fk->close();
+        QTRY_VERIFY(dialog<FkSpectrumDialog>()==nullptr);
+        control<QAction>(window,"actionFkSpectrum")->trigger();fk=dialog<FkSpectrumDialog>();QVERIFY(fk);
+        control<QPushButton>(fk,"fkCalculate")->click();QVERIFY(fk->isCalculating());
+        QVERIFY(window->close());QVERIFY(!fk->isCalculating());QVERIFY(!fk->isVisible());
+        QTest::qWait(10);window->show();
     }
     void numericGainAndRange() {
         QString scaled = out + "/data/half.sgy";

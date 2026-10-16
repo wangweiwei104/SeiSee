@@ -24,7 +24,8 @@ SOURCES += main.cpp\
     workthread.cpp \
     saveasdialog.cpp \
     diffdialog.cpp \
-    metricsdialog.cpp
+    metricsdialog.cpp \
+    fkspectrumdialog.cpp
 
 HEADERS  += mainwindow.h \
     ../CustomWdgets/customcontrols.h \
@@ -36,7 +37,9 @@ HEADERS  += mainwindow.h \
     workthread.h \
     saveasdialog.h \
     diffdialog.h \
-    metricsdialog.h
+    metricsdialog.h \
+    fkspectrumdialog.h \
+    fkcolormaps.h
 
 FORMS    += mainwindow.ui \
     edithdrdialog.ui \

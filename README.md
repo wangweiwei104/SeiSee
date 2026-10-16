@@ -54,6 +54,12 @@ process</br>
 
 ## 功能
 
+- **FK 谱绘制**：Tools → F-K Spectrum，支持自定义道／时间窗、道间距、频率／波数／色标范围、5 种色标及 PNG 保存。[使用说明](docs/fk-spectrum.md)。
+
+  ![FK 频谱实际数据界面](docs/images/fk-spectrum-example.png)
+
+  [本轮功能说明与验证范围](docs/fk-review-response.md)
+
 - 增加 **内置 Metrics 指标分析（Windows / Linux 共用源码）**：计算模式（Signal file / Noisy file）与估算模式（单文件），支持 MSE/RMSE、PSNR、SNR、SSIM、TPRS、道/时间范围选择、停止及 TXT 报告导出。[使用方法与两平台验证状态](docs/metrics.md)。
 
 - sgy/segy文件格式进行关联，实现双击打开文件。

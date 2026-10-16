@@ -44,6 +44,8 @@
 #include "saveasdialog.h"
 #include "diffdialog.h"
 #include "metricsdialog.h"
+#include "fkspectrumdialog.h"
+#include <QPointer>
 
 #include "workthread.h"
 
@@ -372,6 +374,7 @@ private slots:
 
     void on_actionDifference_triggered();
     void on_actionMetrics_triggered();
+    void on_actionFkSpectrum_triggered();
 
     void on_btnLastTr_2_clicked();
 
@@ -424,6 +427,7 @@ private:
     SaveAsDialog SaveAsDlg;
     DiffDialog DiffDlg;
     MetricsDialog MetricsDlg;
+    QPointer<FkSpectrumDialog> fkDialog;
 
     QList<DirItem> dlist;
     QStack<zdata> zstack;

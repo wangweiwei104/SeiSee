@@ -3,6 +3,9 @@
 
 #include <atomic>
 #include <vector>
+#include <functional>
+#include <QThread>
+#include <QVector>
 
 #ifdef _MSC_VER
 #pragma warning(push)
@@ -25,6 +28,34 @@
 #include "gfxobjseissect.h"
 
 //---------------------------------------------------------------------------------------------
+
+// Frequency rows (positive frequencies, excluding the even-length Nyquist bin),
+// shifted wavenumber columns. Same convention as fk_spectrum_fixed.py/python.
+struct FkSpectrum {
+    QVector<float> amplitude;
+    int nf = 0, nk = 0;
+    double df = 0, dk = 0, k0 = 0;
+};
+Q_DECLARE_METATYPE(FkSpectrum)
+FkSpectrum calculateFk(const QVector<float>& traces, int nx, int nt,
+                       double dt, double dx, bool preprocess,
+                       const std::function<bool()>& cancelled = {});
+
+class FkWorker : public QThread {
+    Q_OBJECT
+public:
+    QString path;
+    int fileType = 1, first = 0, last = 0, sampleFirst = 0, sampleLast = 0;
+    double dx = 1;
+    bool preprocess = true;
+    explicit FkWorker(QObject* parent = nullptr) : QThread(parent) {}
+signals:
+    void spectrumReady(FkSpectrum result);
+    void failed(QString message);
+    void progress(int percent);
+protected:
+    void run() override;
+};
 
 class DirItem
 {
