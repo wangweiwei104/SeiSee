@@ -54,8 +54,6 @@ process</br>
 
 ## 功能
 
-- 增加 **内置 Metrics 指标分析（Windows / Linux 共用源码）**：计算模式（Signal file / Noisy file）与估算模式（单文件），支持 MSE/RMSE、PSNR、SNR、SSIM、TPRS、道/时间范围选择、停止及 TXT 报告导出。[使用方法与两平台验证状态](docs/metrics.md)。
-
 - sgy/segy文件格式进行关联，实现双击打开文件。
 - 实现sgy/segy文件拖动至桌面图标打开。
 - 打开最近文件夹功能。
@@ -66,6 +64,7 @@ process</br>
 - 增加图件导出功能，提供300 400 600DPI图件导出，不再是单纯提升DPI和清晰度，而是高分辨率重绘，波形曲线更加平滑，不是高清的锯齿
 - 增加打开文件入口。
 - 增加 Difference功能，用于计算两个地震数据的差值。
+- 增加指标分析：计算模式（Signal file / Noisy file）与估算模式（Noisy file），支持 MSE/RMSE、PSNR、SNR、SSIM、TPRS、道/时间范围选择、停止及 TXT 报告导出。
 - 增加AGC的Statistical Type，包含ABS/RMS。
 - 增加文件目录浏览界面的右键菜单，可以获取文件名、文件路径、打开文件所在目录
 - 改进高 DPI、多显示器环境下的界面布局和显示效果。

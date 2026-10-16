@@ -2,43 +2,16 @@
 
 本文件记录 SeiSee 独立维护版本的用户可见变更。版本号与 `SeiSeeMp/mainwindow.h` 中的 `VERSION` 保持一致。
 
-## [Unreleased] - 2026-10-16
-
-### 文件选择、非模态交互与报告保存
-
-- 计算模式固定 Signal file，并将不可修改的输入框置灰；估算模式改为 Noisy file，默认沿用计算模式的选择，支持 Open 或粘贴路径更换。
-- 指标窗口改为非模态，并独立持有文件对象；主窗口关闭时安全停止计算并关闭指标窗口。
-- TPRS 改用 libCwp/pfafft.cpp 的 float 实数 FFT，移除自定义 FFT。
-- 概览表格改用 MyStringTable；报告第二行开始增加实际输入文件信息。
-- 默认保存到主窗口当前浏览目录，文件名为 `<noisy文件名>-metrics.txt`（去原扩展名），UTF-8 文本。
+## [4.0.0-alpha.8] - 2026-10-16
 
 ### 新增
 
-- Windows / Linux 主程序内置 Processing → Metrics，提供计算模式（Signal file / Noisy file）与估算模式（单文件）。
-- 支持 MSE/RMSE、PSNR、SNR、SSIM，以及单文件 TPRS；可选择道范围、道步长和时间范围，查看概览、详细报告及导出 TXT。
-- 支持停止计算；运行期间锁定参数，停止后不导出未完成报告；输入错误与保存结果显示在状态栏。
-
-### 工程与界面
-
-- 指标计算类并入 workthread.h/.cpp，取消独立 metricsworker 文件；指标为软件基本功能。
-- 回归配置并入 SeiSeeMp.pro，以 CONFIG+=metrics_regression 选择，不再保留独立测试 pro。
-- 指标窗口复用项目已有的 CustomRadioButton / CustomCheckBox；优化两模式、文件标签与指标布局。
+- 新增 Processing → Metrics 指标计算，支持 MSE/RMSE、PSNR、SNR、SSIM，以及单文件 TPRS，提供计算模式（Signal file / Noisy file）与估算模式（Noisy file）。
+- 增加默认保存文件名为 当前文件名-copy.原后缀
 
 ### 修复
 
 - 修复 Difference 对话框文件指针未初始化引起的退出崩溃。
-- 补强指标计算线程结束和销毁时序，停止标志使用原子变量。
-- 补充 MSVC Windows 构建需要的 advapi32 系统库。
-
-### 平台与验证
-
-- Windows x64 Release 已构建；100% / 125% / 150% / 200% 缩放及便携依赖环境的合成 SEG-Y 回归均为 7 项通过、0 失败。
-- Linux 已接入相同源码和原有 AppImage 构建链；本次尚未构建或运行 Linux 二进制，需重新打包验证。
-- [功能说明、指标含义和构建测试方法](docs/metrics.md)。
-- [本轮反馈对应的修改说明及验证范围](docs/metrics-review-response.md)。
-
-## [4.0.0-alpha.8] - 2026-10-16
-
 - 修复大数据显示时，放大功能放大到一定程度，发生位置偏移并且无法通过缩小回到原位置的bug.设置放大上限和消息提示
 
 ## [4.0.0-alpha.7] - 2026-10-14
