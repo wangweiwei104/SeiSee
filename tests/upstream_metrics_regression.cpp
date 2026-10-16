@@ -191,13 +191,18 @@ private slots:
         saveTimer.stop();
         QFile exported(saved); QVERIFY(exported.open(QIODevice::ReadOnly));
         QCOMPARE(QString::fromUtf8(exported.readAll()).replace("\r\n","\n"),control<QPlainTextEdit>(metrics,"txtResults")->toPlainText());
-        control<QRadioButton>(metrics,"rbEstimation")->setChecked(true);
+        QTest::mouseClick(estimation,Qt::LeftButton);
         QCOMPARE(QDir::cleanPath(control<QLineEdit>(metrics,"pathFile1")->text()),QDir::cleanPath(fixture));
         QVERIFY(control<QLabel>(metrics,"modeHint")->text().contains("mean"));
         QCOMPARE(control<QToolButton>(metrics,"btnCalculate")->text(),QString("Estimate"));
         QCOMPARE(control<QLabel>(metrics,"label_file1")->text(),QString("Input file:"));
         QVERIFY(control<QLineEdit>(metrics,"pathFile2")->isHidden());
         QVERIFY(!calculation->isChecked()); QVERIFY(estimation->isChecked());
+        QVERIFY(!control<QToolButton>(metrics,"btnSaveResults")->isEnabled());
+        for(auto box:metrics->findChildren<CustomCheckBox*>())
+            QVERIFY2(box->width() >= box->sizeHint().width(),qPrintable(box->objectName()));
+        for(auto radio:metrics->findChildren<CustomRadioButton*>())
+            QVERIFY2(radio->width() >= radio->sizeHint().width(),qPrintable(radio->objectName()));
         QMetaObject::invokeMethod(metrics,"on_btnCalculate_clicked",Qt::DirectConnection);
         QTRY_VERIFY_WITH_TIMEOUT(!metrics->isCalculating(),10000);
         QVERIFY(control<QPlainTextEdit>(metrics,"txtResults")->toPlainText().contains("Mean trace"));

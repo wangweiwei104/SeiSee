@@ -76,6 +76,10 @@ process</br>
 - 实现 Save as 界面 apply process的实际功能
 - 精心设计的高DPI图标。
 
+## 放大注意事项
+
+当地震数据道数较多时，绘图区域的尺寸限制会限制可放大的程度（Qt 对普通 QWidget 的尺寸有上限，约 1677 万像素）。若需要进一步放大，可使用 **Save As** 裁剪并保存较小范围的数据，再打开裁剪后的文件进行绘图，以获得更大的放大空间。
+
 ## 安装方法
 
 ### Windows
@@ -84,11 +88,25 @@ process</br>
 
 ### Linux
 
-从 [GitHub Releases](https://github.com/wangweiwei104/SeiSee/releases/latest) 下载适用于 x86_64 的 `.AppImage` 文件，在终端中进入下载目录后运行：
+从 [GitHub Releases](https://github.com/wangweiwei104/SeiSee/releases/latest) 下载适用于 x86_64 的 `.AppImage`、`.deb` 或 `.rpm` 文件。
+
+- AppImage：在终端中进入下载目录后运行：
 
 ```bash
 chmod +x SeiSee-*.AppImage
 ./SeiSee-*.AppImage
+```
+
+- deb（Debian/Ubuntu）：
+
+```bash
+sudo apt install ./seisee_*.deb
+```
+
+- rpm（Fedora/CentOS）：
+
+```bash
+sudo dnf install ./seisee-*.rpm   # CentOS 7 使用 sudo yum install ./seisee-*.rpm
 ```
 
 Linux 版本以 glibc 2.17 为兼容基线，目标支持 CentOS 7 及以上、Ubuntu 20.04 及以上的 x86_64 系统。运行需要桌面环境及宿主系统所需的图形运行库。若 CentOS 7 上无法挂载 AppImage，可尝试：

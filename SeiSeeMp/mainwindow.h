@@ -47,7 +47,7 @@
 
 #include "workthread.h"
 
-#define VERSION "4.0.0-alpha.7 + Metrics"
+#define VERSION "4.0.0-alpha.8"
 
 /*
 class zdata
@@ -528,6 +528,7 @@ private:
 
     void SetZoomC(double xs, double ys, int xc, int yc);
     void SetZoom(double xs, double ys, int xo, int yo, bool push = true);
+    void ClampZoom(double &xs, double &ys);
     void GetZoom(double &xs, double &ys, int &xo, int &yo);
 
     void Clear();
