@@ -2,7 +2,6 @@
 #define WORKTHREAD_H
 
 #include <atomic>
-#include <complex>
 #include <vector>
 
 #ifdef _MSC_VER
@@ -320,12 +319,10 @@ private:
     bool      m_calcTPRS;
 
 
-    double computeTPRS_realMode(int pStart = 75, int pEnd = 99); // 仅估算模式用
+    float computeTPRS_realMode(int pStart = 75, int pEnd = 99); // 仅估算模式用
 
     // FFT & shift helpers
-    static int nextPow2(int x);
-    static void fftRadix2(std::vector<std::complex<double>>& a);
-    static int  estimateShift(const float* a, const float* b, int n, int maxLag);
+    int  estimateShift(const float* a, const float* b, int n, int maxLag);
     static void applyShift(const float* src, float* dst, int n, int shift);
 
 

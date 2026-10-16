@@ -1068,6 +1068,7 @@ void MainWindow::ChangeDataDir(QString Dname, QString Find)
 
     addRecentDirectory(Dname);
     curDir = Dname;
+    MetricsDlg.curDir = QDir(curDir).absolutePath();
 
     find = Find;
 
@@ -1619,7 +1620,7 @@ int MainWindow::xprintf(QPlainTextEdit *edit, const char *fmt, ...)
 
 void MainWindow::closeEvent(QCloseEvent *event)
 {
-    if (MetricsDlg.isCalculating()) { event->ignore(); return; }
+    MetricsDlg.shutdown();
     if (m_exportInProgress) {
         m_closeAfterExport = true;
         m_exportCancellationRequested = true;

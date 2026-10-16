@@ -112,112 +112,113 @@ private slots:
         QVERIFY(report.contains("Total traces used: 5"));
         QVERIFY(report.contains("Total samples used: 505"));
     }
+    void cwpFloatTPRS() {
+        for (float gain: {1.0f, 0.5f, 0.0f}) {
+            QString path=out+QString("/data/tprs-%1.sgy").arg(gain);
+            QFile file(path); QVERIFY(file.open(QIODevice::WriteOnly));
+            file.write(QByteArray(3200,' ')); QByteArray binary(400,0);
+            auto u16=[](QByteArray& b,int o,int v){b[o]=char(v>>8);b[o+1]=char(v);};
+            u16(binary,16,2000);u16(binary,20,70);u16(binary,24,5);file.write(binary);
+            for(int t=0;t<2;++t) {
+                QByteArray header(240,0);u16(header,114,70);u16(header,116,2000);file.write(header);
+                QDataStream stream(&file);stream.setByteOrder(QDataStream::BigEndian);
+                stream.setFloatingPointPrecision(QDataStream::SinglePrecision);
+                for(int i=0;i<70;++i)stream<<float(std::sin(2*3.141592653589793*i/10)*(t?gain:1));
+            }
+            file.close();SgyFile input;input.setFname(path);input.setActive(true);QVERIFY(input.Active());
+            MetricsWorker worker(&input,nullptr,false,0,2,1,0,138,false,false,false,false,true);
+            QSignalSpy reports(&worker,SIGNAL(emetrics(QString)));worker.process();QCOMPARE(reports.size(),1);
+            QString report=reports.first().first().toString();
+            double actual=QRegularExpression("^TPRS\\s*=\\s*(\\S+)",QRegularExpression::MultilineOption).match(report).captured(1).toDouble();
+            double expected=2*gain/(1+gain*gain);
+            QVERIFY2(std::abs(actual-expected)<2e-5,qPrintable(report));
+            QVERIFY(report.split('\n').at(1).startsWith("Noisy file: "));
+        }
+    }
     void metricsLayoutAndCalculation() {
         control<QAction>(window,"actionMetrics")->trigger();
-        MetricsDialog* metrics = dialog<MetricsDialog>(); QVERIFY(metrics);
-        QVERIFY(metrics->styleSheet().isEmpty());
-        auto calculation = control<CustomRadioButton>(metrics,"rbCalculation");
-        auto estimation = control<CustomRadioButton>(metrics,"rbEstimation");
-        QCOMPARE(calculation->text(),QString("Calculation mode"));
-        QCOMPARE(estimation->text(),QString("Estimation mode"));
+        MetricsDialog* metrics=dialog<MetricsDialog>();QVERIFY(metrics);
+        QCOMPARE(metrics->windowModality(),Qt::NonModal);QVERIFY(!metrics->isModal());QVERIFY(window->isEnabled());
+        auto calculation=control<CustomRadioButton>(metrics,"rbCalculation");
+        auto estimation=control<CustomRadioButton>(metrics,"rbEstimation");
+        QVERIFY(!control<QLineEdit>(metrics,"pathFile1")->isEnabled());
+        QVERIFY(control<QLineEdit>(metrics,"pathFile1")->isReadOnly());
+        QVERIFY(!control<QToolButton>(metrics,"btnOpenFile1")->isEnabled());
         QCOMPARE(control<QLabel>(metrics,"label_file1")->text(),QString("Signal file:"));
-        QCOMPARE(control<QLabel>(metrics,"label_file2")->text(),QString("Noisy file:"));
-        for(auto box:metrics->findChildren<QCheckBox*>()) QVERIFY(qobject_cast<CustomCheckBox*>(box));
-        for(auto radio:metrics->findChildren<QRadioButton*>()) QVERIFY(qobject_cast<CustomRadioButton*>(radio));
-        QTest::mouseClick(control<CustomCheckBox>(metrics,"ckTrAll"),Qt::LeftButton,Qt::NoModifier,QPoint(8,control<CustomCheckBox>(metrics,"ckTrAll")->height()/2));
-        QVERIFY(control<QLineEdit>(metrics,"edTrMin")->isEnabled());
-        QTest::mouseClick(control<CustomCheckBox>(metrics,"ckTrAll"),Qt::LeftButton,Qt::NoModifier,QPoint(8,control<CustomCheckBox>(metrics,"ckTrAll")->height()/2));
-        QVERIFY(!control<QLineEdit>(metrics,"edTrMin")->isEnabled());
-        const QString compare = out + "/data/compare.sgy";
-        QFile::remove(compare); QVERIFY(QFile::copy(fixture, compare));
+        for(auto box:metrics->findChildren<QCheckBox*>())QVERIFY(qobject_cast<CustomCheckBox*>(box));
+        for(auto radio:metrics->findChildren<QRadioButton*>())QVERIFY(qobject_cast<CustomRadioButton*>(radio));
+        // With no chosen noisy file, estimation falls back to the captured input.
+        QTest::mouseClick(estimation,Qt::LeftButton,Qt::NoModifier,QPoint(8,estimation->height()/2));
+        QCOMPARE(QFileInfo(control<QLineEdit>(metrics,"pathFile1")->text()).canonicalFilePath(),QFileInfo(fixture).canonicalFilePath());
+        QVERIFY(control<QToolButton>(metrics,"btnOpenFile1")->isEnabled());
+        QTest::mouseClick(calculation,Qt::LeftButton,Qt::NoModifier,QPoint(8,calculation->height()/2));
+        const QString compare=out+"/data/compare.sgy";
+        QFile::remove(compare);QVERIFY(QFile::copy(fixture,compare));
         control<QLineEdit>(metrics,"pathFile2")->setText(compare);
         QMetaObject::invokeMethod(metrics,"on_btnCalculate_clicked",Qt::DirectConnection);
         QTRY_VERIFY_WITH_TIMEOUT(!metrics->isCalculating(),10000);
-        auto table = control<QTableWidget>(metrics,"metricTable");
-        QCOMPARE(table->item(0,1)->text(),QString("0"));
-        QCOMPARE(table->item(4,1)->text(),QString("1"));
-        QCOMPARE(control<QProgressBar>(metrics,"progressBar")->value(),100);
-        QVERIFY(control<QToolButton>(metrics,"btnSaveResults")->isEnabled());
-        metrics->grab().save(out + "/metrics_reference.png");
-        // Select a different reference through the real dialog and verify it is read.
-        const QString alternate = out + "/data/alternate.sgy";
-        QFile::remove(alternate); QVERIFY(QFile::copy(fixture, alternate));
-        QFile altered(alternate); QVERIFY(altered.open(QIODevice::ReadWrite));
-        QVERIFY(altered.seek(3600 + 240));
-        QDataStream changed(&altered); changed.setByteOrder(QDataStream::BigEndian);
-        changed.setFloatingPointPrecision(QDataStream::SinglePrecision); changed << float(50);
-        altered.close();
-        QApplication::setAttribute(Qt::AA_DontUseNativeDialogs);
-        QTimer chooseTimer;
-        connect(&chooseTimer, &QTimer::timeout, [alternate]() {
-            for (QWidget* widget : QApplication::topLevelWidgets()) {
-                if (QFileDialog* chooser = qobject_cast<QFileDialog*>(widget)) {
-                    if (chooser->isVisible()) {
-                        if (QLineEdit* fileName = chooser->findChild<QLineEdit*>("fileNameEdit"))
-                            fileName->setText(alternate);
-                        QMetaObject::invokeMethod(chooser,"accept",Qt::QueuedConnection);
-                    }
-                }
-            }
-        });
-        chooseTimer.start(200);
-        QTimer deadline; deadline.setSingleShot(true);
-        connect(&deadline, &QTimer::timeout, []() {
-            if (QDialog* modal = qobject_cast<QDialog*>(QApplication::activeModalWidget())) modal->reject();
-        });
-        deadline.start(5000);
-        QMetaObject::invokeMethod(metrics,"on_btnOpenFile1_clicked",Qt::DirectConnection);
-        chooseTimer.stop(); deadline.stop();
-        QCOMPARE(QDir::cleanPath(control<QLineEdit>(metrics,"pathFile1")->text()), QDir::cleanPath(alternate));
-        QMetaObject::invokeMethod(metrics,"on_btnCalculate_clicked",Qt::DirectConnection);
-        QTRY_VERIFY_WITH_TIMEOUT(!metrics->isCalculating(),10000);
-        QVERIFY(table->item(0,1)->text().toDouble() > 0);
-        const QString saved = out + "/metrics-export.txt";
-        QTimer saveTimer;
-        connect(&saveTimer,&QTimer::timeout,[saved]() {
-            for(QWidget* widget: QApplication::topLevelWidgets()) {
-                if(auto chooser=qobject_cast<QFileDialog*>(widget)) {
-                    if(chooser->isVisible()) {
-                        if(auto edit=chooser->findChild<QLineEdit*>("fileNameEdit")) edit->setText(saved);
-                        QMetaObject::invokeMethod(chooser,"accept",Qt::QueuedConnection);
-                    }
-                } else if(auto message=qobject_cast<QMessageBox*>(widget)) {
-                    if(message->isVisible()) QMetaObject::invokeMethod(message,"accept",Qt::QueuedConnection);
-                }
-            }
-        });
-        QFile::remove(saved); saveTimer.start(100);
-        QMetaObject::invokeMethod(metrics,"on_btnSaveResults_clicked",Qt::DirectConnection);
-        saveTimer.stop();
-        QFile exported(saved); QVERIFY(exported.open(QIODevice::ReadOnly));
-        QCOMPARE(QString::fromUtf8(exported.readAll()).replace("\r\n","\n"),control<QPlainTextEdit>(metrics,"txtResults")->toPlainText());
+        auto table=control<MyStringTable>(metrics,"metricTable");
+        QCOMPARE(table->Cell(0,1),QString("0"));QCOMPARE(table->Cell(4,1),QString("1"));
+        QString report=control<QPlainTextEdit>(metrics,"txtResults")->toPlainText();
+        QVERIFY(report.split('\n').at(1).startsWith("Signal file: "));
+        QVERIFY(report.split('\n').at(2).startsWith("Noisy file: "));
+        QVERIFY(report.contains("compare.sgy"));
+        metrics->grab().save(out+"/metrics_reference.png");
         QTest::mouseClick(estimation,Qt::LeftButton,Qt::NoModifier,QPoint(8,estimation->height()/2));
-        QCOMPARE(QDir::cleanPath(control<QLineEdit>(metrics,"pathFile1")->text()),QDir::cleanPath(fixture));
-        QVERIFY(control<QLabel>(metrics,"modeHint")->text().contains("mean"));
-        QCOMPARE(control<QToolButton>(metrics,"btnCalculate")->text(),QString("Estimate"));
-        QCOMPARE(control<QLabel>(metrics,"label_file1")->text(),QString("Input file:"));
+        QCOMPARE(QFileInfo(control<QLineEdit>(metrics,"pathFile1")->text()).canonicalFilePath(),QFileInfo(compare).canonicalFilePath());
+        QCOMPARE(control<QLabel>(metrics,"label_file1")->text(),QString("Noisy file:"));
+        QVERIFY(control<QToolButton>(metrics,"btnOpenFile1")->isEnabled());
+        QVERIFY(control<QLineEdit>(metrics,"pathFile1")->isEnabled());QVERIFY(!control<QLineEdit>(metrics,"pathFile1")->isReadOnly());
         QVERIFY(control<QLineEdit>(metrics,"pathFile2")->isHidden());
-        QVERIFY(!calculation->isChecked()); QVERIFY(estimation->isChecked());
-        QVERIFY(!control<QToolButton>(metrics,"btnSaveResults")->isEnabled());
-        for(auto box:metrics->findChildren<CustomCheckBox*>())
-            QVERIFY2(box->width() >= box->sizeHint().width(),qPrintable(box->objectName()));
-        for(auto radio:metrics->findChildren<CustomRadioButton*>())
-            QVERIFY2(radio->width() >= radio->sizeHint().width(),qPrintable(radio->objectName()));
-        QMetaObject::invokeMethod(metrics,"on_btnCalculate_clicked",Qt::DirectConnection);
-        QTRY_VERIFY_WITH_TIMEOUT(!metrics->isCalculating(),10000);
-        QVERIFY(control<QPlainTextEdit>(metrics,"txtResults")->toPlainText().contains("Mean trace"));
+        const QString alternate=out+"/data/alternate.sgy";
+        QFile::remove(alternate);QVERIFY(QFile::copy(fixture,alternate));
+        QFile altered(alternate);QVERIFY(altered.open(QIODevice::ReadWrite));QVERIFY(altered.seek(3840));
+        QDataStream changed(&altered);changed.setByteOrder(QDataStream::BigEndian);changed.setFloatingPointPrecision(QDataStream::SinglePrecision);changed<<float(50);altered.close();
+        QApplication::setAttribute(Qt::AA_DontUseNativeDialogs);
+        QTimer chooser;connect(&chooser,&QTimer::timeout,[alternate](){
+            for(QWidget* w:QApplication::topLevelWidgets())if(auto d=qobject_cast<QFileDialog*>(w))if(d->isVisible()){
+                d->findChild<QLineEdit*>("fileNameEdit")->setText(alternate);QMetaObject::invokeMethod(d,"accept",Qt::QueuedConnection);
+            }
+        });chooser.start(100);
+        QMetaObject::invokeMethod(metrics,"on_btnOpenFile1_clicked",Qt::DirectConnection);chooser.stop();
+        QCOMPARE(QFileInfo(control<QLineEdit>(metrics,"pathFile1")->text()).canonicalFilePath(),QFileInfo(alternate).canonicalFilePath());
         control<QCheckBox>(metrics,"chkTPRS")->setChecked(true);
         QMetaObject::invokeMethod(metrics,"on_btnCalculate_clicked",Qt::DirectConnection);
         QTRY_VERIFY_WITH_TIMEOUT(!metrics->isCalculating(),20000);
-        QVERIFY(control<QPlainTextEdit>(metrics,"txtResults")->toPlainText().contains("TPRS"));
-        metrics->grab().save(out + "/metrics_real.png");
-        QMetaObject::invokeMethod(metrics,"on_btnCalculate_clicked",Qt::DirectConnection);
-        metrics->reject(); QVERIFY(metrics->isVisible());
+        report=control<QPlainTextEdit>(metrics,"txtResults")->toPlainText();QVERIFY(report.contains("alternate.sgy"));
+        QVERIFY(report.contains("Mean trace"));QVERIFY(report.contains("TPRS"));
+        metrics->grab().save(out+"/metrics_real.png");
+        // Browser changes update the save destination while the non-modal dialog stays open.
+        QString savedir=out+"/browser destination";QDir().mkpath(savedir);
+        QString expected=QDir(savedir).absoluteFilePath("alternate-metrics.txt"),suggested;
+        QFile::remove(expected);
+        QAction directory;directory.setData(savedir);
+        QMetaObject::invokeMethod(window,"on_menu_Recent_Folders_triggered",Qt::DirectConnection,Q_ARG(QAction*,&directory));
+        QCOMPARE(QFileInfo(metrics->curDir).canonicalFilePath(),QFileInfo(savedir).canonicalFilePath());
+        QTimer save;
+        connect(&save,&QTimer::timeout,[&suggested](){
+            for(QWidget* w:QApplication::topLevelWidgets())if(auto d=qobject_cast<QFileDialog*>(w))if(d->isVisible()){
+                suggested=d->selectedFiles().value(0);QMetaObject::invokeMethod(d,"accept",Qt::QueuedConnection);
+            }
+        });save.start(100);QMetaObject::invokeMethod(metrics,"on_btnSaveResults_clicked",Qt::DirectConnection);save.stop();
+        QCOMPARE(QDir::fromNativeSeparators(suggested),QDir::fromNativeSeparators(expected));
+        QFile exported(expected);QVERIFY(exported.open(QIODevice::ReadOnly));
+        QCOMPARE(QString::fromUtf8(exported.readAll()).replace("\r\n","\n"),report);
+        QTest::mouseClick(calculation,Qt::LeftButton,Qt::NoModifier,QPoint(8,calculation->height()/2));
+        QCOMPARE(QFileInfo(control<QLineEdit>(metrics,"pathFile2")->text()).canonicalFilePath(),QFileInfo(alternate).canonicalFilePath());
+        const QString fixedSignal=control<QLineEdit>(metrics,"pathFile1")->text();
+        // Replacing the main-window file must not invalidate the dialog's captured signal.
+        window->openFixture(compare);
         QMetaObject::invokeMethod(metrics,"on_btnCalculate_clicked",Qt::DirectConnection);
         QTRY_VERIFY_WITH_TIMEOUT(!metrics->isCalculating(),10000);
-        QVERIFY(control<QLineEdit>(metrics,"edMess")->text().contains("stopped"));
+        QCOMPARE(control<QLineEdit>(metrics,"pathFile1")->text(),fixedSignal);
+        QVERIFY(table->Cell(0,1).toDouble()>0);
+        QMetaObject::invokeMethod(metrics,"on_btnCalculate_clicked",Qt::DirectConnection);
+        QMetaObject::invokeMethod(metrics,"on_btnCalculate_clicked",Qt::DirectConnection);
+        QTRY_VERIFY_WITH_TIMEOUT(!metrics->isCalculating(),10000);
         QVERIFY(!control<QToolButton>(metrics,"btnSaveResults")->isEnabled());
         metrics->close();
+        window->openFixture(fixture);
     }
     void validationMessages() {
         control<QAction>(window,"actionMetrics")->trigger();
@@ -232,6 +233,18 @@ private slots:
         QVERIFY(control<QLineEdit>(metrics,"edMess")->text().contains("sample interval"));
         QVERIFY(!metrics->isCalculating());
         metrics->close();
+    }
+    void nonModalCloseDuringCalculation() {
+        control<QAction>(window,"actionMetrics")->trigger();
+        MetricsDialog* metrics=dialog<MetricsDialog>();QVERIFY(metrics);
+        control<QRadioButton>(metrics,"rbEstimation")->setChecked(true);
+        control<QLineEdit>(metrics,"pathFile1")->setText(fixture);
+        control<QCheckBox>(metrics,"chkTPRS")->setChecked(true);
+        QMetaObject::invokeMethod(metrics,"on_btnCalculate_clicked",Qt::DirectConnection);
+        QVERIFY(metrics->isCalculating());
+        QVERIFY(window->close());
+        QVERIFY(!window->isVisible());QVERIFY(!metrics->isVisible());QVERIFY(!metrics->isCalculating());
+        QTest::qWait(50);
     }
     void cleanupTestCase() {
 

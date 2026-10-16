@@ -14,6 +14,8 @@
 #include <QFontDatabase>
 #include <QRegularExpression>
 #include <QIntValidator>
+#include <QSignalBlocker>
+#include <QFileInfo>
 
 MetricsDialog::MetricsDialog(QWidget *parent) :
     QDialog(parent),
@@ -25,21 +27,24 @@ MetricsDialog::MetricsDialog(QWidget *parent) :
     sf = nullptr;
     savDir = nullptr;
     sf2 = nullptr;
-    setWindowModality(Qt::ApplicationModal);
+    setWindowModality(Qt::NonModal);
+    setModal(false);
     setSizeGripEnabled(true);
     ui->bodyLayout->setStretch(0, 5);
     ui->bodyLayout->setStretch(1, 4);
     for (QLayout* layout : findChildren<QLayout*>()) layout->setSpacing(6);
     ui->verticalLayout_main->setSpacing(8);
-    ui->pathFile1->setToolTip(tr("Signal file defaults to the open file. Use Open to choose another signal file."));
+    ui->pathFile1->setToolTip(tr("Signal file is fixed to the file captured from the main window."));
     ui->btnSaveResults->setEnabled(false);
     ui->txtResults->setFont(QFontDatabase::systemFont(QFontDatabase::FixedFont));
     ui->txtResults->setPlaceholderText(tr("The full calculation report will appear here."));
-    ui->metricTable->setColumnCount(3);
-    ui->metricTable->setHorizontalHeaderLabels(QStringList() << tr("Metric") << tr("Value") << tr("Unit"));
-    ui->metricTable->horizontalHeader()->setSectionResizeMode(0, QHeaderView::ResizeToContents);
-    ui->metricTable->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch);
-    ui->metricTable->horizontalHeader()->setSectionResizeMode(2, QHeaderView::ResizeToContents);
+    ui->metricTable->setColCount(3);
+    ui->metricTable->setColLabel(0, tr("Metric"));
+    ui->metricTable->setColLabel(1, tr("Value"));
+    ui->metricTable->setColLabel(2, tr("Unit"));
+    ui->metricTable->setColWidthInCharacters(0, 8);
+    ui->metricTable->setColWidthToStretch(1);
+    ui->metricTable->setColWidthInCharacters(2, 5);
     ui->metricTable->verticalHeader()->hide();
     ui->metricTable->verticalHeader()->setDefaultSectionSize(28);
     ui->metricTable->setEditTriggers(QAbstractItemView::NoEditTriggers);
@@ -48,6 +53,12 @@ MetricsDialog::MetricsDialog(QWidget *parent) :
     ui->metricTable->setShowGrid(true);
     for (QLineEdit* edit : {ui->edTrMin, ui->edTrMax, ui->edTrStp})
         edit->setValidator(new QIntValidator(1, 2147483647, edit));
+    connect(ui->pathFile1, &QLineEdit::editingFinished, this, [this]() {
+        if (!running && !ui->rbCalculation->isChecked() && openNoisyFile()) FillLimits();
+    });
+    connect(ui->pathFile2, &QLineEdit::editingFinished, this, [this]() {
+        if (!running && openNoisyFile()) FillLimits();
+    });
     resetResults();
     updateAvailableMetrics(); // 初始化一次
 }
@@ -58,9 +69,9 @@ void MetricsDialog::resetResults()
     const QStringList names = QStringList() << "MSE" << "RMSE" << "PSNR" << "SNR" << "SSIM" << "TPRS";
     ui->metricTable->setRowCount(names.size());
     for (int row = 0; row < names.size(); ++row) {
-        ui->metricTable->setItem(row, 0, new QTableWidgetItem(names[row]));
-        ui->metricTable->setItem(row, 1, new QTableWidgetItem(QString::fromUtf8("\xe2\x80\x94")));
-        ui->metricTable->setItem(row, 2, new QTableWidgetItem(row == 2 || row == 3 ? "dB" : ""));
+        ui->metricTable->setCell(row, 0, names[row]);
+        ui->metricTable->setCell(row, 1, QString::fromUtf8("\xe2\x80\x94"));
+        ui->metricTable->setCell(row, 2, row == 2 || row == 3 ? "dB" : "");
     }
     ui->txtResults->clear();
     ui->btnSaveResults->setEnabled(false);
@@ -90,44 +101,52 @@ void MetricsDialog::closeEvent(QCloseEvent* event)
     else QDialog::closeEvent(event);
 }
 
-MetricsDialog::~MetricsDialog()
+void MetricsDialog::shutdown()
 {
     if (calculationThread) {
+        stopRequested = true;
         emit stop();
         calculationThread->quit();
         calculationThread->wait();
+        calculationThread = nullptr;
     }
-    if (referenceFile) {
-        referenceFile->UnRegisterLink(this);
-        delete referenceFile;
-    }
-    if(sf2)
-    {
-        sf2->UnRegisterLink(this);
-        delete sf2;
-    }
+    setRunning(false);
+    close();
+}
+
+MetricsDialog::~MetricsDialog()
+{
+    shutdown();
+    delete signalFile;
+    delete sf2;
     delete ui;
 }
 
 void MetricsDialog::show()
 {
-    if (running || !sf || !sf->Active()) return;
-    if (referenceFile) {
-        referenceFile->UnRegisterLink(this);
-        delete referenceFile;
-        referenceFile = nullptr;
+    if (isVisible() || running) { raise(); activateWindow(); return; }
+    if (!sf || !sf->Active()) return;
+    const QString path = QString::fromLocal8Bit(sf->Fname().c_str());
+    SeisFile* selected = sf->typeIdx() == 2 ? static_cast<SeisFile*>(new SuFile(this))
+        : sf->typeIdx() == 3 ? static_cast<SeisFile*>(new CstFile(this))
+        : static_cast<SeisFile*>(new SgyFile(this));
+    selected->setFname(path);
+    selected->setActive(true);
+    if (!selected->Active()) {
+        delete selected;
+        showMessage(tr("Metrics"), tr("Could not open the signal file."));
+        return;
     }
+    delete signalFile;
+    signalFile = selected;
+    fname = QDir::cleanPath(path);
+    sf = nullptr; // The main window may replace/delete its file while we are open.
+    stopRequested = false;
     resetResults();
     ui->edMess->setText(tr("Ready"));
     ui->progressBar->setValue(0);
-    QDialog::show();
-
-    fname = QString::fromLocal8Bit(sf->Fname().c_str());
-    fname = QDir::cleanPath(fname);
-    ui->pathFile1->setText(fname);
-
-    FillLimits();
     UpdateUIMode();
+    QDialog::show();
 }
 
 void MetricsDialog::on_rbCalculation_toggled(bool checked)
@@ -144,35 +163,30 @@ void MetricsDialog::on_rbEstimation_toggled(bool checked)
 
 void MetricsDialog::UpdateUIMode()
 {
-    bool isCalculation = ui->rbCalculation->isChecked();
-
-    ui->label_file1->setText(isCalculation ? tr("Signal file:") : tr("Input file:"));
+    if (running) return;
+    const bool isCalculation = ui->rbCalculation->isChecked();
+    if (!isCalculation && fname2.isEmpty()) fname2 = fname;
+    if (!isCalculation) openNoisyFile();
+    const QSignalBlocker block1(ui->pathFile1), block2(ui->pathFile2);
+    ui->label_file1->setText(isCalculation ? tr("Signal file:") : tr("Noisy file:"));
     ui->label_file2->setText(tr("Noisy file:"));
-    ui->pathFile1->setEnabled(true);
-    ui->label_file1->setEnabled(true);
-    ui->btnOpenFile1->setEnabled(isCalculation);
-    if (primaryFile()) {
-        fname = QDir::cleanPath(QString::fromLocal8Bit(primaryFile()->Fname().c_str()));
-        ui->pathFile1->setText(fname);
-        FillLimits();
-    }
-    ui->modeHint->setText(isCalculation
-        ? tr("Compare a signal file with a noisy file. Trace count, sample count and sample interval must match.")
-        : tr("Classic metrics use the mean of selected traces as a reference. These values are not ground-truth recovery scores."));
-
-    ui->pathFile2->setEnabled(isCalculation);
-    ui->btnOpenFile2->setEnabled(isCalculation);
-    ui->label_file2->setEnabled(isCalculation);
+    ui->pathFile1->setText(isCalculation ? fname : fname2);
+    ui->pathFile1->setToolTip(isCalculation ? fname : fname2);
+    ui->pathFile1->setReadOnly(isCalculation);
+    ui->pathFile1->setEnabled(!isCalculation);
+    ui->btnOpenFile1->setEnabled(!isCalculation);
+    ui->pathFile2->setText(fname2);
+    ui->pathFile2->setToolTip(fname2);
+    ui->pathFile2->setReadOnly(false);
     ui->pathFile2->setVisible(isCalculation);
     ui->btnOpenFile2->setVisible(isCalculation);
     ui->label_file2->setVisible(isCalculation);
-
-    // TPRS 仅用于估算模式
-    ui->chkTPRS->setEnabled(!isCalculation);
-    if (isCalculation) ui->chkTPRS->setChecked(false);
-
+    ui->modeHint->setText(isCalculation
+        ? tr("Signal file is fixed to the main-window file. Choose or paste the noisy file path.")
+        : tr("Choose or paste a noisy file path. Classic metrics use the mean trace as a reference, not ground truth."));
     updateAvailableMetrics();
     resetResults();
+    FillLimits();
     setRunning(false);
 }
 
@@ -185,7 +199,6 @@ void MetricsDialog::updateAvailableMetrics()
 
 void MetricsDialog::on_btnCalculate_clicked()
 {
-    SeisFile* primary = primaryFile();
     if(running)
     {
         stopRequested = true;
@@ -195,6 +208,8 @@ void MetricsDialog::on_btnCalculate_clicked()
         return;
     }
 
+    if (!openNoisyFile()) return;
+    SeisFile* primary = primaryFile();
     if(!primary || !primary->Active())
     {
         showMessage( "Error", "Primary file is not active!");
@@ -226,20 +241,6 @@ void MetricsDialog::on_btnCalculate_clicked()
             return;
         }
 
-        if(sf2)
-        {
-            sf2->UnRegisterLink(this);
-            delete sf2;
-        }
-
-        sf2 = new SgyFile(this);
-        sf2->setFname(fname2);
-        sf2->setActive(true);
-
-        if (!sf2->Active()) {
-            showMessage( tr("Metrics"), tr("Could not open the comparison file."));
-            return;
-        }
         if (!qFuzzyCompare(primary->Si(), sf2->Si())) {
             showMessage( tr("Metrics"), tr("The two files must have the same sample interval."));
             return;
@@ -329,61 +330,72 @@ void MetricsDialog::on_btnClose_clicked()
     close();
 }
 
-void MetricsDialog::on_btnOpenFile2_clicked()
+bool MetricsDialog::openNoisyFile()
 {
-    QString fileName = QFileDialog::getOpenFileName(
-        this, "Choose Noisy File",
-        curDir,
-        "SEG-Y file (*.sgy *.segy)");
-
-    if(fileName.isEmpty()) return;
-
-    ui->pathFile2->setText(fileName);
-    fname2 = fileName;
+    const QString path = fname2.trimmed();
+    if (path.isEmpty() || !QFileInfo(path).isFile()) {
+        showMessage(tr("Metrics"), tr("Please select a readable noisy file."));
+        return false;
+    }
+    if (sf2 && sf2->Active() && QDir::cleanPath(QString::fromLocal8Bit(sf2->Fname().c_str())) == QDir::cleanPath(path))
+        return true;
+    const int type = signalFile && QFileInfo(path).canonicalFilePath() == QFileInfo(fname).canonicalFilePath()
+        ? signalFile->typeIdx() : 1;
+    SeisFile* selected = type == 2 ? static_cast<SeisFile*>(new SuFile(this))
+        : type == 3 ? static_cast<SeisFile*>(new CstFile(this))
+        : static_cast<SeisFile*>(new SgyFile(this));
+    selected->setFname(path);
+    selected->setActive(true);
+    if (!selected->Active()) {
+        delete selected;
+        showMessage(tr("Metrics"), tr("Could not open the noisy file."));
+        return false;
+    }
+    delete sf2;
+    sf2 = selected;
+    fname2 = QDir::cleanPath(path);
+    FillLimits();
+    return true;
 }
+
+void MetricsDialog::chooseNoisyFile()
+{
+    if (running) return;
+    const QString chosen = QFileDialog::getOpenFileName(
+        this, tr("Choose Noisy File"), curDir, tr("SEG-Y file (*.sgy *.segy)"));
+    if (chosen.isEmpty()) return;
+    const QString previous = fname2;
+    fname2 = chosen;
+    if (!openNoisyFile()) { fname2 = previous; return; }
+    UpdateUIMode();
+}
+
+void MetricsDialog::on_btnOpenFile2_clicked() { chooseNoisyFile(); }
 
 void MetricsDialog::on_btnOpenFile1_clicked()
 {
-    QString fileName = QFileDialog::getOpenFileName(
-        this, "Choose Signal File",
-        curDir,
-        "SEG-Y file (*.sgy *.segy)");
-
-    if(fileName.isEmpty()) return;
-
-    SeisFile* selected = new SgyFile(this);
-    selected->setFname(fileName);
-    selected->setActive(true);
-    if (!selected->Active()) {
-        selected->UnRegisterLink(this);
-        delete selected;
-        showMessage( tr("Metrics"), tr("Could not open the reference file."));
-        return;
-    }
-    if (referenceFile) {
-        referenceFile->UnRegisterLink(this);
-        delete referenceFile;
-    }
-    referenceFile = selected;
-
-    ui->pathFile1->setText(fileName);
-    fname = fileName;
-    FillLimits();
+    if (!ui->rbCalculation->isChecked()) chooseNoisyFile();
 }
 
 SeisFile* MetricsDialog::primaryFile() const
 {
-    return ui->rbCalculation->isChecked() && referenceFile ? referenceFile : sf;
+    return ui->rbCalculation->isChecked() ? signalFile : sf2;
 }
 
-void MetricsDialog::on_pathFile1_textChanged(const QString &arg1)
+void MetricsDialog::on_pathFile1_textChanged(const QString &path)
 {
-    fname = arg1;
-    ui->pathFile1->setToolTip(arg1);
-    ui->pathFile1->setCursorPosition(0);
+    ui->pathFile1->setToolTip(path);
+    if (running || ui->rbCalculation->isChecked()) return;
+    fname2 = path;
+    resetResults();
 }
 
-
+QString MetricsDialog::defaultReportPath() const
+{
+    const QString base = QFileInfo(fname2).completeBaseName();
+    return QDir(curDir.isEmpty() ? QDir::currentPath() : curDir)
+        .absoluteFilePath((base.isEmpty() ? QString("noisy") : base) + "-metrics.txt");
+}
 
 void MetricsDialog::on_btnSaveResults_clicked()
 {
@@ -396,7 +408,7 @@ void MetricsDialog::on_btnSaveResults_clicked()
 
     QString fileName = QFileDialog::getSaveFileName(
         this, "Save Results",
-        *savDir,
+        defaultReportPath(),
         "Text File (*.txt)");
 
     if(fileName.isEmpty()) return;
@@ -409,11 +421,12 @@ void MetricsDialog::on_btnSaveResults_clicked()
     }
 
     QTextStream out(&file);
+    out.setCodec("UTF-8");
     out << results;
     file.close();
 
     QFileInfo fi(fileName);
-    *savDir = fi.dir().absolutePath();
+    if (savDir) *savDir = fi.dir().absolutePath();
 
     ui->edMess->setText(tr("Results saved: %1").arg(fileName));
 }
@@ -428,11 +441,12 @@ void MetricsDialog::on_ckTmAll_clicked()
     FillLimits();
 }
 
-void MetricsDialog::on_pathFile2_textChanged(const QString &arg1)
+void MetricsDialog::on_pathFile2_textChanged(const QString &path)
 {
-    fname2 = arg1;
-    ui->pathFile2->setToolTip(arg1);
-    ui->pathFile2->setCursorPosition(0);
+    ui->pathFile2->setToolTip(path);
+    if (running) return;
+    fname2 = path;
+    resetResults();
 }
 
 void MetricsDialog::FillLimits()
@@ -523,9 +537,9 @@ void MetricsDialog::x_metrics(QString results)
     QRegularExpressionMatchIterator matches = metricLine.globalMatch(results);
     while (matches.hasNext()) {
         const QRegularExpressionMatch match = matches.next();
-        for (int row = 0; row < ui->metricTable->rowCount(); ++row) {
-            if (ui->metricTable->item(row, 0)->text() == match.captured(1))
-                ui->metricTable->item(row, 1)->setText(match.captured(2));
+        for (int row = 0; row < ui->metricTable->RowCount(); ++row) {
+            if (ui->metricTable->Cell(row, 0) == match.captured(1))
+                ui->metricTable->setCell(row, 1, match.captured(2));
         }
     }
     ui->resultTabs->setCurrentIndex(0);

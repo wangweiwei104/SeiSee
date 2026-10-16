@@ -1,4 +1,5 @@
 #include "workthread.h"
+#include "cwp.h"
 
 #include <QCoreApplication>
 #include <QDebug>
@@ -22,6 +23,7 @@
 
 #include <math.h>
 #include <algorithm>
+#include <limits>
 #include <cmath>
 #ifdef min
 #undef min
@@ -1038,6 +1040,11 @@ void MetricsWorker::process()
         return;
     }
 
+    if (m_calcTPRS && m_tmmax - m_tmmin > 2 * PFA_MAX) {
+        emit efin("TPRS time window exceeds the libCwp FFT length limit. Select a shorter time range.");
+        emit finished();
+        return;
+    }
     long long Nt = m_sf1->Nt();
     m_trmin = std::max(0, m_trmin);
     m_trmax = std::min((int)Nt, m_trmax);
@@ -1141,6 +1148,9 @@ void MetricsWorker::process()
 
         QString out;
         out += "Mode: Calculation (signal vs noisy)\n";
+        out += QString("Signal file: %1\nNoisy file: %2\n")
+            .arg(QString::fromLocal8Bit(m_sf1->Fname().c_str()))
+            .arg(QString::fromLocal8Bit(m_sf2->Fname().c_str()));
         out += QString("Trace range: [%1, %2), step=%3\n").arg(m_trmin).arg(m_trmax).arg(inc);
         out += QString("Time samples: [%1, %2)\n").arg(m_tmmin).arg(m_tmmax);
         out += QString("Total traces used: %1\n").arg(total_traces);
@@ -1196,6 +1206,7 @@ void MetricsWorker::process()
 
             QString out;
             out += "Mode: Estimation (one file)\n";
+        out += QString("Noisy file: %1\n").arg(QString::fromLocal8Bit(m_sf1->Fname().c_str()));
             out += QString("Trace range: [%1, %2), step=%3\n").arg(m_trmin).arg(m_trmax).arg(inc);
             out += QString("Time samples: [%1, %2)\n").arg(m_tmmin).arg(m_tmmax);
             out += "\n";
@@ -1289,6 +1300,7 @@ void MetricsWorker::process()
 
         QString out;
         out += "Mode: Estimation (one file)\n";
+        out += QString("Noisy file: %1\n").arg(QString::fromLocal8Bit(m_sf1->Fname().c_str()));
         out += "Reference: Mean trace of selected traces\n";
         out += QString("Trace range: [%1, %2), step=%3\n").arg(m_trmin).arg(m_trmax).arg(inc);
         out += QString("Time samples: [%1, %2)\n").arg(m_tmmin).arg(m_tmmax);
@@ -1316,70 +1328,24 @@ void MetricsWorker::process()
 
 }
 
-#include <vector>
-#include <complex>
-#include <algorithm>
-#include <cmath>
-#include <QDebug>
-#include <QString>
-
-
-int MetricsWorker::nextPow2(int x)
-{
-    int p = 1;
-    while (p < x) p <<= 1;
-    return p;
-}
-
-// 迭代 Cooley–Tukey radix-2 FFT（in-place）
-void MetricsWorker::fftRadix2(std::vector<std::complex<double>>& a)
-{
-    int n = (int)a.size();
-    // bit-reversal
-    for (int i = 1, j = 0; i < n; i++)
-    {
-        int bit = n >> 1;
-        for (; j & bit; bit >>= 1) j ^= bit;
-        j ^= bit;
-        if (i < j) std::swap(a[i], a[j]);
-    }
-
-    for (int len = 2; len <= n; len <<= 1)
-    {
-        double ang = -2.0 * M_PI / (double)len;
-        std::complex<double> wlen(std::cos(ang), std::sin(ang));
-        for (int i = 0; i < n; i += len)
-        {
-            std::complex<double> w(1.0, 0.0);
-            for (int j = 0; j < len / 2; j++)
-            {
-                auto u = a[i + j];
-                auto v = a[i + j + len/2] * w;
-                a[i + j] = u + v;
-                a[i + j + len/2] = u - v;
-                w *= wlen;
-            }
-        }
-    }
-}
-
 // 估计 b 相对 a 的整数时移：max_{lag in [-maxLag,maxLag]} sum a[i]*b[i+lag]
 int MetricsWorker::estimateShift(const float* a, const float* b, int n, int maxLag)
 {
     if (!a || !b || n <= 1) return 0;
     maxLag = std::max(0, std::min(maxLag, n - 1));
 
-    double best = -1e300;
+    float best = -std::numeric_limits<float>::max();
     int bestLag = 0;
 
     for (int lag = -maxLag; lag <= maxLag; ++lag)
     {
-        double s = 0.0;
+        if (m_stop) return 0;
+        float s = 0.0f;
         int i0 = std::max(0, -lag);
         int i1 = std::min(n - 1, n - 1 - lag);
         for (int i = i0; i <= i1; ++i)
         {
-            s += (double)a[i] * (double)b[i + lag];
+            s += a[i] * b[i + lag];
         }
         if (s > best)
         {
@@ -1400,149 +1366,65 @@ void MetricsWorker::applyShift(const float* src, float* dst, int n, int shift)
     }
 }
 
-double MetricsWorker::computeTPRS_realMode(int pStart, int pEnd)
+namespace {
+// Backend adapter: reuse libCwp's float real FFT, with zero padding only.
+void realTraceSpectrum(const float* samples, int count, int nfft,
+                       std::vector<float>& time, std::vector<complex>& spectrum)
 {
-    auto prog = [&](int local0to100, const char* msg){
-        int p = pStart + (int)((pEnd - pStart) * (local0to100 / 100.0));
-        if (p < pStart) p = pStart;
-        if (p > pEnd)   p = pEnd;
-        emit eprogr(p, msg);
+    std::fill(time.begin(), time.end(), 0.0f);
+    std::copy(samples, samples + count, time.begin());
+    pfarc(1, nfft, time.data(), spectrum.data());
+}
+}
+
+float MetricsWorker::computeTPRS_realMode(int pStart, int pEnd)
+{
+    auto progress = [&](int percent, const char* message) {
+        emit eprogr(pStart + (pEnd - pStart) * percent / 100, message);
     };
-
-    const int m = (m_tmmax - m_tmmin);
-    int incTr = m_trstp;
-    if (incTr < 1) incTr = 1;
-
-
-    std::vector<std::vector<float>> traceData;
-    traceData.reserve((m_trmax > m_trmin) ? ((m_trmax - m_trmin + incTr - 1) / incTr) : 0);
-
-    for (long long tidx = m_trmin; tidx < m_trmax; tidx += incTr) {
-        const float* a = m_sf1->Rs(tidx);
-        if (a) {
-            // 复制数据到独立的vector
-            std::vector<float> trace(m);
-            for (int i = 0; i < m; ++i) {
-                trace[i] = a[m_tmmin + i];
-            }
-            traceData.push_back(std::move(trace));
-        }
+    const int count = m_tmmax - m_tmmin;
+    const int step = std::max(1, m_trstp);
+    std::vector<std::vector<float>> traces;
+    for (int t = m_trmin; t < m_trmax; t += step) {
+        if (m_stop) return 0.0f;
+        const float* samples = m_sf1->Rs(t);
+        if (samples) traces.emplace_back(samples + m_tmmin, samples + m_tmmax);
     }
-
-    const int ntr = (int)traceData.size();
-    if (ntr < 2 || m < 8) {
-        prog(100, "TPRS: not enough data");
-        return 0.0;
+    if (traces.size() < 2 || count < 8) {
+        progress(100, "TPRS: not enough data");
+        return 0.0f;
     }
-
-    // 建立指针数组（指向各自的数据副本）
-    std::vector<const float*> traces(ntr);
-    for (int t = 0; t < ntr; ++t) {
-        traces[t] = traceData[t].data();
+    const int nfft = npfar(count);
+    const int bins = nfft / 2; // Keep the previous convention: omit Nyquist.
+    std::vector<float> time(nfft), px(bins, 0.0f), ps(bins, 0.0f);
+    std::vector<complex> spectrum(bins + 1), first(bins + 1), second(bins + 1);
+    for (int t = 0; t < int(traces.size()); ++t) {
+        if (m_stop) return 0.0f;
+        realTraceSpectrum(traces[t].data(), count, nfft, time, spectrum);
+        for (int k = 0; k < bins; ++k)
+            px[k] += spectrum[k].r * spectrum[k].r + spectrum[k].i * spectrum[k].i;
+        progress(40 * t / int(traces.size()), "TPRS: computing Px...");
     }
-
-    int nfft = nextPow2(m);
-    const int nhalf = nfft / 2;
-
-    // ===== 验证数据确实不同 =====
-    qDebug() << "===== Verifying trace data =====";
-    for (int t = 0; t < std::min(3, ntr-1); ++t) {
-        double diff = 0.0;
-        for (int i = 0; i < m; ++i) {
-            diff += std::abs(traces[t][i] - traces[t+1][i]);
-        }
-        qDebug() << "Sum|trace[" << t << "] - trace[" << t+1 << "]| =" << diff;
+    const int pairs = int(traces.size()) - 1;
+    const int maxLag = std::max(1, std::min(200, count / 2));
+    std::vector<float> shifted(count);
+    for (int t = 0; t < pairs; ++t) {
+        if (m_stop) return 0.0f;
+        const int lag = estimateShift(traces[t].data(), traces[t+1].data(), count, maxLag);
+        applyShift(traces[t+1].data(), shifted.data(), count, lag);
+        realTraceSpectrum(traces[t].data(), count, nfft, time, first);
+        realTraceSpectrum(shifted.data(), count, nfft, time, second);
+        for (int k = 0; k < bins; ++k)
+            ps[k] += std::fabs(first[k].r * second[k].r + first[k].i * second[k].i);
+        progress(40 + 60 * t / pairs, "TPRS: computing Ps...");
     }
-
-    // ===== 第一步：计算 Px_avr =====
-    std::vector<std::complex<double>> X(nfft);
-    std::vector<double> Px_sum(nhalf, 0.0);
-
-    for (int t = 0; t < ntr; ++t) {
-        for (int i = 0; i < m; ++i)
-            X[i] = std::complex<double>((double)traces[t][i], 0.0);
-        for (int i = m; i < nfft; ++i)
-            X[i] = std::complex<double>(0.0, 0.0);
-
-        fftRadix2(X);
-
-        for (int k = 0; k < nhalf; ++k) {
-            Px_sum[k] += std::norm(X[k]);
-        }
-
-        if ((t & 0x3f) == 0) {
-            prog((int)(40.0 * t / ntr), "TPRS: computing Px...");
-            if (m_stop) return 0.0;
-        }
+    float signalPower = 0.0f, totalPower = 0.0f;
+    for (int k = 0; k < bins; ++k) {
+        signalPower += ps[k] / pairs;
+        totalPower += px[k] / float(traces.size());
     }
-
-    std::vector<double> Px_avr(nhalf);
-    for (int k = 0; k < nhalf; ++k)
-        Px_avr[k] = Px_sum[k] / (double)ntr;
-
-    // ===== 第二步：计算 Ps_avr =====
-    std::vector<std::complex<double>> A(nfft), B(nfft);
-    std::vector<double> Ps_sum(nhalf, 0.0);
-    std::vector<float> bShift(m);
-
-    int maxLag = std::min(200, m / 2);
-    if (maxLag < 1) maxLag = 1;
-
-    const int nPairs = ntr - 1;
-
-    for (int j = 0; j < nPairs; ++j) {
-        const float* a = traces[j];
-        const float* b = traces[j + 1];
-
-        int lag = estimateShift(a, b, m, maxLag);
-        applyShift(b, bShift.data(), m, lag);
-
-        for (int i = 0; i < m; ++i) {
-            A[i] = std::complex<double>((double)a[i], 0.0);
-            B[i] = std::complex<double>((double)bShift[i], 0.0);
-        }
-        for (int i = m; i < nfft; ++i) {
-            A[i] = std::complex<double>(0.0, 0.0);
-            B[i] = std::complex<double>(0.0, 0.0);
-        }
-
-        fftRadix2(A);
-        fftRadix2(B);
-
-        for (int k = 0; k < nhalf; ++k) {
-            std::complex<double> c = A[k] * std::conj(B[k]);
-            double ps_val = 2.0 * std::real(c);
-            Ps_sum[k] += std::abs(ps_val);
-        }
-
-        if ((j & 0x1f) == 0) {
-            prog(40 + (int)(60.0 * j / nPairs), "TPRS: computing Ps...");
-            if (m_stop) return 0.0;
-        }
-    }
-
-    std::vector<double> Ps_avr(nhalf);
-    for (int k = 0; k < nhalf; ++k)
-        Ps_avr[k] = Ps_sum[k] / (2.0 * (double)nPairs);
-
-    // ===== 第三步：计算 TPRS =====
-    double sumPs = 0.0, sumPx = 0.0;
-    for (int k = 0; k < nhalf; ++k) {
-        sumPs += Ps_avr[k];
-        sumPx += Px_avr[k];
-    }
-
-    qDebug() << "sumPs:" << sumPs << "sumPx:" << sumPx << "ratio:" << (sumPs/sumPx);
-
-    if (!(sumPx > 0.0) || !std::isfinite(sumPx) || !std::isfinite(sumPs)) {
-        prog(100, "TPRS: invalid spectrum");
-        return 0.0;
-    }
-
-    double tprs = sumPs / sumPx;
-    if (!std::isfinite(tprs) || tprs < 0.0) tprs = 0.0;
-    if (tprs > 1.0) tprs = 1.0;
-
-    prog(100, "TPRS: done");
-    return tprs;
+    progress(100, "TPRS: done");
+    if (!(totalPower > 0.0f) || !std::isfinite(totalPower) || !std::isfinite(signalPower))
+        return 0.0f;
+    return std::max(0.0f, std::min(1.0f, signalPower / totalPower));
 }

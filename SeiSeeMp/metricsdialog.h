@@ -21,9 +21,10 @@ public:
 
     void show();
     void reject() override;
+    void shutdown();
     bool isCalculating() const { return running; }
 
-    SeisFile* sf;      // 主文件（当前打开的文件）
+    SeisFile* sf;      // Transient main-window input; captured independently when shown.
     QString*  savDir;  // 保存目录
     QString   curDir;  // 当前目录
 
@@ -54,10 +55,10 @@ private slots:
 private:
     Ui::MetricsDialog *ui;
 
-    QString  fname;      // 主文件路径
-    QString  fname2;     // 副文件路径（合成模式）
-    SeisFile* sf2;       // 副文件对象
-    SeisFile* referenceFile = nullptr; // Optional selected reference, owned here.
+    QString  fname;      // Fixed signal file path
+    QString  fname2;     // Shared noisy file path for calculation and estimation
+    SeisFile* sf2;       // Owned noisy file reader
+    SeisFile* signalFile = nullptr; // Independent snapshot of the main signal file.
     bool     running;
     bool     stopRequested;
     QThread* calculationThread = nullptr;
@@ -74,10 +75,9 @@ private:
     void UpdateUIMode();
     int  ReadTxt(QLineEdit* edt, bool& ok);
 
-    bool m_calcPSNR;
-    bool m_calcSSIM;
-    bool m_calcMSE;
-    bool m_calcSNR;
+    bool openNoisyFile();
+    void chooseNoisyFile();
+    QString defaultReportPath() const;
 };
 
 #endif // METRICSDIALOG_H

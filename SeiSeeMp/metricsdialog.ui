@@ -308,7 +308,7 @@
            </attribute>
            <layout class="QVBoxLayout" name="summaryLayout">
             <item>
-             <widget class="QTableWidget" name="metricTable" />
+             <widget class="MyStringTable" name="metricTable" />
             </item>
             <item>
              <widget class="QLabel" name="resultHint">
@@ -424,6 +424,11 @@
  </resources>
  <connections />
  <customwidgets>
+  <customwidget>
+   <class>MyStringTable</class>
+   <extends>QTableView</extends>
+   <header>mystringtable.h</header>
+  </customwidget>
   <customwidget>
    <class>CustomCheckBox</class>
    <extends>QCheckBox</extends>
