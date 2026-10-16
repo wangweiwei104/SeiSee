@@ -46,7 +46,7 @@ public:
     explicit Worker(QObject *parent = 0);
 
 protected:
-    bool m_stop;
+    std::atomic_bool m_stop;
 
     virtual void xprint(QString str)
     {

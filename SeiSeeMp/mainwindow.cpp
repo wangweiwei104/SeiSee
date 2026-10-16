@@ -1601,6 +1601,7 @@ int MainWindow::xprintf(QPlainTextEdit *edit, const char *fmt, ...)
 
 void MainWindow::closeEvent(QCloseEvent *event)
 {
+    if (MetricsDlg.isCalculating()) { event->ignore(); return; }
     if (m_exportInProgress) {
         m_closeAfterExport = true;
         m_exportCancellationRequested = true;
@@ -1615,6 +1616,7 @@ void MainWindow::closeEvent(QCloseEvent *event)
     AboutDlg.close();
     AxisDlg.close();
     DiffDlg.close();
+    MetricsDlg.close();
     EdHdrDlg.close();
     ProcParmDlg.close();
     SaveAsDlg.close();
@@ -4399,4 +4401,14 @@ void MainWindow::on_ckDly_toggled(bool checked)
     }
 
     InitSeisView();
+}
+
+void MainWindow::on_actionMetrics_triggered()
+{
+    SeisFile *sf = seisSrc.Sfile();
+    if (!sf || !sf->Active()) return;
+    MetricsDlg.sf = sf;
+    MetricsDlg.curDir = QDir(curDir).absolutePath();
+    MetricsDlg.savDir = &savDir;
+    MetricsDlg.show();
 }
