@@ -19,7 +19,7 @@ Windows 和 Linux 使用同一套指标界面与计算源码。先打开地震�
 
 本次已构建并验证 **Windows x64 / Qt 5.15.2 / MSVC 2022** 便携版本。**本次没有构建或运行 Linux 二进制**；Linux 需要在原有 Linux 构建环境中重新打包并验证，不能将此前发布的 AppImage 视为已包含 Metrics。
 
-回归测试使用合成 SEG-Y，覆盖相同文件的 MSE=0、SSIM=1；半幅信号的 MSE 与 SNR=6.020599913 dB；指定道/时间范围；参考文件切换；单文件均值参考及 TPRS；报告导出；停止状态；采样间隔不一致校验。Windows 100% / 150% 缩放和便携运行库环境均为 **5 项通过、0 失败**（含初始化与清理）。已检查离屏界面图，尚未全面验证真实大体积数据、原生文件对话框及多显示器。
+回归测试使用合成 SEG-Y，覆盖相同文件的 MSE=0、SSIM=1；半幅信号的 MSE 与 SNR=6.020599913 dB；指定道/时间范围；参考文件切换；单文件均值参考及 TPRS；报告导出；停止状态；采样间隔不一致校验。Windows 100% / 125% / 150% / 200% 缩放和便携运行库环境均为 **5 项通过、0 失败**（含初始化与清理）。已检查离屏界面图，尚未全面验证真实大体积数据、原生文件对话框及多显示器。
 
 ## 开发者回归测试
 
@@ -40,7 +40,7 @@ mkdir -p results
 QT_QPA_PLATFORM=offscreen SEISEE_TEST_OUT="$PWD/results" ./metrics_regression
 ```
 
-Windows 在 MSVC 开发者终端中使用同样的目录结构、qmake 和 nmake，测试程序位于 `MetricsRegression/release/metrics_regression.exe`。Qt DLL、平台插件和可用字体必须可被找到；缩放回归分别设置 `QT_SCALE_FACTOR=1` 和 `1.5`。上述 Linux 命令为构建指引，尚未在本次环境执行。
+Windows 在 MSVC 开发者终端中使用同样的目录结构、qmake 和 nmake，测试程序位于 `MetricsRegression/release/metrics_regression.exe`。Qt DLL、平台插件和可用字体必须可被找到；缩放回归分别设置 `QT_SCALE_FACTOR=1`、`1.25`、`1.5`、`2`。上述 Linux 命令为构建指引，尚未在本次环境执行。
 
 ## 内置实现与工程结构
 

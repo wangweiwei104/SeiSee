@@ -479,10 +479,14 @@ void MetricsDialog::x_fin(QString mess)
 {
     if (stopRequested) {
         resetResults();
-        ui->edMess->setText(tr("Calculation stopped. No complete result was saved."));
+        ui->edMess->setText(ui->rbCalculation->isChecked()
+            ? tr("Calculation stopped. No complete result was saved.")
+            : tr("Estimation stopped. No complete result was saved."));
         ui->progressBar->setValue(0);
     } else if (!ui->txtResults->toPlainText().isEmpty()) {
-        ui->edMess->setText(tr("Calculation complete. Results are ready to export."));
+        ui->edMess->setText(ui->rbCalculation->isChecked()
+            ? tr("Calculation complete. Results are ready to export.")
+            : tr("Estimation complete. Results are ready to export."));
         ui->progressBar->setValue(100);
     } else {
         ui->edMess->setText(mess);

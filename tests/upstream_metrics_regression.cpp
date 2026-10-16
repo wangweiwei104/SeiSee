@@ -124,9 +124,9 @@ private slots:
         QCOMPARE(control<QLabel>(metrics,"label_file2")->text(),QString("Noisy file:"));
         for(auto box:metrics->findChildren<QCheckBox*>()) QVERIFY(qobject_cast<CustomCheckBox*>(box));
         for(auto radio:metrics->findChildren<QRadioButton*>()) QVERIFY(qobject_cast<CustomRadioButton*>(radio));
-        QTest::mouseClick(control<CustomCheckBox>(metrics,"ckTrAll"),Qt::LeftButton);
+        QTest::mouseClick(control<CustomCheckBox>(metrics,"ckTrAll"),Qt::LeftButton,Qt::NoModifier,QPoint(8,control<CustomCheckBox>(metrics,"ckTrAll")->height()/2));
         QVERIFY(control<QLineEdit>(metrics,"edTrMin")->isEnabled());
-        QTest::mouseClick(control<CustomCheckBox>(metrics,"ckTrAll"),Qt::LeftButton);
+        QTest::mouseClick(control<CustomCheckBox>(metrics,"ckTrAll"),Qt::LeftButton,Qt::NoModifier,QPoint(8,control<CustomCheckBox>(metrics,"ckTrAll")->height()/2));
         QVERIFY(!control<QLineEdit>(metrics,"edTrMin")->isEnabled());
         const QString compare = out + "/data/compare.sgy";
         QFile::remove(compare); QVERIFY(QFile::copy(fixture, compare));
@@ -191,7 +191,7 @@ private slots:
         saveTimer.stop();
         QFile exported(saved); QVERIFY(exported.open(QIODevice::ReadOnly));
         QCOMPARE(QString::fromUtf8(exported.readAll()).replace("\r\n","\n"),control<QPlainTextEdit>(metrics,"txtResults")->toPlainText());
-        QTest::mouseClick(estimation,Qt::LeftButton);
+        QTest::mouseClick(estimation,Qt::LeftButton,Qt::NoModifier,QPoint(8,estimation->height()/2));
         QCOMPARE(QDir::cleanPath(control<QLineEdit>(metrics,"pathFile1")->text()),QDir::cleanPath(fixture));
         QVERIFY(control<QLabel>(metrics,"modeHint")->text().contains("mean"));
         QCOMPARE(control<QToolButton>(metrics,"btnCalculate")->text(),QString("Estimate"));
