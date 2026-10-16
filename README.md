@@ -54,6 +54,8 @@ process</br>
 
 ## 功能
 
+- 增加 **内置 Metrics 指标分析（Windows / Linux 共用源码）**：计算模式（Signal file / Noisy file）与估算模式（单文件），支持 MSE/RMSE、PSNR、SNR、SSIM、TPRS、道/时间范围选择、停止及 TXT 报告导出。[使用方法与两平台验证状态](docs/metrics.md)。
+
 - sgy/segy文件格式进行关联，实现双击打开文件。
 - 实现sgy/segy文件拖动至桌面图标打开。
 - 打开最近文件夹功能。

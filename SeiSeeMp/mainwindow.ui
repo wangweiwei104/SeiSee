@@ -3388,6 +3388,7 @@
     <addaction name="actionParameters"/>
     <addaction name="actionHeader_Editor"/>
     <addaction name="actionDifference"/>
+    <addaction name="actionMetrics"/>
    </widget>
    <addaction name="menu_File"/>
    <addaction name="menuView"/>
@@ -3452,6 +3453,10 @@
    <property name="text">
     <string>Open File</string>
    </property>
+  </action>
+  <action name="actionMetrics">
+   <property name="text"><string>Metrics</string></property>
+   <property name="toolTip"><string>Calculate seismic quality metrics</string></property>
   </action>
   <action name="actionDifference">
    <property name="text">
