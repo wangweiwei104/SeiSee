@@ -2,6 +2,7 @@
 #define WORKTHREAD_H
 
 #include <atomic>
+#include <vector>
 
 #ifdef _MSC_VER
 #pragma warning(push)
@@ -46,7 +47,7 @@ public:
     explicit Worker(QObject *parent = 0);
 
 protected:
-    bool m_stop;
+    std::atomic_bool m_stop;
 
     virtual void xprint(QString str)
     {
@@ -272,5 +273,66 @@ public slots:
     void process() override;
 };
 //---------------------------------------------------------------------------------------------
+
+// Built-in seismic quality metrics.
+class MetricsWorker : public Worker
+{
+    Q_OBJECT
+
+public:
+    MetricsWorker(SeisFile* sf1,
+                  SeisFile* sf2,
+                  bool    isCalculation,
+                  int     trmin,
+                  int     trmax,
+                  int     trstp,
+                  int     tmmin,
+                  int     tmmax,
+                  bool    calcPSNR,
+                  bool    calcSSIM,
+                  bool    calcMSE,
+                  bool    calcSNR,
+                  bool    calcTPRS,
+                  QObject *parent = nullptr);
+
+public slots:
+    void process();
+
+signals:
+    void emetrics(QString results);
+    void eprogr(int pers, QString mess);
+    void efin(QString mess);
+
+private:
+    SeisFile* m_sf1;         // 主文件
+    SeisFile* m_sf2;         // 副文件（计算模式）
+    bool      m_isCalculation; // 模式：true=计算，false=估算
+    int       m_trmin;       // 道范围
+    int       m_trmax;
+    int       m_trstp;
+    int       m_tmmin;       // 时间范围（采样点索引）
+    int       m_tmmax;
+    bool      m_calcPSNR;
+    bool      m_calcSSIM;
+    bool      m_calcMSE;
+    bool      m_calcSNR;
+    bool      m_calcTPRS;
+
+
+    float computeTPRS_realMode(int pStart = 75, int pEnd = 99); // 仅估算模式用
+
+    // FFT & shift helpers
+    int  estimateShift(const float* a, const float* b, int n, int maxLag);
+    static void applyShift(const float* src, float* dst, int n, int shift);
+
+
+    // 辅助函数
+    double safe_log10(double x);
+    double ssim1d(const float* x, const float* y, int n, int win = 11);
+};
+
+
+
+
 
 #endif // WORKTHREAD_H
