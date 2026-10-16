@@ -2,7 +2,8 @@
 #include <QtWidgets>
 #include <QMimeData>
 #include "mainwindow.h"
-#include "metricsworker.h"
+#include "workthread.h"
+#include "customcontrols.h"
 
 class TestWindow : public MainWindow {
 public:
@@ -115,11 +116,23 @@ private slots:
         control<QAction>(window,"actionMetrics")->trigger();
         MetricsDialog* metrics = dialog<MetricsDialog>(); QVERIFY(metrics);
         QVERIFY(metrics->styleSheet().isEmpty());
+        auto calculation = control<CustomRadioButton>(metrics,"rbCalculation");
+        auto estimation = control<CustomRadioButton>(metrics,"rbEstimation");
+        QCOMPARE(calculation->text(),QString("Calculation mode"));
+        QCOMPARE(estimation->text(),QString("Estimation mode"));
+        QCOMPARE(control<QLabel>(metrics,"label_file1")->text(),QString("Signal file:"));
+        QCOMPARE(control<QLabel>(metrics,"label_file2")->text(),QString("Noisy file:"));
+        for(auto box:metrics->findChildren<QCheckBox*>()) QVERIFY(qobject_cast<CustomCheckBox*>(box));
+        for(auto radio:metrics->findChildren<QRadioButton*>()) QVERIFY(qobject_cast<CustomRadioButton*>(radio));
+        QTest::mouseClick(control<CustomCheckBox>(metrics,"ckTrAll"),Qt::LeftButton);
+        QVERIFY(control<QLineEdit>(metrics,"edTrMin")->isEnabled());
+        QTest::mouseClick(control<CustomCheckBox>(metrics,"ckTrAll"),Qt::LeftButton);
+        QVERIFY(!control<QLineEdit>(metrics,"edTrMin")->isEnabled());
         const QString compare = out + "/data/compare.sgy";
         QFile::remove(compare); QVERIFY(QFile::copy(fixture, compare));
         control<QLineEdit>(metrics,"pathFile2")->setText(compare);
         QMetaObject::invokeMethod(metrics,"on_btnCalculate_clicked",Qt::DirectConnection);
-        QTRY_VERIFY_WITH_TIMEOUT(control<QToolButton>(metrics,"btnCalculate")->text() == "Calculate",10000);
+        QTRY_VERIFY_WITH_TIMEOUT(!metrics->isCalculating(),10000);
         auto table = control<QTableWidget>(metrics,"metricTable");
         QCOMPARE(table->item(0,1)->text(),QString("0"));
         QCOMPARE(table->item(4,1)->text(),QString("1"));
@@ -157,7 +170,7 @@ private slots:
         chooseTimer.stop(); deadline.stop();
         QCOMPARE(QDir::cleanPath(control<QLineEdit>(metrics,"pathFile1")->text()), QDir::cleanPath(alternate));
         QMetaObject::invokeMethod(metrics,"on_btnCalculate_clicked",Qt::DirectConnection);
-        QTRY_VERIFY_WITH_TIMEOUT(control<QToolButton>(metrics,"btnCalculate")->text() == "Calculate",10000);
+        QTRY_VERIFY_WITH_TIMEOUT(!metrics->isCalculating(),10000);
         QVERIFY(table->item(0,1)->text().toDouble() > 0);
         const QString saved = out + "/metrics-export.txt";
         QTimer saveTimer;
@@ -178,21 +191,25 @@ private slots:
         saveTimer.stop();
         QFile exported(saved); QVERIFY(exported.open(QIODevice::ReadOnly));
         QCOMPARE(QString::fromUtf8(exported.readAll()).replace("\r\n","\n"),control<QPlainTextEdit>(metrics,"txtResults")->toPlainText());
-        control<QRadioButton>(metrics,"rbReal")->setChecked(true);
+        control<QRadioButton>(metrics,"rbEstimation")->setChecked(true);
         QCOMPARE(QDir::cleanPath(control<QLineEdit>(metrics,"pathFile1")->text()),QDir::cleanPath(fixture));
         QVERIFY(control<QLabel>(metrics,"modeHint")->text().contains("mean"));
+        QCOMPARE(control<QToolButton>(metrics,"btnCalculate")->text(),QString("Estimate"));
+        QCOMPARE(control<QLabel>(metrics,"label_file1")->text(),QString("Input file:"));
+        QVERIFY(control<QLineEdit>(metrics,"pathFile2")->isHidden());
+        QVERIFY(!calculation->isChecked()); QVERIFY(estimation->isChecked());
         QMetaObject::invokeMethod(metrics,"on_btnCalculate_clicked",Qt::DirectConnection);
-        QTRY_VERIFY_WITH_TIMEOUT(control<QToolButton>(metrics,"btnCalculate")->text() == "Calculate",10000);
+        QTRY_VERIFY_WITH_TIMEOUT(!metrics->isCalculating(),10000);
         QVERIFY(control<QPlainTextEdit>(metrics,"txtResults")->toPlainText().contains("Mean trace"));
         control<QCheckBox>(metrics,"chkTPRS")->setChecked(true);
         QMetaObject::invokeMethod(metrics,"on_btnCalculate_clicked",Qt::DirectConnection);
-        QTRY_VERIFY_WITH_TIMEOUT(control<QToolButton>(metrics,"btnCalculate")->text() == "Calculate",20000);
+        QTRY_VERIFY_WITH_TIMEOUT(!metrics->isCalculating(),20000);
         QVERIFY(control<QPlainTextEdit>(metrics,"txtResults")->toPlainText().contains("TPRS"));
         metrics->grab().save(out + "/metrics_real.png");
         QMetaObject::invokeMethod(metrics,"on_btnCalculate_clicked",Qt::DirectConnection);
         metrics->reject(); QVERIFY(metrics->isVisible());
         QMetaObject::invokeMethod(metrics,"on_btnCalculate_clicked",Qt::DirectConnection);
-        QTRY_VERIFY_WITH_TIMEOUT(control<QToolButton>(metrics,"btnCalculate")->text() == "Calculate",10000);
+        QTRY_VERIFY_WITH_TIMEOUT(!metrics->isCalculating(),10000);
         QVERIFY(control<QLineEdit>(metrics,"edMess")->text().contains("stopped"));
         QVERIFY(!control<QToolButton>(metrics,"btnSaveResults")->isEnabled());
         metrics->close();
@@ -200,7 +217,7 @@ private slots:
     void validationMessages() {
         control<QAction>(window,"actionMetrics")->trigger();
         MetricsDialog* metrics=dialog<MetricsDialog>(); QVERIFY(metrics);
-        control<QRadioButton>(metrics,"rbSynthetic")->setChecked(true);
+        control<QRadioButton>(metrics,"rbCalculation")->setChecked(true);
         QString bad=out+"/data/bad-interval.sgy";
         QFile::remove(bad); QVERIFY(QFile::copy(fixture,bad));
         QFile file(bad); QVERIFY(file.open(QIODevice::ReadWrite));

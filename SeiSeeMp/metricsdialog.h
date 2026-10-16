@@ -37,8 +37,8 @@ private slots:
     void on_btnOpenFile2_clicked();
     void on_btnSaveResults_clicked();
 
-    void on_rbSynthetic_toggled(bool checked);
-    void on_rbReal_toggled(bool checked);
+    void on_rbCalculation_toggled(bool checked);
+    void on_rbEstimation_toggled(bool checked);
     void on_ckTrAll_clicked();
     void on_ckTmAll_clicked();
 

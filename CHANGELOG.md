@@ -6,9 +6,15 @@
 
 ### 新增
 
-- Windows / Linux 共用源码新增 Processing → Metrics 入口，支持双文件比较和单文件分析。
+- Windows / Linux 主程序内置 Processing → Metrics，提供计算模式（Signal file / Noisy file）与估算模式（单文件）。
 - 支持 MSE/RMSE、PSNR、SNR、SSIM，以及单文件 TPRS；可选择道范围、道步长和时间范围，查看概览、详细报告及导出 TXT。
 - 支持停止计算；运行期间锁定参数，停止后不导出未完成报告；输入错误与保存结果显示在状态栏。
+
+### 工程与界面
+
+- 指标计算类并入 workthread.h/.cpp，取消独立 metricsworker 文件；指标为软件基本功能。
+- 回归配置并入 SeiSeeMp.pro，以 CONFIG+=metrics_regression 选择，不再保留独立测试 pro。
+- 指标窗口复用作者的 CustomRadioButton / CustomCheckBox；优化两模式、文件标签与指标布局。
 
 ### 修复
 

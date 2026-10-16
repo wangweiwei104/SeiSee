@@ -1,14 +1,14 @@
 # Metrics 指标分析（Windows / Linux）
 
-## 新增功能
+## 内置指标功能
 
 Windows 和 Linux 使用同一套指标界面与计算源码。先打开地震数据，再选择 **Processing → Metrics**。
 
-- **Reference comparison（双文件）**：选择参考 SEG-Y 与比较 SEG-Y；道数、采样点数和采样间隔必须一致。
-- **Self-assessment（单文件）**：使用当前文件；经典指标以所选道的平均道为参考。此模式的分数不能直接解释为真实恢复精度。
+- **Calculation mode（计算模式）**：明确选择 **Signal file**（参考信号）与 **Noisy file**（待评估数据）；道数、采样点数和采样间隔必须一致。
+- **Estimation mode（估算模式）**：使用当前文件；经典指标以所选道的平均道为参考。此模式的分数不能直接解释为真实恢复精度。
 - 支持 MSE、RMSE、PSNR、SNR、SSIM；单文件模式支持 TPRS。
 - 可指定道范围、道步长、时间范围（ms，相对记录起点），查看概览及详细报告。
-- **Calculate / Stop** 执行或停止计算；停止后丢弃未完成报告。**Save Results** 导出 TXT。
+- **Calculate / Estimate / Stop** 按当前模式执行或停止；停止后丢弃未完成报告。**Save Results** 导出 TXT。
 - 错误信息和保存路径显示在窗口下方状态栏；计算过程中锁定输入，避免文件或范围发生变化。
 
 保留本地指标公式。SSIM 使用逐道的一维窗口算法；TPRS 沿用本地实现，本次未重新论证其科学适用性。双文件完全一致时，原实现使用 `1e30` 表示 PSNR/SNR 的零误差情形。
@@ -34,7 +34,7 @@ qmake "$repo/GxApps.pro" CONFIG+=release
 make -j2
 mkdir -p MetricsRegression
 cd MetricsRegression
-qmake "$repo/SeiSeeMp/MetricsRegression.pro" CONFIG+=release
+qmake "$repo/SeiSeeMp/SeiSeeMp.pro" CONFIG+=release CONFIG+=metrics_regression
 make -j2
 mkdir -p results
 QT_QPA_PLATFORM=offscreen SEISEE_TEST_OUT="$PWD/results" ./metrics_regression
@@ -42,6 +42,10 @@ QT_QPA_PLATFORM=offscreen SEISEE_TEST_OUT="$PWD/results" ./metrics_regression
 
 Windows 在 MSVC 开发者终端中使用同样的目录结构、qmake 和 nmake，测试程序位于 `MetricsRegression/release/metrics_regression.exe`。Qt DLL、平台插件和可用字体必须可被找到；缩放回归分别设置 `QT_SCALE_FACTOR=1` 和 `1.5`。上述 Linux 命令为构建指引，尚未在本次环境执行。
 
-## 集成范围
+## 内置实现与工程结构
 
-新增 `SeiSeeMp/metricsdialog.*`、`metricsworker.*`、菜单入口及 QtTest 回归。停止标志改为原子变量，待计算线程结束后恢复界面；主窗口在指标计算期间拒绝关闭，析构时等待线程。修复原 Difference 对话框文件指针未初始化导致的退出崩溃，补充 Windows 注册表函数所需的 `advapi32` 链接。
+指标是软件基本功能，与 Difference 等界面一起编译进主程序，不使用插件加载或独立模块目录。`MetricsWorker` 声明与实现位于既有的 `workthread.h/.cpp`，`metricsdialog.*` 位于主程序目录。正常构建直接使用 `SeiSeeMp.pro`；回归构建也使用该文件，加上 `CONFIG+=metrics_regression`，不再保留单独的 `MetricsRegression.pro`。测试代码位于 `tests`，正常构建不依赖 QtTest。
+
+指标窗口全部单选框和复选框复用作者在 `CustomWdgets/customcontrols.*` 中的 `CustomRadioButton` / `CustomCheckBox`；未修改这些公共控件。计算模式明确显示 Signal file / Noisy file，估算模式显示当前输入文件并隐藏第二文件行。指标选项采用两行布局，长文件路径可通过提示查看；模式切换清空旧结果。
+
+停止标志使用原子变量，待计算线程结束后恢复界面；主窗口在指标计算期间拒绝关闭，析构时等待线程。另修复原 Difference 对话框文件指针未初始化导致的退出崩溃，补充 Windows 注册表函数所需 `advapi32` 链接。

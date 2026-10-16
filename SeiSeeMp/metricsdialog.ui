@@ -18,50 +18,33 @@
     <number>12</number>
    </property>
    <item>
-    <widget class="QLabel" name="titleLabel">
-     <property name="text">
-      <string>Seismic quality metrics</string>
-     </property>
-    </widget>
-   </item>
-   <item>
-    <widget class="QLabel" name="subtitleLabel">
-     <property name="text">
-      <string>Choose a comparison mode and range, then review or export the results.</string>
-     </property>
-     <property name="wordWrap">
-      <bool>true</bool>
-     </property>
-    </widget>
-   </item>
-   <item>
     <layout class="QHBoxLayout" name="bodyLayout">
      <item>
       <layout class="QVBoxLayout" name="settingsLayout">
        <item>
         <widget class="QGroupBox" name="groupBox_mode">
          <property name="title">
-          <string>Calculation Mode</string>
+          <string>Mode</string>
          </property>
-         <layout class="QVBoxLayout" name="verticalLayout_mode">
-          <item>
-           <widget class="QRadioButton" name="rbSynthetic">
+         <layout class="QGridLayout" name="verticalLayout_mode">
+          <item row="0" column="0">
+           <widget class="CustomRadioButton" name="rbCalculation">
             <property name="checked">
              <bool>true</bool>
             </property>
             <property name="text">
-             <string>Reference comparison (two files)</string>
+             <string>Calculation mode</string>
             </property>
            </widget>
           </item>
-          <item>
-           <widget class="QRadioButton" name="rbReal">
+          <item row="0" column="1">
+           <widget class="CustomRadioButton" name="rbEstimation">
             <property name="text">
-             <string>Self-assessment (current file)</string>
+             <string>Estimation mode</string>
             </property>
            </widget>
           </item>
-          <item>
+          <item row="1" column="0" colspan="2">
            <widget class="QLabel" name="modeHint">
             <property name="text">
              <string />
@@ -85,7 +68,7 @@
             <item row="0" column="0">
              <widget class="QLabel" name="label_file1">
               <property name="text">
-               <string>Current / reference:</string>
+               <string>Signal file:</string>
               </property>
              </widget>
             </item>
@@ -118,7 +101,7 @@
             <item row="1" column="0">
              <widget class="QLabel" name="label_file2">
               <property name="text">
-               <string>Comparison:</string>
+               <string>Noisy file:</string>
               </property>
              </widget>
             </item>
@@ -126,6 +109,9 @@
              <widget class="QLineEdit" name="pathFile2">
               <property name="toolTip">
                <string>Select the noisy file to compare</string>
+              </property>
+              <property name="readOnly">
+               <bool>true</bool>
               </property>
              </widget>
             </item>
@@ -156,7 +142,7 @@
            </property>
            <layout class="QVBoxLayout" name="verticalLayout_trace">
             <item>
-             <widget class="QCheckBox" name="ckTrAll">
+             <widget class="CustomCheckBox" name="ckTrAll">
               <property name="text">
                <string>All Traces</string>
               </property>
@@ -209,7 +195,7 @@
            </property>
            <layout class="QVBoxLayout" name="verticalLayout_time">
             <item>
-             <widget class="QCheckBox" name="ckTmAll">
+             <widget class="CustomCheckBox" name="ckTmAll">
               <property name="text">
                <string>Whole Trace</string>
               </property>
@@ -250,11 +236,11 @@
        <item>
         <widget class="QGroupBox" name="groupBox_metrics">
          <property name="title">
-          <string>Metrics to Calculate</string>
+          <string>Metrics</string>
          </property>
-         <layout class="QHBoxLayout" name="horizontalLayout_metrics">
-          <item>
-           <widget class="QCheckBox" name="ckPSNR">
+         <layout class="QGridLayout" name="gridLayout_metrics">
+          <item row="0" column="0">
+           <widget class="CustomCheckBox" name="ckPSNR">
             <property name="text">
              <string>PSNR</string>
             </property>
@@ -263,8 +249,8 @@
             </property>
            </widget>
           </item>
-          <item>
-           <widget class="QCheckBox" name="ckSSIM">
+          <item row="0" column="1">
+           <widget class="CustomCheckBox" name="ckSSIM">
             <property name="text">
              <string>SSIM</string>
             </property>
@@ -273,8 +259,8 @@
             </property>
            </widget>
           </item>
-          <item>
-           <widget class="QCheckBox" name="ckMSE">
+          <item row="0" column="2">
+           <widget class="CustomCheckBox" name="ckMSE">
             <property name="checked">
              <bool>true</bool>
             </property>
@@ -283,8 +269,8 @@
             </property>
            </widget>
           </item>
-          <item>
-           <widget class="QCheckBox" name="ckSNR">
+          <item row="1" column="0">
+           <widget class="CustomCheckBox" name="ckSNR">
             <property name="text">
              <string>SNR</string>
             </property>
@@ -293,28 +279,15 @@
             </property>
            </widget>
           </item>
-          <item>
-           <widget class="QCheckBox" name="chkTPRS">
+          <item row="1" column="1">
+           <widget class="CustomCheckBox" name="chkTPRS">
             <property name="toolTip">
-             <string>基于相邻道相关性的信号功率比（仅用于真实数据模式）</string>
+             <string>Signal power ratio estimated from adjacent traces (estimation mode only).</string>
             </property>
             <property name="text">
              <string>TPRS</string>
             </property>
            </widget>
-          </item>
-          <item>
-           <spacer name="horizontalSpacer_metrics">
-            <property name="orientation">
-             <enum>Qt::Horizontal</enum>
-            </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>0</width>
-              <height>0</height>
-             </size>
-            </property>
-           </spacer>
           </item>
          </layout>
         </widget>
@@ -450,4 +423,16 @@
   <include location="myrc.qrc" />
  </resources>
  <connections />
+ <customwidgets>
+  <customwidget>
+   <class>CustomCheckBox</class>
+   <extends>QCheckBox</extends>
+   <header>customcontrols.h</header>
+  </customwidget>
+  <customwidget>
+   <class>CustomRadioButton</class>
+   <extends>QRadioButton</extends>
+   <header>customcontrols.h</header>
+  </customwidget>
+ </customwidgets>
 </ui>

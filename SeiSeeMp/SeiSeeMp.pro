@@ -23,7 +23,8 @@ SOURCES += main.cpp\
     exportdpimenustyle.cpp \
     workthread.cpp \
     saveasdialog.cpp \
-    diffdialog.cpp
+    diffdialog.cpp \
+    metricsdialog.cpp
 
 HEADERS  += mainwindow.h \
     ../CustomWdgets/customcontrols.h \
@@ -34,7 +35,8 @@ HEADERS  += mainwindow.h \
     exportdpimenustyle.h \
     workthread.h \
     saveasdialog.h \
-    diffdialog.h
+    diffdialog.h \
+    metricsdialog.h
 
 FORMS    += mainwindow.ui \
     edithdrdialog.ui \
@@ -42,7 +44,8 @@ FORMS    += mainwindow.ui \
     aboutdialog.ui \
     axisdialog.ui \
     saveasdialog.ui \
-    diffdialog.ui
+    diffdialog.ui \
+    metricsdialog.ui
 
 # ADD THIS LINE!
 win32: RC_FILE += app.rc
@@ -132,7 +135,13 @@ else:win32:!win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PW
 else:win32:!win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../libExprEval/debug/libExprEval.lib
 else:unix: PRE_TARGETDEPS += $$OUT_PWD/../libExprEval/liblibExprEval.a
 
-SOURCES += metricsdialog.cpp metricsworker.cpp
-HEADERS += metricsdialog.h metricsworker.h
-FORMS += metricsdialog.ui
 win32:LIBS += -ladvapi32
+
+# Optional regression executable; the default build remains the application.
+contains(CONFIG, metrics_regression) {
+    TARGET = metrics_regression
+    QT += testlib
+    CONFIG += console testcase
+    SOURCES -= main.cpp
+    SOURCES += $$PWD/../tests/upstream_metrics_regression.cpp
+}

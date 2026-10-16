@@ -1,6 +1,6 @@
 #include "metricsdialog.h"
 #include "ui_metricsdialog.h"
-#include "metricsworker.h"
+#include "workthread.h"
 
 #include <QFileDialog>
 #include <QThread>
@@ -27,13 +27,11 @@ MetricsDialog::MetricsDialog(QWidget *parent) :
     sf2 = nullptr;
     setWindowModality(Qt::ApplicationModal);
     setSizeGripEnabled(true);
-    ui->titleLabel->hide();
-    ui->subtitleLabel->hide();
     ui->bodyLayout->setStretch(0, 5);
     ui->bodyLayout->setStretch(1, 4);
     for (QLayout* layout : findChildren<QLayout*>()) layout->setSpacing(6);
     ui->verticalLayout_main->setSpacing(8);
-    ui->pathFile1->setToolTip(tr("Defaults to the open file. Use Open to choose another reference."));
+    ui->pathFile1->setToolTip(tr("Signal file defaults to the open file. Use Open to choose another signal file."));
     ui->btnSaveResults->setEnabled(false);
     ui->txtResults->setFont(QFontDatabase::systemFont(QFontDatabase::FixedFont));
     ui->txtResults->setPlaceholderText(tr("The full calculation report will appear here."));
@@ -75,7 +73,8 @@ void MetricsDialog::setRunning(bool active)
                           ui->groupBox_time, ui->groupBox_metrics}) group->setEnabled(!active);
     ui->btnClose->setEnabled(!active);
     ui->btnCalculate->setEnabled(true);
-    ui->btnCalculate->setText(active ? tr("Stop") : tr("Calculate"));
+    ui->btnCalculate->setText(active ? tr("Stop") :
+        (ui->rbCalculation->isChecked() ? tr("Calculate") : tr("Estimate")));
     ui->btnCalculate->setIcon(QIcon(active ? ":/images/stop.png" : ":/images/Procp.png"));
     ui->btnSaveResults->setEnabled(!active && !ui->txtResults->toPlainText().isEmpty());
 }
@@ -131,13 +130,13 @@ void MetricsDialog::show()
     UpdateUIMode();
 }
 
-void MetricsDialog::on_rbSynthetic_toggled(bool checked)
+void MetricsDialog::on_rbCalculation_toggled(bool checked)
 {
     Q_UNUSED(checked);
     UpdateUIMode();
 }
 
-void MetricsDialog::on_rbReal_toggled(bool checked)
+void MetricsDialog::on_rbEstimation_toggled(bool checked)
 {
     Q_UNUSED(checked);
     UpdateUIMode();
@@ -145,37 +144,43 @@ void MetricsDialog::on_rbReal_toggled(bool checked)
 
 void MetricsDialog::UpdateUIMode()
 {
-    bool isSynthetic = ui->rbSynthetic->isChecked();
+    bool isCalculation = ui->rbCalculation->isChecked();
 
-    // 合成模式：两个文件都启用
+    ui->label_file1->setText(isCalculation ? tr("Signal file:") : tr("Input file:"));
+    ui->label_file2->setText(tr("Noisy file:"));
     ui->pathFile1->setEnabled(true);
     ui->label_file1->setEnabled(true);
-    ui->btnOpenFile1->setEnabled(isSynthetic);
+    ui->btnOpenFile1->setEnabled(isCalculation);
     if (primaryFile()) {
         fname = QDir::cleanPath(QString::fromLocal8Bit(primaryFile()->Fname().c_str()));
         ui->pathFile1->setText(fname);
         FillLimits();
     }
-    ui->modeHint->setText(isSynthetic
-        ? tr("Compare a reference with a second file. Trace count, sample count and sample interval must match.")
+    ui->modeHint->setText(isCalculation
+        ? tr("Compare a signal file with a noisy file. Trace count, sample count and sample interval must match.")
         : tr("Classic metrics use the mean of selected traces as a reference. These values are not ground-truth recovery scores."));
 
-    ui->pathFile2->setEnabled(isSynthetic);
-    ui->btnOpenFile2->setEnabled(isSynthetic);
-    ui->label_file2->setEnabled(isSynthetic);
+    ui->pathFile2->setEnabled(isCalculation);
+    ui->btnOpenFile2->setEnabled(isCalculation);
+    ui->label_file2->setEnabled(isCalculation);
+    ui->pathFile2->setVisible(isCalculation);
+    ui->btnOpenFile2->setVisible(isCalculation);
+    ui->label_file2->setVisible(isCalculation);
 
-    // TPRS 仅用于真实模式
-    ui->chkTPRS->setEnabled(!isSynthetic);
-    if (isSynthetic) ui->chkTPRS->setChecked(false);
+    // TPRS 仅用于估算模式
+    ui->chkTPRS->setEnabled(!isCalculation);
+    if (isCalculation) ui->chkTPRS->setChecked(false);
 
     updateAvailableMetrics();
+    resetResults();
+    setRunning(false);
 }
 
 void MetricsDialog::updateAvailableMetrics()
 {
-    const bool isSynthetic = ui->rbSynthetic->isChecked();
-    ui->chkTPRS->setEnabled(!isSynthetic);
-    if (isSynthetic) ui->chkTPRS->setChecked(false);
+    const bool isCalculation = ui->rbCalculation->isChecked();
+    ui->chkTPRS->setEnabled(!isCalculation);
+    if (isCalculation) ui->chkTPRS->setChecked(false);
 }
 
 void MetricsDialog::on_btnCalculate_clicked()
@@ -196,10 +201,10 @@ void MetricsDialog::on_btnCalculate_clicked()
         return;
     }
 
-    bool isSynthetic = ui->rbSynthetic->isChecked();
+    bool isCalculation = ui->rbCalculation->isChecked();
 
-    // 合成模式：需要第二个文件
-    if(isSynthetic)
+    // 计算模式：需要第二个文件
+    if(isCalculation)
     {
         fname2 = QDir::cleanPath(fname2);
 
@@ -294,7 +299,7 @@ void MetricsDialog::on_btnCalculate_clicked()
     calculationThread = thread;
     completionMessage.clear();
     MetricsWorker* worker = new MetricsWorker(
-        primary, sf2, isSynthetic,
+        primary, sf2, isCalculation,
         trmin, trmax, trstp,
         tmmin, tmmax,
         calcPSNR, calcSSIM, calcMSE, calcSNR, calcTPRS);
@@ -340,7 +345,7 @@ void MetricsDialog::on_btnOpenFile2_clicked()
 void MetricsDialog::on_btnOpenFile1_clicked()
 {
     QString fileName = QFileDialog::getOpenFileName(
-        this, "Choose Signal File (Clean)",
+        this, "Choose Signal File",
         curDir,
         "SEG-Y file (*.sgy *.segy)");
 
@@ -368,12 +373,14 @@ void MetricsDialog::on_btnOpenFile1_clicked()
 
 SeisFile* MetricsDialog::primaryFile() const
 {
-    return ui->rbSynthetic->isChecked() && referenceFile ? referenceFile : sf;
+    return ui->rbCalculation->isChecked() && referenceFile ? referenceFile : sf;
 }
 
 void MetricsDialog::on_pathFile1_textChanged(const QString &arg1)
 {
     fname = arg1;
+    ui->pathFile1->setToolTip(arg1);
+    ui->pathFile1->setCursorPosition(0);
 }
 
 
@@ -424,6 +431,8 @@ void MetricsDialog::on_ckTmAll_clicked()
 void MetricsDialog::on_pathFile2_textChanged(const QString &arg1)
 {
     fname2 = arg1;
+    ui->pathFile2->setToolTip(arg1);
+    ui->pathFile2->setCursorPosition(0);
 }
 
 void MetricsDialog::FillLimits()
