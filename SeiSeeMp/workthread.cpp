@@ -25,6 +25,8 @@
 #include <algorithm>
 #include <limits>
 #include <cmath>
+#include <memory>
+#include <stdexcept>
 #ifdef min
 #undef min
 #endif
@@ -1427,4 +1429,120 @@ float MetricsWorker::computeTPRS_realMode(int pStart, int pEnd)
     if (!(totalPower > 0.0f) || !std::isfinite(totalPower) || !std::isfinite(signalPower))
         return 0.0f;
     return std::max(0.0f, std::min(1.0f, signalPower / totalPower));
+}
+
+namespace {
+// CWP handles its supported lengths directly. Bluestein preserves the original
+// sample count for all other lengths, matching numpy.fft.fft without zero padding.
+class FkForwardFft {
+    int n, m;
+    std::vector<complex> chirp, kernel, scratch;
+public:
+    explicit FkForwardFft(int size) : n(size), m(npfa(size) == size ? 0 : npfa(2*size-1)) {
+        if (!m) return;
+        chirp.resize(n); kernel.resize(m); scratch.resize(m);
+        const double pi = std::acos(-1.0);
+        for (int j=0; j<n; ++j) {
+            const double phase = pi * std::fmod(double(j)*j, 2.0*n) / n;
+            chirp[j] = cmplx(float(std::cos(phase)), float(-std::sin(phase)));
+            kernel[j] = conjg(chirp[j]);
+            if (j) kernel[m-j] = kernel[j];
+        }
+        pfacc(-1,m,kernel.data());
+    }
+    void forward(std::vector<complex>& values) {
+        if (!m) { pfacc(-1,n,values.data()); return; }
+        std::fill(scratch.begin(),scratch.end(),cmplx(0,0));
+        for (int j=0;j<n;++j) scratch[j]=cmul(values[j],chirp[j]);
+        pfacc(-1,m,scratch.data());
+        for (int j=0;j<m;++j) scratch[j]=cmul(scratch[j],kernel[j]);
+        pfacc(1,m,scratch.data());
+        for (int j=0;j<n;++j) values[j]=crmul(cmul(scratch[j],chirp[j]),1.0f/m);
+    }
+};
+}
+
+FkSpectrum calculateFk(const QVector<float>& traces, int nx, int nt,
+                       double dt, double dx, bool preprocess,
+                       const std::function<bool()>& cancelled)
+{
+    if (nx<2 || nt<4 || nx>180180 || nt>180180 || qint64(nx)*nt>8000000 ||
+        traces.size()!=qint64(nx)*nt || !std::isfinite(dt) || !std::isfinite(dx) || dt<=0 || dx<=0)
+        throw std::runtime_error("Invalid FK range. Use 2+ traces, 4+ samples, at most 8 million cells and 180180 per axis.");
+    if (preprocess && nx<3)
+        throw std::runtime_error("The spatial Hann window needs at least 3 traces. Disable preprocessing for 2 traces.");
+    auto check = [&]() { if (cancelled && cancelled()) throw std::runtime_error("Cancelled."); };
+    FkSpectrum out;
+    out.nk=nx; out.nf=(nt+1)/2; out.df=1.0/(nt*dt); out.dk=1.0/(nx*dx); out.k0=-(nx/2)*out.dk;
+    out.amplitude.resize(out.nf*nx);
+    QVector<float> data=traces;
+    for (float v:data) if (!std::isfinite(v)) throw std::runtime_error("Input contains NaN or infinity.");
+    if (preprocess) {
+        // Match preprocess_gather: trace means, then sample means, then 2-D Hann.
+        for (int x=0;x<nx;++x) {
+            check(); double mean=0;
+            for(int t=0;t<nt;++t) mean+=data[x*nt+t];
+            mean/=nt;
+            for(int t=0;t<nt;++t) data[x*nt+t]-=float(mean);
+        }
+        for(int t=0;t<nt;++t) {
+            double mean=0; for(int x=0;x<nx;++x) mean+=data[x*nt+t]; mean/=nx;
+            for(int x=0;x<nx;++x) data[x*nt+t]-=float(mean);
+        }
+        const double pi=std::acos(-1.0);
+        QVector<float> wt(nt);
+        for(int t=0;t<nt;++t) wt[t]=float(.5-.5*std::cos(2*pi*t/(nt-1)));
+        for(int x=0;x<nx;++x) {
+            check(); float wx=float(.5-.5*std::cos(2*pi*x/(nx-1)));
+            for(int t=0;t<nt;++t) data[x*nt+t]*=wx*wt[t];
+        }
+    }
+    std::vector<complex> temporal(qint64(nx)*out.nf), line(nt);
+    FkForwardFft timeFft(nt), spaceFft(nx);
+    for(int x=0;x<nx;++x) {
+        check();
+        for(int t=0;t<nt;++t) line[t]=cmplx(data[x*nt+t],0);
+        timeFft.forward(line);
+        for(int f=0;f<out.nf;++f) temporal[x*out.nf+f]=line[f];
+    }
+    data.clear(); line.resize(nx);
+    for(int f=0;f<out.nf;++f) {
+        check();
+        for(int x=0;x<nx;++x) line[x]=temporal[x*out.nf+f];
+        spaceFft.forward(line);
+        for(int k=0;k<nx;++k) {
+            complex z=line[(k+(nx+1)/2)%nx];
+            float value=std::hypot(z.r,z.i);
+            if(!std::isfinite(value)) throw std::runtime_error("FFT amplitude overflow. Reduce input amplitude or range.");
+            out.amplitude[f*nx+k]=value;
+        }
+    }
+    return out;
+}
+
+void FkWorker::run()
+{
+    try {
+        // Construct/open the reader on this thread; main-window file changes are safe.
+        std::unique_ptr<SeisFile> reader(fileType==2 ? static_cast<SeisFile*>(new SuFile)
+            : fileType==3 ? static_cast<SeisFile*>(new CstFile) : static_cast<SeisFile*>(new SgyFile));
+        reader->setFname(path); reader->setActive(true);
+        if(!reader->Active()) throw std::runtime_error("Could not open the input file.");
+        int nx=last-first+1, nt=sampleLast-sampleFirst+1;
+        if(first<0 || last>=reader->Nt() || sampleFirst<0 || sampleLast>=reader->Ns() ||
+           nx<2 || nt<4 || nx>180180 || nt>180180 || qint64(nx)*nt>8000000)
+            throw std::runtime_error("Invalid range or input file changed. Limit the range to 8 million samples.");
+        QVector<float> data(nx*nt);
+        for(int x=0;x<nx;++x) {
+            if(isInterruptionRequested()) return;
+            float* trace=reader->Rs(first+x);
+            if(!trace) throw std::runtime_error("Could not read a trace.");
+            std::copy(trace+sampleFirst,trace+sampleLast+1,data.begin()+x*nt);
+            emit progress(40*(x+1)/nx);
+        }
+        FkSpectrum spectrum=calculateFk(data,nx,nt,reader->Si(),dx,preprocess,[this](){return isInterruptionRequested();});
+        if(!isInterruptionRequested()) {emit progress(100); emit spectrumReady(spectrum);}
+    } catch(const std::exception& error) {
+        if(!isInterruptionRequested()) emit failed(QString::fromLocal8Bit(error.what()));
+    }
 }

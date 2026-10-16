@@ -548,6 +548,7 @@ MainWindow::MainWindow(QWidget *parent)
     hdrsScrl = new MyScrollArea(&hdrsView, 2);
     hdrsBottomScrl = new MyScrollArea(&hdrsBottomView, 2);
     seisScrl = new MyScrollArea(&seisView, 3);
+    seisScrl->setObjectName("seismicScrollArea");
     timeScrl = new MyScrollArea(&timeView, 1);
     timeRightScrl = new MyScrollArea(&timeRightView, 1);
     horizontalAxisScrollBar = new QScrollBar(Qt::Horizontal, this);
@@ -1649,6 +1650,7 @@ int MainWindow::xprintf(QPlainTextEdit *edit, const char *fmt, ...)
 void MainWindow::closeEvent(QCloseEvent *event)
 {
     MetricsDlg.shutdown();
+    if (fkDialog) { fkDialog->shutdown(); fkDialog->close(); }
     if (m_exportInProgress) {
         m_closeAfterExport = true;
         m_exportCancellationRequested = true;
@@ -4496,4 +4498,38 @@ void MainWindow::on_actionMetrics_triggered()
     MetricsDlg.curDir = QDir(curDir).absolutePath();
     MetricsDlg.savDir = &savDir;
     MetricsDlg.show();
+}
+
+void MainWindow::on_actionFkSpectrum_triggered()
+{
+    if (fkDialog) { fkDialog->show(); fkDialog->raise(); fkDialog->activateWindow(); return; }
+    SeisFile* file=seisSrc.Sfile();
+    if (!file || !file->Active() || file->Nt()<2 || file->Ns()<4 || !(file->Si()>0)) {
+        QMessageBox::information(this,tr("F-K Spectrum"),tr("Open a seismic file with at least 2 traces and 4 samples first."));return;
+    }
+    fkDialog=new FkSpectrumDialog(file,QDir(curDir).absolutePath(),this);
+    // Use current view scales directly: cached drawing conversions can still
+    // refer to the preceding paint immediately after zooming or changing DPI.
+    const double xpmm=seisView.Xpmm()*seisView.Xs();
+    const double ypmm=seisView.Ypmm()*seisView.Ys();
+    if(xpmm>0 && ypmm>0) {
+        const int x=seisScrl->horizontalScrollBar()->value();
+        const int y=seisScrl->verticalScrollBar()->value();
+        const QSize visible=seisScrl->viewport()->size();
+        const double a=seisSrc.Tx(seisSct.mm2x(x/xpmm));
+        const double b=seisSrc.Tx(seisSct.mm2x((x+visible.width())/xpmm));
+        const double ta=seisSct.mm2y(y/ypmm);
+        const double tb=seisSct.mm2y((y+visible.height())/ypmm);
+        if(std::isfinite(a) && std::isfinite(b) && std::isfinite(ta) && std::isfinite(tb)) {
+            int first=qBound(0,int(std::ceil(qMin(a,b)-1e-7)),file->Nt()-1);
+            int last=qBound(0,int(std::floor(qMax(a,b)+1e-7)),file->Nt()-1);
+            if(first>last)first=last=qBound(0,qRound((a+b)/2),file->Nt()-1);
+            const double dt=file->Si();
+            const int s0=qBound(0,int(std::ceil(qMin(ta,tb)/dt-1e-7)),file->Ns()-1);
+            const int s1=qBound(0,int(std::floor(qMax(ta,tb)/dt+1e-7)),file->Ns()-1);
+            fkDialog->setInitialRange(first+1,last+1,s0*dt*1000,s1*dt*1000);
+        }
+    }
+    fkDialog->setAttribute(Qt::WA_DeleteOnClose);
+    fkDialog->show();
 }
