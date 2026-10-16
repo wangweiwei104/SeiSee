@@ -35,6 +35,7 @@
 #include <QVBoxLayout>
 #include <QWidget>
 
+#include <cmath>
 #include <functional>
 #include "Toast.h"
 #include "exportdpimenustyle.h"
@@ -964,23 +965,40 @@ MainWindow::~MainWindow()
 void MainWindow::SetZoomC(double xs, double ys, int xc, int yc)
 {
     double xsp, ysp;
-    int xo, yo;
+    int xop, yop;
 
-    GetZoom(xsp, ysp, xo, yo);
+    GetZoom(xsp, ysp, xop, yop);
 
-    int x = xc + xo;
-    int y = yc + yo;
+    double newXs = xs == 0 ? xsp : xs;
+    double newYs = ys == 0 ? ysp : ys;
+    const bool xChanged = newXs != xsp;
+    const bool yChanged = newYs != ysp;
+    const bool zoomingBothIn = newXs > xsp && newYs > ysp;
+    const bool zoomingBothOut = newXs < xsp && newYs < ysp;
+    ClampZoom(newXs, newYs);
 
-    double xa = x / xsp;
-    double ya = y / ysp;
+    if (xChanged && yChanged && zoomingBothIn) {
+        const double scaleFactor =
+            qMin(newXs / xsp, newYs / ysp);
+        newXs = xsp * scaleFactor;
+        newYs = ysp * scaleFactor;
+    } else if (xChanged && yChanged && zoomingBothOut) {
+        const double scaleFactor =
+            qMax(newXs / xsp, newYs / ysp);
+        newXs = xsp * scaleFactor;
+        newYs = ysp * scaleFactor;
+    }
 
-    x = xa * xs;
-    y = ya * ys;
+    const auto toScrollOffset = [](double offset) {
+        const double boundedOffset =
+            qBound(0.0, offset, static_cast<double>(QWIDGETSIZE_MAX));
+        return qRound(boundedOffset);
+    };
+    const double newXOffset = (xop + xc) / xsp * newXs - xc;
+    const double newYOffset = (yop + yc) / ysp * newYs - yc;
 
-    xo = x - xc;
-    yo = y - yc;
-
-    SetZoom(xs, ys, xo, yo);
+    SetZoom(newXs, newYs, toScrollOffset(newXOffset),
+            toScrollOffset(newYOffset));
 }
 
 void MainWindow::sclZoomV(double, double zy, int xc, int yc)
@@ -1951,6 +1969,20 @@ void MainWindow::ArrangeSections()
 {
     ui->seisFrame->setVisible(true);
 
+    double xs = seisView.Xs();
+    double ys = seisView.Ys();
+    ClampZoom(xs, ys);
+    if (xs != seisView.Xs()) {
+        seisView.setXs(xs);
+        hdrsView.setXs(xs);
+        hdrsBottomView.setXs(xs);
+    }
+    if (ys != seisView.Ys()) {
+        seisView.setYs(ys);
+        timeView.setYs(ys);
+        timeRightView.setYs(ys);
+    }
+
     int hh = timeAxis.HeightView();
     int axisHeight = qMax(hh, seisScrl->viewport()->height());
 
@@ -2639,6 +2671,24 @@ void MainWindow::GetZoom(double &xs, double &ys, int &xo, int &yo)
     yo = seisScrl->verticalScrollBar()->value();
 }
 
+void MainWindow::ClampZoom(double &xs, double &ys)
+{
+    const auto clampScale = [](double scale, double baseSize) {
+        if (std::isnan(scale) || scale <= 0)
+            scale = 1;
+        if (!std::isfinite(baseSize) || baseSize <= 0)
+            return scale;
+
+        const double minScale = 1.0 / baseSize;
+        const double maxScale =
+            static_cast<double>(QWIDGETSIZE_MAX - 2) / baseSize;
+        return qBound(minScale, scale, maxScale);
+    };
+
+    xs = clampScale(xs, seisSct.WidthPix());
+    ys = clampScale(ys, timeAxis.HeightPix());
+}
+
 void MainWindow::SetZoom(double xs, double ys, int xo, int yo, bool push)
 {
     double xsp, ysp;
@@ -2656,6 +2706,8 @@ void MainWindow::SetZoom(double xs, double ys, int xo, int yo, bool push)
         yo = yop;
     }
 
+    ClampZoom(xs, ys);
+
     if (push)
         zstack.push(zdata(xsp, ysp, xop, yop));
 
@@ -2668,6 +2720,10 @@ void MainWindow::SetZoom(double xs, double ys, int xo, int yo, bool push)
 
     ArrangeSections();
 
+    xo = qBound(seisScrl->horizontalScrollBar()->minimum(), xo,
+                seisScrl->horizontalScrollBar()->maximum());
+    yo = qBound(seisScrl->verticalScrollBar()->minimum(), yo,
+                seisScrl->verticalScrollBar()->maximum());
     seisScrl->setHscroll(xo);
     seisScrl->setVscroll(yo);
 
