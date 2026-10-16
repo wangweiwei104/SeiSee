@@ -50,6 +50,14 @@ process</br>
     <td align="center">截图</td>
     <td align="center">图片导出</td>
   </tr>
+  <tr>
+    <td><img src="screenshots/demo3_917_932_3.0921697_3.2747118_wiggle_filt_2_5_40_60.png" width="400"></td>
+    <td><img src="screenshots/demo3_917_932_3.0921697_3.2747118_wiggle_filt_2_5_40_60_300.png" width="400"></td>
+  </tr>
+  <tr>
+    <td align="center">截图</td>
+    <td align="center">图片导出</td>
+  </tr>
 </table>
 
 ## 功能
