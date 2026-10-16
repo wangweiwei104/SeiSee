@@ -86,7 +86,7 @@ void MetricsDialog::setRunning(bool active)
     ui->btnCalculate->setEnabled(true);
     ui->btnCalculate->setText(active ? tr("Stop") :
         (ui->rbCalculation->isChecked() ? tr("Calculate") : tr("Estimate")));
-    ui->btnCalculate->setIcon(QIcon(active ? ":/images/stop.png" : ":/images/Procp.png"));
+    ui->btnCalculate->setIcon(QIcon(active ? ":/images/stop.png" : ":/images/Run.png"));
     ui->btnSaveResults->setEnabled(!active && !ui->txtResults->toPlainText().isEmpty());
 }
 
