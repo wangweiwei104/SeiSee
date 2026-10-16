@@ -37,6 +37,7 @@
 
 #include <cmath>
 #include <functional>
+#include <limits>
 #include "Toast.h"
 #include "exportdpimenustyle.h"
 
@@ -971,11 +972,24 @@ void MainWindow::SetZoomC(double xs, double ys, int xc, int yc)
 
     double newXs = xs == 0 ? xsp : xs;
     double newYs = ys == 0 ? ysp : ys;
+    const double requestedXs = newXs;
+    const double requestedYs = newYs;
     const bool xChanged = newXs != xsp;
     const bool yChanged = newYs != ysp;
     const bool zoomingBothIn = newXs > xsp && newYs > ysp;
     const bool zoomingBothOut = newXs < xsp && newYs < ysp;
     ClampZoom(newXs, newYs);
+
+    const auto maxScaleForSize = [](double baseSize) {
+        if (!std::isfinite(baseSize) || baseSize <= 0)
+            return std::numeric_limits<double>::infinity();
+        return static_cast<double>(QWIDGETSIZE_MAX - 2) / baseSize;
+    };
+    const double maxXs = maxScaleForSize(seisSct.WidthPix());
+    const double maxYs = maxScaleForSize(timeAxis.HeightPix());
+    const bool reachedZoomLimit =
+        (newXs > xsp && requestedXs >= maxXs) ||
+        (newYs > ysp && requestedYs >= maxYs);
 
     if (xChanged && yChanged && zoomingBothIn) {
         const double scaleFactor =
@@ -987,6 +1001,14 @@ void MainWindow::SetZoomC(double xs, double ys, int xc, int yc)
             qMax(newXs / xsp, newYs / ysp);
         newXs = xsp * scaleFactor;
         newYs = ysp * scaleFactor;
+    }
+
+    if (reachedZoomLimit) {
+        showScreenshotToast(
+            this, tr("Zoom limit reached"),
+            tr("The maximum zoom level has been reached. Use Save As to crop "
+               "and reopen the data for greater magnification."),
+            ToastPreset::WARNING);
     }
 
     const auto toScrollOffset = [](double offset) {
@@ -1013,43 +1035,49 @@ void MainWindow::sclZoomH(double zx, double, int xc, int yc)
 
 void MainWindow::winZoom(QRect r)
 {
-    //    QApplication::beep ();
-
-    int x1 = r.left();
-    //  int x2 = r.right();
-    int y1 = r.top();
-    //  int y2 = r.bottom();
-
     double xsp, ysp;
     int xo, yo;
 
     GetZoom(xsp, ysp, xo, yo);
 
-    int x = x1 + xo;
-    int y = y1 + yo;
+    QWidget *viewport = seisScrl->viewport();
+    const QSize viewportSize = viewport->size();
+    if (viewportSize.width() <= 0 || viewportSize.height() <= 0)
+        return;
 
-    double xa = x / xsp;
-    double ya = y / ysp;
+    const QRect viewportRect(QPoint(0, 0), viewportSize);
+    const QRect selection =
+        r.translated(-viewport->pos()).normalized().intersected(viewportRect);
+    if (selection.width() <= 1 || selection.height() <= 1)
+        return;
 
-    double ws = seisScrl->width();
-    double hs = seisScrl->height();
+    const double requestedXs =
+        xsp * viewportSize.width() / selection.width();
+    const double requestedYs =
+        ysp * viewportSize.height() / selection.height();
+    double xs = requestedXs;
+    double ys = requestedYs;
+    ClampZoom(xs, ys);
+    if (xs < requestedXs || ys < requestedYs) {
+        showScreenshotToast(
+            this, tr("Zoom limit reached"),
+            tr("Select a larger area, or use Save As to crop and reopen the "
+               "data for greater magnification."),
+            ToastPreset::WARNING);
+        return;
+    }
 
-    double wr = r.width();
-    double hr = r.height();
+    const double newXOffset =
+        (xo + selection.left()) / xsp * xs;
+    const double newYOffset =
+        (yo + selection.top()) / ysp * ys;
+    const auto toScrollOffset = [](double offset) {
+        return qRound(qBound(0.0, offset,
+                             static_cast<double>(QWIDGETSIZE_MAX)));
+    };
 
-    double xz = ws / wr;
-    double yz = hs / hr;
-
-    double xs = xsp * xz;
-    double ys = ysp * yz;
-
-    x = xa * xs;
-    y = ya * ys;
-
-    xo = x;
-    yo = y;
-
-    SetZoom(xs, ys, xo, yo);
+    SetZoom(xs, ys, toScrollOffset(newXOffset),
+            toScrollOffset(newYOffset));
 }
 
 void MainWindow::sclZoom(double zx, double zy, int xc, int yc)
