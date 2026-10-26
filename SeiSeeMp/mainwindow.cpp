@@ -328,7 +328,6 @@ MainWindow::MainWindow(QWidget *parent)
 
     comparisonGrid.setRowCount(0);
     comparisonGrid.setColCount(3);
-    comparisonGrid.setFont(directoryGridFont);
     comparisonGrid.setIconSize(QSize(16, 16));
     comparisonGrid.verticalHeader()->setVisible(false);
     comparisonGrid.setColLabel(0, "Key");
