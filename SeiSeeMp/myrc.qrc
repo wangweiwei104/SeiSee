@@ -15,7 +15,6 @@
         <file>images/ChkNon.png</file>
         <file>images/delete_item.png</file>
         <file>images/cstfile.svg</file>
-        <file>images/edit_item.png</file>
         <file>images/Dir.png</file>
         <file>images/edit_hdr.png</file>
         <file>images/FileSave.png</file>
@@ -26,16 +25,14 @@
         <file>images/GoBack.png</file>
         <file>images/FindBkw.png</file>
         <file>images/FromFile.png</file>
-        <file>images/GoFw.png.png</file>
+        <file>images/GoFw.png</file>
         <file>images/GoBottom.png</file>
         <file>images/Hexp.png</file>
         <file>images/Lexp.png</file>
         <file>images/GoTop.png</file>
         <file>images/Nexp.png</file>
         <file>images/OpenDir.png</file>
-        <file>images/more.png</file>
         <file>images/Procp.png</file>
-        <file>images/Calculate.png</file>
         <file>images/Run.png</file>
         <file>images/OpenFile.png</file>
         <file>images/Refresh.png</file>
@@ -60,7 +57,6 @@
         <file>images/SStp.png</file>
         <file>images/stop.png</file>
         <file>images/sufile.svg</file>
-        <file>images/Tape.png</file>
         <file>images/ToDn.png</file>
         <file>images/ToRight.png</file>
         <file>images/ToUp.png</file>
