@@ -1,4 +1,6 @@
 #include <QtTest>
+#include <cmath>
+#include <limits>
 #include <QtWidgets>
 #include <QMimeData>
 #include "mainwindow.h"
@@ -112,6 +114,17 @@ private slots:
         QVERIFY(report.contains("Total traces used: 5"));
         QVERIFY(report.contains("Total samples used: 505"));
     }
+    void tprsSnrConversion() {
+        const double inputs[] = {.84, .86, .90, .88};
+        const double expected[] = {7.201593034, 7.88370415, 9.542425094, 8.653014262};
+        for (int i=0;i<4;++i) QVERIFY(std::abs(MetricsWorker::snrFromTprs(inputs[i])-expected[i])<1e-7);
+        QCOMPARE(MetricsWorker::snrFromTprs(.5),0.0);
+        QCOMPARE(MetricsWorker::snrFromTprs(0),-std::numeric_limits<double>::infinity());
+        QCOMPARE(MetricsWorker::snrFromTprs(1),std::numeric_limits<double>::infinity());
+        QVERIFY(std::isnan(MetricsWorker::snrFromTprs(-.1)));
+        QVERIFY(std::isnan(MetricsWorker::snrFromTprs(1.1)));
+        QVERIFY(std::isnan(MetricsWorker::snrFromTprs(std::numeric_limits<double>::quiet_NaN())));
+    }
     void cwpFloatTPRS() {
         for (float gain: {1.0f, 0.5f, 0.0f}) {
             QString path=out+QString("/data/tprs-%1.sgy").arg(gain);
@@ -133,6 +146,20 @@ private slots:
             double expected=2*gain/(1+gain*gain);
             QVERIFY2(std::abs(actual-expected)<2e-5,qPrintable(report));
             QVERIFY(report.split('\n').at(1).startsWith("Noisy file: "));
+            for (int mode=0;mode<3;++mode) {
+                MetricsWorker estimated(&input,nullptr,false,0,2,1,0,138,false,mode==2,false,true,mode!=0);
+                QSignalSpy results(&estimated,SIGNAL(emetrics(QString)));estimated.process();QCOMPARE(results.size(),1);
+                QString text=results.first().first().toString();
+                QString snr=QRegularExpression("^SNR\\s*=\\s*(\\S+)",QRegularExpression::MultilineOption).match(text).captured(1);
+                if (gain==0) QCOMPARE(snr,QString("-inf"));
+                else if (gain==1) QCOMPARE(snr,QString("inf"));
+                else QVERIFY2(std::abs(snr.toDouble()-MetricsWorker::snrFromTprs(actual))<1e-7,qPrintable(text));
+                QCOMPARE(text.contains("\nTPRS ="),mode!=0);
+                QVERIFY(text.contains("SNR method: 10*log10(TPRS/(1-TPRS))"));
+            }
+            MetricsWorker insufficient(&input,nullptr,false,0,1,1,0,138,false,false,false,true,false);
+            QSignalSpy missing(&insufficient,SIGNAL(emetrics(QString)));insufficient.process();
+            QCOMPARE(missing.size(),1);QVERIFY(missing.first().first().toString().contains("SNR  = N/A"));
         }
     }
     void metricsLayoutAndCalculation() {

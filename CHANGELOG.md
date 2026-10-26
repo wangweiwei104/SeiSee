@@ -1,5 +1,10 @@
 # 更新日志
 
+## [Unreleased] - 2026-10-26
+
+- 按照提供的 Excel 公式，将估算模式 SNR 改为 `10*log10(TPRS/(1-TPRS))`（dB）。仅勾选 SNR 时自动计算 TPRS；同时勾选时复用一次计算，详细报告记录公式和 TPRS 值。
+- TPRS=0/1 时分别显示 `-inf`/`inf`；数据不足或总功率无效时 SNR 显示 `N/A`。双文件计算模式的 SNR，以及 SSIM、MSE、PSNR 算法保持不变。
+
 本文件记录 SeiSee 独立维护版本的用户可见变更。版本号与 `SeiSeeMp/mainwindow.h` 中的 `VERSION` 保持一致。
 
 ## [4.0.0-alpha.8] - 2026-10-16

@@ -919,6 +919,15 @@ double MetricsWorker::safe_log10(double x)
     return std::log10(x);
 }
 
+double MetricsWorker::snrFromTprs(double tprs)
+{
+    if (!std::isfinite(tprs) || tprs < 0.0 || tprs > 1.0)
+        return std::numeric_limits<double>::quiet_NaN();
+    if (tprs == 0.0) return -std::numeric_limits<double>::infinity();
+    if (tprs == 1.0) return std::numeric_limits<double>::infinity();
+    return 10.0 * (std::log10(tprs) - std::log10(1.0 - tprs));
+}
+
 // 1D SSIM：用滑窗(默认 win=11)在 1D 信号上做 SSIM，并取平均
 // 公式：SSIM = ((2uxuy + C1)(2cov + C2))/((ux^2+uy^2 + C1)(vx+vy + C2))
 // 这里 vx/vy 用局部方差，cov 为局部协方差
@@ -1195,30 +1204,37 @@ void MetricsWorker::process()
         int inc = m_trstp; if (inc < 1) inc = 1;
         long long trccount = (m_trmax - m_trmin);
 
-        // 经典指标？
-        bool anyClassic = (m_calcPSNR || m_calcSSIM || m_calcMSE || m_calcSNR);
-
-        // ★ 仅 TPRS 的快捷路径：不计算均值、不跑经典指标
-        if (m_calcTPRS && !anyClassic)
+        // SNR depends on TPRS; only the other metrics need a mean trace.
+        bool anyClassic = (m_calcPSNR || m_calcSSIM || m_calcMSE);
+        auto appendTprsMetrics = [&](QString& out, double tprs, bool valid) {
+            if (m_calcSNR) {
+                double snr = valid ? snrFromTprs(tprs) : std::numeric_limits<double>::quiet_NaN();
+                QString value = std::isnan(snr) ? QString("N/A") :
+                    std::isinf(snr) ? QString(snr > 0 ? "inf" : "-inf") : QString::number(snr, 'g', 10);
+                out += QString("SNR  = %1 dB\n").arg(value);
+                out += QString("SNR method: 10*log10(TPRS/(1-TPRS)); TPRS = %1\n").arg(tprs, 0, 'g', 10);
+                if (!valid) out += "SNR unavailable: TPRS needs at least two valid traces, eight samples and finite nonzero total power.\n";
+            }
+            if (m_calcTPRS) out += QString("TPRS = %1\n").arg(tprs, 0, 'g', 10);
+        };
+        if ((m_calcTPRS || m_calcSNR) && !anyClassic)
         {
-            emit eprogr(0, "TPRS: preparing...");
-            double tprs = computeTPRS_realMode(/*pStart=*/0, /*pEnd=*/100);
-
+            bool valid = false;
+            double tprs = computeTPRS_realMode(0, 100, &valid);
+            if (m_stop) { emit efin("Estimation stopped."); emit finished(); return; }
             QString out;
             out += "Mode: Estimation (one file)\n";
-        out += QString("Noisy file: %1\n").arg(QString::fromLocal8Bit(m_sf1->Fname().c_str()));
+            out += QString("Noisy file: %1\n").arg(QString::fromLocal8Bit(m_sf1->Fname().c_str()));
             out += QString("Trace range: [%1, %2), step=%3\n").arg(m_trmin).arg(m_trmax).arg(inc);
-            out += QString("Time samples: [%1, %2)\n").arg(m_tmmin).arg(m_tmmax);
-            out += "\n";
-            out += QString("TPRS = %1\n").arg(tprs, 0, 'g', 10);
-
+            out += QString("Time samples: [%1, %2)\n\n").arg(m_tmmin).arg(m_tmmax);
+            appendTprsMetrics(out, tprs, valid);
             emit emetrics(out);
             emit efin(out);
             emit finished();
             return;
         }
 
-        // ★ 其余情况：保留原流程（先均值，再经典指标），TPRS 放到最后 75%→99%
+        // Mean-reference metrics first; compute TPRS once for TPRS and/or SNR at the end.
         long long used_tr = 0;
         int pp = -1;
 
@@ -1251,9 +1267,8 @@ void MetricsWorker::process()
 
         for (int i = 0; i < n; ++i) mean[i] /= (double)used_tr;
 
-        // 2) 经典指标（MSE/PSNR/SSIM/SNR）
+        // 2) Mean-reference metrics (MSE/PSNR/SSIM).
         double mse_sum = 0.0;
-        double sig_sum = 0.0;
         double ssim_sum = 0.0;
         double peak = 0.0;
         long long total_samples = 0;
@@ -1272,7 +1287,6 @@ void MetricsWorker::process()
             {
                 double d = (double)a[m_tmmin + i] - mean[i];
                 mse_sum += d * d;
-                sig_sum += mean[i] * mean[i];
             }
 
             std::vector<float> meanf(n);
@@ -1295,13 +1309,12 @@ void MetricsWorker::process()
         double mse  = (total_samples > 0) ? (mse_sum / (double)total_samples) : 0.0;
         double rmse = std::sqrt(std::max(0.0, mse));
         double psnr = (mse <= 0.0) ? 1e30 : (10.0 * safe_log10((peak * peak) / mse));
-        double snr  = (mse_sum <= 0.0) ? 1e30 : (10.0 * safe_log10(sig_sum / mse_sum));
         double mean_ssim = (total_traces > 0) ? (ssim_sum / (double)total_traces) : 0.0;
 
         QString out;
         out += "Mode: Estimation (one file)\n";
         out += QString("Noisy file: %1\n").arg(QString::fromLocal8Bit(m_sf1->Fname().c_str()));
-        out += "Reference: Mean trace of selected traces\n";
+        out += "MSE/PSNR/SSIM reference: Mean trace of selected traces\n";
         out += QString("Trace range: [%1, %2), step=%3\n").arg(m_trmin).arg(m_trmax).arg(inc);
         out += QString("Time samples: [%1, %2)\n").arg(m_tmmin).arg(m_tmmax);
         out += QString("Total traces used: %1\n").arg(total_traces);
@@ -1310,14 +1323,15 @@ void MetricsWorker::process()
         if(m_calcMSE)  { out += QString("MSE  = %1\n").arg(mse, 0, 'g', 10);
                          out += QString("RMSE = %1\n").arg(rmse, 0, 'g', 10); }
         if(m_calcPSNR) { out += QString("PSNR = %1 dB\n").arg(psnr, 0, 'g', 10); }
-        if(m_calcSNR)  { out += QString("SNR  = %1 dB\n").arg(snr,  0, 'g', 10); }
         if(m_calcSSIM) { out += QString("SSIM = %1\n").arg(mean_ssim, 0, 'g', 10); }
 
-        // 3) TPRS（如果勾选），放到 75%→99%
-        if (m_calcTPRS)
+        // 3) TPRS and its SNR conversion share one computation.
+        if (m_calcTPRS || m_calcSNR)
         {
-            double tprs = computeTPRS_realMode(/*pStart=*/75, /*pEnd=*/99);
-            out += QString("TPRS = %1\n").arg(tprs, 0, 'g', 10);
+            bool valid = false;
+            double tprs = computeTPRS_realMode(75, 99, &valid);
+            if (m_stop) { emit efin("Estimation stopped."); emit finished(); return; }
+            appendTprsMetrics(out, tprs, valid);
         }
 
         emit emetrics(out);
@@ -1377,8 +1391,9 @@ void realTraceSpectrum(const float* samples, int count, int nfft,
 }
 }
 
-float MetricsWorker::computeTPRS_realMode(int pStart, int pEnd)
+float MetricsWorker::computeTPRS_realMode(int pStart, int pEnd, bool* valid)
 {
+    if (valid) *valid = false;
     auto progress = [&](int percent, const char* message) {
         emit eprogr(pStart + (pEnd - pStart) * percent / 100, message);
     };
@@ -1426,5 +1441,6 @@ float MetricsWorker::computeTPRS_realMode(int pStart, int pEnd)
     progress(100, "TPRS: done");
     if (!(totalPower > 0.0f) || !std::isfinite(totalPower) || !std::isfinite(signalPower))
         return 0.0f;
+    if (valid) *valid = true;
     return std::max(0.0f, std::min(1.0f, signalPower / totalPower));
 }

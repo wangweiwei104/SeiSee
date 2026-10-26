@@ -37,6 +37,7 @@ MetricsDialog::MetricsDialog(QWidget *parent) :
     ui->pathFile1->setToolTip(tr("Signal file is fixed to the file captured from the main window."));
     ui->btnSaveResults->setEnabled(false);
     ui->txtResults->setFont(QFontDatabase::systemFont(QFontDatabase::FixedFont));
+    ui->ckSNR->setToolTip(tr("Estimation: 10*log10(TPRS/(1-TPRS)); TPRS is computed automatically. Calculation: reference signal energy / error energy."));
     ui->txtResults->setPlaceholderText(tr("The full calculation report will appear here."));
     ui->metricTable->setColCount(3);
     ui->metricTable->setColLabel(0, tr("Metric"));

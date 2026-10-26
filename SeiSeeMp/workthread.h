@@ -280,6 +280,7 @@ class MetricsWorker : public Worker
     Q_OBJECT
 
 public:
+    static double snrFromTprs(double tprs);
     MetricsWorker(SeisFile* sf1,
                   SeisFile* sf2,
                   bool    isCalculation,
@@ -319,7 +320,7 @@ private:
     bool      m_calcTPRS;
 
 
-    float computeTPRS_realMode(int pStart = 75, int pEnd = 99); // 仅估算模式用
+    float computeTPRS_realMode(int pStart = 75, int pEnd = 99, bool* valid = nullptr); // 仅估算模式用
 
     // FFT & shift helpers
     int  estimateShift(const float* a, const float* b, int n, int maxLag);
