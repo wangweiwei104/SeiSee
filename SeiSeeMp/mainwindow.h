@@ -12,6 +12,7 @@
 #include <QMainWindow>
 #include <QPlainTextEdit>
 #include <QProgressBar>
+#include <QPoint>
 #include <QResizeEvent>
 #include <QScrollBar>
 #include <QStack>
@@ -70,6 +71,7 @@ namespace Ui {
 }
 
 class QAction;
+class QSplitter;
 
 class myEventCatcher : public QObject
 {
@@ -390,10 +392,22 @@ private slots:
     void on_ckDly_toggled(bool checked);
 
 private:
+    struct ComparisonFile
+    {
+        QString path;
+        int type;
+    };
+
     Ui::MainWindow *ui;
 
     void captureCurrentView(int dpi);
     void finishHighResolutionExport();
+    void showFileContextMenu(MyStringTable *grid, const QPoint &position,
+                             bool comparisonGrid);
+    void addToComparison(const QString &path, int type);
+    void removeFromComparison(int row);
+    void refreshComparisonGrid();
+    void openComparisonFile(int row);
 
     void applyAxisFontSize(int size);
     void applyTimeAxisDisplaySettings();
@@ -483,6 +497,10 @@ private:
     GfxObjHsrsLab hdrsLab;
 
     MyStringTable dirGrid;
+    MyStringTable comparisonGrid;
+    QWidget *comparisonGroup = nullptr;
+    QSplitter *comparisonSplitter = nullptr;
+    QList<ComparisonFile> comparisonFiles;
 
     MyStringTable binHdrGrid;
     MyStringTable trcHdrGrid;

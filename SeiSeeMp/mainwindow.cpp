@@ -12,9 +12,11 @@
 #include <QFileInfo>
 #include <QFontMetrics>
 #include <QGridLayout>
+#include <QGroupBox>
 #include <QHBoxLayout>
 #include <QImage>
 #include <QIcon>
+#include <QKeyEvent>
 #include <QLabel>
 #include <QMessageBox>
 #include <QMenu>
@@ -23,9 +25,11 @@
 #include <QPalette>
 #include <QPixmap>
 #include <QPen>
+#include <QPushButton>
 #include <QScrollBar>
 #include <QSettings>
 #include <QSignalBlocker>
+#include <QSplitter>
 #include <QStandardItemModel>
 #include <QTabBar>
 #include <QTextCodec>
@@ -298,50 +302,9 @@ MainWindow::MainWindow(QWidget *parent)
     dirGrid.setMouseTracking(true);
     dirGrid.viewport()->setMouseTracking(true);
     dirGrid.setContextMenuPolicy(Qt::CustomContextMenu);
-    // 增加了文件目录右键三个菜单项
     connect(&dirGrid, &QWidget::customContextMenuRequested, this,
             [this](const QPoint &position) {
-                const QModelIndex index = dirGrid.indexAt(position);
-                if (!index.isValid())
-                    return;
-
-                const int row = index.row();
-                if (dirGrid.Tag(row, 0) != 1)
-                    return;
-
-                dirGrid.setCurrentIndex(index);
-
-                const QString fileName = dirGrid.Cell(row, 0);
-                const QString fullPath =
-                    QFileInfo(QDir(curDir).filePath(fileName)).absoluteFilePath();
-
-                QMenu menu(&dirGrid);
-                QAction *copyNameAction = menu.addAction(tr("Copy file name"));
-                QAction *copyPathAction = menu.addAction(tr("Copy full path"));
-                QAction *openFolderAction =
-                    menu.addAction(tr("Open containing folder"));
-                connect(copyNameAction, &QAction::triggered, this,
-                        [fileName]() {
-                            QApplication::clipboard()->setText(fileName);
-                        });
-                connect(copyPathAction, &QAction::triggered, this,
-                        [fullPath]() {
-                            QApplication::clipboard()->setText(fullPath);
-                        });
-                const QString containingFolder =
-                    QFileInfo(fullPath).absolutePath();
-                connect(openFolderAction, &QAction::triggered, this,
-                        [this, containingFolder]() {
-                            if (!QDesktopServices::openUrl(
-                                    QUrl::fromLocalFile(containingFolder))) {
-                                QMessageBox::warning(
-                                    this, tr("Unable to open folder"),
-                                    tr("Could not open the folder containing "
-                                       "this file."));
-                            }
-                        });
-
-                menu.exec(dirGrid.viewport()->mapToGlobal(position));
+                showFileContextMenu(&dirGrid, position, false);
             });
 
     QVBoxLayout *dirGridLayout = new QVBoxLayout;
@@ -349,6 +312,68 @@ MainWindow::MainWindow(QWidget *parent)
     dirGridLayout->setSpacing(GfxStyle::CompactLayoutSpacing);
     dirGridLayout->addWidget(&dirGrid);
     ui->dirFrame->setLayout(dirGridLayout);
+
+    comparisonGrid.setRowCount(0);
+    comparisonGrid.setColCount(3);
+    comparisonGrid.setFont(directoryGridFont);
+    comparisonGrid.verticalHeader()->setVisible(false);
+    comparisonGrid.setColLabel(0, "Key");
+    comparisonGrid.setColLabel(1, "Name");
+    comparisonGrid.setColLabel(2, "Type");
+    comparisonGrid.setColWidthInCharacters(
+        0, GfxStyle::CompareKeyCharacterCount,
+        GfxStyle::TableColumnHorizontalPadding);
+    comparisonGrid.setColWidthInCharacters(
+        2, GfxStyle::DirectoryTypeCharacterCount,
+        GfxStyle::TableColumnHorizontalPadding);
+    comparisonGrid.setColWidthToStretch(
+        1, GfxStyle::TableColumnHorizontalPadding);
+    comparisonGrid.setContextMenuPolicy(Qt::CustomContextMenu);
+    comparisonGrid.setMinimumHeight(75);
+    connect(&comparisonGrid, &QWidget::customContextMenuRequested, this,
+            [this](const QPoint &position) {
+                showFileContextMenu(&comparisonGrid, position, true);
+            });
+    connect(&comparisonGrid, &MyStringTable::rowEvent, this,
+            [this](int row, int mode) {
+                if (mode == 1 || mode == 2)
+                    openComparisonFile(row);
+            });
+
+    comparisonGroup = new QGroupBox(tr("Compare"));
+    QVBoxLayout *comparisonLayout = new QVBoxLayout(comparisonGroup);
+    comparisonLayout->setContentsMargins(
+        GfxStyle::CompactLayoutMargin, GfxStyle::CompactLayoutMargin,
+        GfxStyle::CompactLayoutMargin, GfxStyle::CompactLayoutMargin);
+    comparisonLayout->setSpacing(GfxStyle::CompactLayoutSpacing);
+    QPushButton *removeAllComparisonButton =
+        new QPushButton(tr("Remove all"), comparisonGroup);
+    removeAllComparisonButton->setSizePolicy(
+        QSizePolicy::Fixed, QSizePolicy::Fixed);
+    comparisonLayout->addWidget(removeAllComparisonButton, 0, Qt::AlignRight);
+    comparisonLayout->addWidget(&comparisonGrid);
+    connect(removeAllComparisonButton, &QPushButton::clicked, this, [this]() {
+        comparisonFiles.clear();
+        refreshComparisonGrid();
+    });
+    comparisonGroup->setMinimumHeight(105);
+    comparisonGroup->hide();
+
+    ui->dirGroup->layout()->removeWidget(ui->dirFrame);
+    comparisonSplitter = new QSplitter(Qt::Vertical, ui->dirGroup);
+    comparisonSplitter->setObjectName(QStringLiteral("directoryCompareSplitter"));
+    comparisonSplitter->setHandleWidth(5);
+    comparisonSplitter->setChildrenCollapsible(false);
+    comparisonSplitter->addWidget(ui->dirFrame);
+    comparisonSplitter->addWidget(comparisonGroup);
+    comparisonSplitter->setStretchFactor(0, 1);
+    comparisonSplitter->setStretchFactor(1, 0);
+    ui->dirGroup->layout()->addWidget(comparisonSplitter);
+    QBoxLayout *directoryLayout =
+        qobject_cast<QBoxLayout *>(ui->dirGroup->layout());
+    if (directoryLayout) {
+        directoryLayout->setStretchFactor(comparisonSplitter, 1);
+    }
 
     //----------------------------------------------------------
     binHdrGrid.setRowCount(0);
@@ -1622,6 +1647,162 @@ void MainWindow::dirGridEvent(int row, int mode)
 
         Clear();
     }
+}
+
+void MainWindow::showFileContextMenu(MyStringTable *grid,
+                                     const QPoint &position,
+                                     bool comparisonGridMenu)
+{
+    const QModelIndex index = grid->indexAt(position);
+    if (!index.isValid())
+        return;
+
+    const int row = index.row();
+    QString fullPath;
+    int type = 0;
+    if (comparisonGridMenu) {
+        if (row < 0 || row >= comparisonFiles.size())
+            return;
+        fullPath = comparisonFiles.at(row).path;
+        type = comparisonFiles.at(row).type;
+    } else {
+        if (grid->Tag(row, 0) != 1)
+            return;
+        const QString fileName = grid->Cell(row, 0);
+        fullPath = QFileInfo(QDir(curDir).filePath(fileName)).absoluteFilePath();
+        type = static_cast<int>(grid->Tag(row, 1));
+    }
+
+    grid->setCurrentIndex(index);
+    const QString fileName = QFileInfo(fullPath).fileName();
+    QMenu menu(grid);
+    QAction *copyNameAction = menu.addAction(tr("Copy file name"));
+    QAction *copyPathAction = menu.addAction(tr("Copy full path"));
+    QAction *openFolderAction = menu.addAction(tr("Open containing folder"));
+    QAction *comparisonAction = nullptr;
+    QAction *removeAction = nullptr;
+    if (comparisonGridMenu) {
+        removeAction = menu.addAction(tr("Remove from comparison"));
+    } else {
+        comparisonAction = menu.addAction(tr("Add to comparison"));
+    }
+
+    connect(copyNameAction, &QAction::triggered, this, [fileName]() {
+        QApplication::clipboard()->setText(fileName);
+    });
+    connect(copyPathAction, &QAction::triggered, this, [fullPath]() {
+        QApplication::clipboard()->setText(fullPath);
+    });
+    const QString containingFolder = QFileInfo(fullPath).absolutePath();
+    connect(openFolderAction, &QAction::triggered, this,
+            [this, containingFolder]() {
+                if (!QDesktopServices::openUrl(
+                        QUrl::fromLocalFile(containingFolder))) {
+                    QMessageBox::warning(
+                        this, tr("Unable to open folder"),
+                        tr("Could not open the folder containing this file."));
+                }
+            });
+    if (comparisonAction) {
+        connect(comparisonAction, &QAction::triggered, this,
+                [this, fullPath, type]() {
+                    addToComparison(fullPath, type);
+                });
+    }
+    if (removeAction) {
+        connect(removeAction, &QAction::triggered, this,
+                [this, row]() { removeFromComparison(row); });
+    }
+
+    menu.exec(grid->viewport()->mapToGlobal(position));
+}
+
+void MainWindow::addToComparison(const QString &path, int type)
+{
+    if (type < 1 || type > 3)
+        return;
+
+    const QFileInfo info(path);
+    QString absolutePath = info.canonicalFilePath();
+    if (absolutePath.isEmpty())
+        absolutePath = info.absoluteFilePath();
+    absolutePath = QDir::cleanPath(absolutePath);
+
+    for (int row = 0; row < comparisonFiles.size(); ++row) {
+#ifdef Q_OS_WIN
+        const Qt::CaseSensitivity sensitivity = Qt::CaseInsensitive;
+#else
+        const Qt::CaseSensitivity sensitivity = Qt::CaseSensitive;
+#endif
+        if (comparisonFiles.at(row).path.compare(absolutePath, sensitivity) ==
+            0) {
+            comparisonGrid.setCurCell(row);
+            return;
+        }
+    }
+
+    ComparisonFile file;
+    file.path = absolutePath;
+    file.type = type;
+    comparisonFiles.append(file);
+    refreshComparisonGrid();
+    comparisonGrid.setCurCell(comparisonFiles.size() - 1);
+}
+
+void MainWindow::removeFromComparison(int row)
+{
+    if (row < 0 || row >= comparisonFiles.size())
+        return;
+
+    comparisonFiles.removeAt(row);
+    refreshComparisonGrid();
+    if (!comparisonFiles.isEmpty())
+        comparisonGrid.setCurCell(qMin(row, comparisonFiles.size() - 1));
+}
+
+void MainWindow::refreshComparisonGrid()
+{
+    comparisonGrid.setRowCount(comparisonFiles.size());
+    for (int row = 0; row < comparisonFiles.size(); ++row) {
+        const ComparisonFile &file = comparisonFiles.at(row);
+        const QFileInfo info(file.path);
+        const QString shortcut =
+            row < 9 ? QString::number(row + 1)
+                    : row == 9 ? QStringLiteral("0") : QString();
+        comparisonGrid.setCell(row, 0, shortcut);
+        comparisonGrid.setCell(row, 1, info.fileName());
+        comparisonGrid.setCellToolTip(row, 1, file.path);
+        comparisonGrid.setTag(row, 1, 1);
+        comparisonGrid.setTag(row, 2, file.type);
+        if (file.type == 1) {
+            comparisonGrid.setImgName(row, 1,
+                                      ":/images/segyfile_inner.png");
+            comparisonGrid.setCell(row, 2, "SEG-Y");
+        } else if (file.type == 2) {
+            comparisonGrid.setImgName(row, 1,
+                                      ":/images/sufile_inner.png");
+            comparisonGrid.setCell(row, 2, "SU");
+        } else {
+            comparisonGrid.setImgName(row, 1,
+                                      ":/images/cstfile_inner.png");
+            comparisonGrid.setCell(row, 2, "CST");
+        }
+    }
+
+    const bool wasHidden = comparisonGroup->isHidden();
+    comparisonGroup->setVisible(!comparisonFiles.isEmpty());
+    if (wasHidden && !comparisonFiles.isEmpty())
+        comparisonSplitter->setSizes(QList<int>() << 2 << 1);
+}
+
+void MainWindow::openComparisonFile(int row)
+{
+    if (row < 0 || row >= comparisonFiles.size())
+        return;
+
+    setWindowTitle("");
+    curFileName = comparisonFiles.at(row).path;
+    OpenSeisFile(comparisonFiles.at(row).type);
 }
 
 void MainWindow::xprint(QPlainTextEdit *edit, QString str)
@@ -4405,6 +4586,47 @@ void MainWindow::dropEvent(QDropEvent *event)
 
 bool MainWindow::eventFilter(QObject *object, QEvent *event)
 {
+    if (event->type() == QEvent::KeyPress &&
+        (object == &comparisonGrid || object == comparisonGrid.viewport()) &&
+        (comparisonGrid.hasFocus() || comparisonGrid.viewport()->hasFocus())) {
+        QKeyEvent *keyEvent = static_cast<QKeyEvent *>(event);
+        if (keyEvent->modifiers() == Qt::NoModifier) {
+            const int count = comparisonFiles.size();
+            const int currentRow = comparisonGrid.curRow();
+            int targetRow = -1;
+            switch (keyEvent->key()) {
+            case Qt::Key_Up:
+            case Qt::Key_Left:
+                targetRow = currentRow < 0
+                                ? count - 1
+                                : (currentRow + count - 1) % count;
+                break;
+            case Qt::Key_Down:
+            case Qt::Key_Right:
+                targetRow = currentRow < 0 ? 0 : (currentRow + 1) % count;
+                break;
+            default:
+                if (keyEvent->key() >= Qt::Key_1 &&
+                    keyEvent->key() <= Qt::Key_9) {
+                    targetRow = keyEvent->key() - Qt::Key_1;
+                } else if (keyEvent->key() == Qt::Key_0) {
+                    targetRow = 9;
+                } else {
+                    break;
+                }
+                if (targetRow >= count)
+                    targetRow = -1;
+                if (targetRow >= 0)
+                    comparisonGrid.setCurCell(targetRow);
+                return true;
+            }
+
+            if (count > 0 && targetRow >= 0)
+                comparisonGrid.setCurCell(targetRow);
+            return true;
+        }
+    }
+
     if (event->type() == QEvent::DragEnter) {
         QDragEnterEvent *dee = static_cast<QDragEnterEvent *>(event);
         if (dee->mimeData()->hasUrls()) {

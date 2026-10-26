@@ -87,6 +87,7 @@ namespace GfxStyle {
     constexpr int TraceDataTimeCharacterCount = 7;
     constexpr int AvailableHeaderNameCharacterCount = 8;
     constexpr int SelectedHeaderNameCharacterCount = 15;
+    constexpr int CompareKeyCharacterCount = 4;
 
     // SeiSeeMp 道头表格myhugetable表格列宽，单位为字符所占的个数。
     constexpr int TraceHeaderValueCharacterCount = 11;
