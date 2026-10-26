@@ -184,6 +184,7 @@
                 <layout class="QHBoxLayout" name="horizontalLayout_15">
                  <item>
                   <widget class="QPushButton" name="btnHexp">
+                   <property name="iconSize"><size><width>20</width><height>20</height></size></property>
                    <property name="sizePolicy">
                     <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                      <horstretch>0</horstretch>
@@ -192,14 +193,14 @@
                    </property>
                    <property name="minimumSize">
                     <size>
-                     <width>25</width>
-                     <height>25</height>
+                     <width>24</width>
+                     <height>24</height>
                     </size>
                    </property>
                    <property name="maximumSize">
                     <size>
-                     <width>25</width>
-                     <height>25</height>
+                     <width>24</width>
+                     <height>24</height>
                     </size>
                    </property>
                    <property name="text">
@@ -213,6 +214,7 @@
                  </item>
                  <item>
                   <widget class="QPushButton" name="btnNexp">
+                   <property name="iconSize"><size><width>20</width><height>20</height></size></property>
                    <property name="sizePolicy">
                     <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                      <horstretch>0</horstretch>
@@ -221,14 +223,14 @@
                    </property>
                    <property name="minimumSize">
                     <size>
-                     <width>25</width>
-                     <height>25</height>
+                     <width>24</width>
+                     <height>24</height>
                     </size>
                    </property>
                    <property name="maximumSize">
                     <size>
-                     <width>25</width>
-                     <height>25</height>
+                     <width>24</width>
+                     <height>24</height>
                     </size>
                    </property>
                    <property name="text">
@@ -242,6 +244,7 @@
                  </item>
                  <item>
                   <widget class="QPushButton" name="btnLexp">
+                   <property name="iconSize"><size><width>20</width><height>20</height></size></property>
                    <property name="sizePolicy">
                     <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                      <horstretch>0</horstretch>
@@ -250,14 +253,14 @@
                    </property>
                    <property name="minimumSize">
                     <size>
-                     <width>25</width>
-                     <height>25</height>
+                     <width>24</width>
+                     <height>24</height>
                     </size>
                    </property>
                    <property name="maximumSize">
                     <size>
-                     <width>25</width>
-                     <height>25</height>
+                     <width>24</width>
+                     <height>24</height>
                     </size>
                    </property>
                    <property name="text">
@@ -287,6 +290,7 @@
                  </item>
                  <item>
                   <widget class="QPushButton" name="btnClrExp">
+                   <property name="iconSize"><size><width>20</width><height>20</height></size></property>
                    <property name="sizePolicy">
                     <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                      <horstretch>0</horstretch>
@@ -295,14 +299,14 @@
                    </property>
                    <property name="minimumSize">
                     <size>
-                     <width>25</width>
-                     <height>25</height>
+                     <width>24</width>
+                     <height>24</height>
                     </size>
                    </property>
                    <property name="maximumSize">
                     <size>
-                     <width>25</width>
-                     <height>25</height>
+                     <width>24</width>
+                     <height>24</height>
                     </size>
                    </property>
                    <property name="text">

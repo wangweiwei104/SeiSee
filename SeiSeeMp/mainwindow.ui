@@ -124,6 +124,7 @@
             </property>
             <item>
              <widget class="QPushButton" name="selDirBtn">
+              <property name="iconSize"><size><width>20</width><height>20</height></size></property>
               <property name="sizePolicy">
                <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                 <horstretch>0</horstretch>
@@ -132,14 +133,14 @@
               </property>
               <property name="minimumSize">
                <size>
-                <width>25</width>
-                <height>25</height>
+                <width>24</width>
+                <height>24</height>
                </size>
               </property>
               <property name="maximumSize">
                <size>
-                <width>25</width>
-                <height>25</height>
+                <width>24</width>
+                <height>24</height>
                </size>
               </property>
               <property name="text">
@@ -153,6 +154,7 @@
             </item>
             <item>
              <widget class="QPushButton" name="opFileBtn">
+              <property name="iconSize"><size><width>20</width><height>20</height></size></property>
               <property name="sizePolicy">
                <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                 <horstretch>0</horstretch>
@@ -161,14 +163,14 @@
               </property>
               <property name="minimumSize">
                <size>
-                <width>25</width>
-                <height>25</height>
+                <width>24</width>
+                <height>24</height>
                </size>
               </property>
               <property name="maximumSize">
                <size>
-                <width>25</width>
-                <height>25</height>
+                <width>24</width>
+                <height>24</height>
                </size>
               </property>
               <property name="text">
@@ -182,6 +184,7 @@
             </item>
             <item>
              <widget class="QPushButton" name="refreshBtn">
+              <property name="iconSize"><size><width>20</width><height>20</height></size></property>
               <property name="sizePolicy">
                <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                 <horstretch>0</horstretch>
@@ -190,14 +193,14 @@
               </property>
               <property name="minimumSize">
                <size>
-                <width>25</width>
-                <height>25</height>
+                <width>24</width>
+                <height>24</height>
                </size>
               </property>
               <property name="maximumSize">
                <size>
-                <width>25</width>
-                <height>25</height>
+                <width>24</width>
+                <height>24</height>
                </size>
               </property>
               <property name="text">
@@ -211,6 +214,7 @@
             </item>
             <item>
              <widget class="QPushButton" name="goBackBtn">
+              <property name="iconSize"><size><width>20</width><height>20</height></size></property>
               <property name="sizePolicy">
                <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                 <horstretch>0</horstretch>
@@ -219,14 +223,14 @@
               </property>
               <property name="minimumSize">
                <size>
-                <width>25</width>
-                <height>25</height>
+                <width>24</width>
+                <height>24</height>
                </size>
               </property>
               <property name="maximumSize">
                <size>
-                <width>25</width>
-                <height>25</height>
+                <width>24</width>
+                <height>24</height>
                </size>
               </property>
               <property name="text">
@@ -502,6 +506,9 @@
                    </item>
                    <item>
                     <widget class="QPushButton" name="btnTxtRdx">
+                     <property name="iconSize"><size><width>20</width><height>20</height></size></property>
+                     <property name="maximumSize"><size><width>24</width><height>24</height></size></property>
+                     <property name="minimumSize"><size><width>24</width><height>24</height></size></property>
                      <property name="text">
                       <string/>
                      </property>
@@ -1145,16 +1152,17 @@
                     </item>
                     <item row="3" column="3">
                      <widget class="QPushButton" name="autoGainBtn">
+                      <property name="iconSize"><size><width>20</width><height>20</height></size></property>
                       <property name="minimumSize">
                        <size>
-                        <width>25</width>
-                        <height>25</height>
+                        <width>24</width>
+                        <height>24</height>
                        </size>
                       </property>
                       <property name="maximumSize">
                        <size>
-                        <width>25</width>
-                        <height>25</height>
+                        <width>24</width>
+                        <height>24</height>
                        </size>
                       </property>
                       <property name="text">
@@ -1258,16 +1266,17 @@
                     </item>
                     <item row="2" column="3">
                      <widget class="QPushButton" name="zoomVallBtn">
+                      <property name="iconSize"><size><width>20</width><height>20</height></size></property>
                       <property name="minimumSize">
                        <size>
-                        <width>25</width>
-                        <height>25</height>
+                        <width>24</width>
+                        <height>24</height>
                        </size>
                       </property>
                       <property name="maximumSize">
                        <size>
-                        <width>25</width>
-                        <height>25</height>
+                        <width>24</width>
+                        <height>24</height>
                        </size>
                       </property>
                       <property name="text">
@@ -1281,16 +1290,17 @@
                     </item>
                     <item row="1" column="3">
                      <widget class="QPushButton" name="zoomHallBtn">
+                      <property name="iconSize"><size><width>20</width><height>20</height></size></property>
                       <property name="minimumSize">
                        <size>
-                        <width>25</width>
-                        <height>25</height>
+                        <width>24</width>
+                        <height>24</height>
                        </size>
                       </property>
                       <property name="maximumSize">
                        <size>
-                        <width>25</width>
-                        <height>25</height>
+                        <width>24</width>
+                        <height>24</height>
                        </size>
                       </property>
                       <property name="text">
@@ -1379,16 +1389,17 @@
                     </item>
                     <item>
                      <widget class="QPushButton" name="procParmBtn">
+                      <property name="iconSize"><size><width>20</width><height>20</height></size></property>
                       <property name="minimumSize">
                        <size>
-                        <width>25</width>
-                        <height>25</height>
+                        <width>24</width>
+                        <height>24</height>
                        </size>
                       </property>
                       <property name="maximumSize">
                        <size>
-                        <width>25</width>
-                        <height>25</height>
+                        <width>24</width>
+                        <height>24</height>
                        </size>
                       </property>
                       <property name="text">
@@ -1540,6 +1551,7 @@
                  </property>
                  <item>
                   <widget class="QPushButton" name="zoomAllBtn">
+                   <property name="iconSize"><size><width>20</width><height>20</height></size></property>
                    <property name="sizePolicy">
                     <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                      <horstretch>0</horstretch>
@@ -1548,14 +1560,14 @@
                    </property>
                    <property name="minimumSize">
                     <size>
-                     <width>25</width>
-                     <height>25</height>
+                     <width>24</width>
+                     <height>24</height>
                     </size>
                    </property>
                    <property name="maximumSize">
                     <size>
-                     <width>25</width>
-                     <height>25</height>
+                     <width>24</width>
+                     <height>24</height>
                     </size>
                    </property>
                    <property name="text">
@@ -1569,6 +1581,7 @@
                  </item>
                  <item>
                   <widget class="QPushButton" name="zoomWinBtn">
+                   <property name="iconSize"><size><width>20</width><height>20</height></size></property>
                    <property name="sizePolicy">
                     <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                      <horstretch>0</horstretch>
@@ -1577,14 +1590,14 @@
                    </property>
                    <property name="minimumSize">
                     <size>
-                     <width>25</width>
-                     <height>25</height>
+                     <width>24</width>
+                     <height>24</height>
                     </size>
                    </property>
                    <property name="maximumSize">
                     <size>
-                     <width>25</width>
-                     <height>25</height>
+                     <width>24</width>
+                     <height>24</height>
                     </size>
                    </property>
                    <property name="text">
@@ -1598,6 +1611,7 @@
                  </item>
                  <item>
                   <widget class="QPushButton" name="zoomOutBtn">
+                   <property name="iconSize"><size><width>20</width><height>20</height></size></property>
                    <property name="sizePolicy">
                     <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                      <horstretch>0</horstretch>
@@ -1606,14 +1620,14 @@
                    </property>
                    <property name="minimumSize">
                     <size>
-                     <width>25</width>
-                     <height>25</height>
+                     <width>24</width>
+                     <height>24</height>
                     </size>
                    </property>
                    <property name="maximumSize">
                     <size>
-                     <width>25</width>
-                     <height>25</height>
+                     <width>24</width>
+                     <height>24</height>
                     </size>
                    </property>
                    <property name="text">
@@ -1627,6 +1641,7 @@
                  </item>
                  <item>
                   <widget class="QPushButton" name="zoomInBtn">
+                   <property name="iconSize"><size><width>20</width><height>20</height></size></property>
                    <property name="sizePolicy">
                     <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                      <horstretch>0</horstretch>
@@ -1635,14 +1650,14 @@
                    </property>
                    <property name="minimumSize">
                     <size>
-                     <width>25</width>
-                     <height>25</height>
+                     <width>24</width>
+                     <height>24</height>
                     </size>
                    </property>
                    <property name="maximumSize">
                     <size>
-                     <width>25</width>
-                     <height>25</height>
+                     <width>24</width>
+                     <height>24</height>
                     </size>
                    </property>
                    <property name="text">
@@ -1656,6 +1671,7 @@
                  </item>
                  <item>
                   <widget class="QPushButton" name="zoomPreBtn">
+                   <property name="iconSize"><size><width>20</width><height>20</height></size></property>
                    <property name="sizePolicy">
                     <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                      <horstretch>0</horstretch>
@@ -1664,14 +1680,14 @@
                    </property>
                    <property name="minimumSize">
                     <size>
-                     <width>25</width>
-                     <height>25</height>
+                     <width>24</width>
+                     <height>24</height>
                     </size>
                    </property>
                    <property name="maximumSize">
                     <size>
-                     <width>25</width>
-                     <height>25</height>
+                     <width>24</width>
+                     <height>24</height>
                     </size>
                    </property>
                    <property name="text">
@@ -1701,6 +1717,7 @@
                  </item>
                  <item>
                   <widget class="QPushButton" name="axisBtn">
+                   <property name="iconSize"><size><width>20</width><height>20</height></size></property>
                    <property name="sizePolicy">
                     <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                      <horstretch>0</horstretch>
@@ -1709,14 +1726,14 @@
                    </property>
                    <property name="minimumSize">
                     <size>
-                     <width>25</width>
-                     <height>25</height>
+                     <width>24</width>
+                     <height>24</height>
                     </size>
                    </property>
                    <property name="maximumSize">
                     <size>
-                     <width>25</width>
-                     <height>25</height>
+                     <width>24</width>
+                     <height>24</height>
                     </size>
                    </property>
                    <property name="text">
@@ -1730,6 +1747,7 @@
                  </item>
                  <item>
                   <widget class="QPushButton" name="clearTraceHighlightBtn">
+                   <property name="iconSize"><size><width>20</width><height>20</height></size></property>
                    <property name="sizePolicy">
                     <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                      <horstretch>0</horstretch>
@@ -1738,14 +1756,14 @@
                    </property>
                    <property name="minimumSize">
                     <size>
-                     <width>25</width>
-                     <height>25</height>
+                     <width>24</width>
+                     <height>24</height>
                     </size>
                    </property>
                    <property name="maximumSize">
                     <size>
-                     <width>25</width>
-                     <height>25</height>
+                     <width>24</width>
+                     <height>24</height>
                     </size>
                    </property>
                    <property name="text">
@@ -1759,6 +1777,7 @@
                  </item>
                  <item>
                   <widget class="QPushButton" name="captureBtn">
+                   <property name="iconSize"><size><width>20</width><height>20</height></size></property>
                    <property name="sizePolicy">
                     <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                      <horstretch>0</horstretch>
@@ -1767,14 +1786,14 @@
                    </property>
                    <property name="minimumSize">
                     <size>
-                     <width>25</width>
-                     <height>25</height>
+                     <width>24</width>
+                     <height>24</height>
                     </size>
                    </property>
                    <property name="maximumSize">
                     <size>
-                     <width>25</width>
-                     <height>25</height>
+                     <width>24</width>
+                     <height>24</height>
                     </size>
                    </property>
                    <property name="text">
@@ -1788,6 +1807,7 @@
                  </item>
                  <item>
                   <widget class="QPushButton" name="exportHiResBtn">
+                   <property name="iconSize"><size><width>20</width><height>20</height></size></property>
                    <property name="sizePolicy">
                     <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                      <horstretch>0</horstretch>
@@ -1796,14 +1816,14 @@
                    </property>
                    <property name="minimumSize">
                     <size>
-                     <width>25</width>
-                     <height>25</height>
+                     <width>24</width>
+                     <height>24</height>
                     </size>
                    </property>
                    <property name="maximumSize">
                     <size>
-                     <width>25</width>
-                     <height>25</height>
+                     <width>24</width>
+                     <height>24</height>
                     </size>
                    </property>
                    <property name="text">
@@ -2092,6 +2112,7 @@
                     </property>
                     <item>
                      <widget class="QPushButton" name="btnCkAll">
+                      <property name="iconSize"><size><width>20</width><height>20</height></size></property>
                       <property name="sizePolicy">
                        <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                         <horstretch>0</horstretch>
@@ -2100,14 +2121,14 @@
                       </property>
                       <property name="minimumSize">
                        <size>
-                        <width>25</width>
-                        <height>25</height>
+                        <width>24</width>
+                        <height>24</height>
                        </size>
                       </property>
                       <property name="maximumSize">
                        <size>
-                        <width>25</width>
-                        <height>25</height>
+                        <width>24</width>
+                        <height>24</height>
                        </size>
                       </property>
                       <property name="text">
@@ -2121,6 +2142,7 @@
                     </item>
                     <item>
                      <widget class="QPushButton" name="btnCkNon">
+                      <property name="iconSize"><size><width>20</width><height>20</height></size></property>
                       <property name="sizePolicy">
                        <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                         <horstretch>0</horstretch>
@@ -2129,14 +2151,14 @@
                       </property>
                       <property name="minimumSize">
                        <size>
-                        <width>25</width>
-                        <height>25</height>
+                        <width>24</width>
+                        <height>24</height>
                        </size>
                       </property>
                       <property name="maximumSize">
                        <size>
-                        <width>25</width>
-                        <height>25</height>
+                        <width>24</width>
+                        <height>24</height>
                        </size>
                       </property>
                       <property name="toolTip">
@@ -2169,6 +2191,7 @@
                     </item>
                     <item>
                      <widget class="QPushButton" name="btnEdHdr">
+                      <property name="iconSize"><size><width>20</width><height>20</height></size></property>
                       <property name="enabled">
                        <bool>true</bool>
                       </property>
@@ -2180,14 +2203,14 @@
                       </property>
                       <property name="minimumSize">
                        <size>
-                        <width>25</width>
-                        <height>25</height>
+                        <width>24</width>
+                        <height>24</height>
                        </size>
                       </property>
                       <property name="maximumSize">
                        <size>
-                        <width>25</width>
-                        <height>25</height>
+                        <width>24</width>
+                        <height>24</height>
                        </size>
                       </property>
                       <property name="toolTip">
@@ -2397,6 +2420,7 @@
                        </item>
                        <item>
                         <widget class="QPushButton" name="btnSbin">
+                         <property name="iconSize"><size><width>20</width><height>20</height></size></property>
                          <property name="sizePolicy">
                           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                            <horstretch>0</horstretch>
@@ -2405,14 +2429,14 @@
                          </property>
                          <property name="minimumSize">
                           <size>
-                           <width>25</width>
-                           <height>25</height>
+                           <width>24</width>
+                           <height>24</height>
                           </size>
                          </property>
                          <property name="maximumSize">
                           <size>
-                           <width>25</width>
-                           <height>25</height>
+                           <width>24</width>
+                           <height>24</height>
                           </size>
                          </property>
                          <property name="text">
@@ -2426,6 +2450,7 @@
                        </item>
                        <item>
                         <widget class="QPushButton" name="btnSfwd">
+                         <property name="iconSize"><size><width>20</width><height>20</height></size></property>
                          <property name="sizePolicy">
                           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                            <horstretch>0</horstretch>
@@ -2434,14 +2459,14 @@
                          </property>
                          <property name="minimumSize">
                           <size>
-                           <width>25</width>
-                           <height>25</height>
+                           <width>24</width>
+                           <height>24</height>
                           </size>
                          </property>
                          <property name="maximumSize">
                           <size>
-                           <width>25</width>
-                           <height>25</height>
+                           <width>24</width>
+                           <height>24</height>
                           </size>
                          </property>
                          <property name="text">
@@ -2455,6 +2480,7 @@
                        </item>
                        <item>
                         <widget class="QPushButton" name="btnSbkw">
+                         <property name="iconSize"><size><width>20</width><height>20</height></size></property>
                          <property name="sizePolicy">
                           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                            <horstretch>0</horstretch>
@@ -2463,14 +2489,14 @@
                          </property>
                          <property name="minimumSize">
                           <size>
-                           <width>25</width>
-                           <height>25</height>
+                           <width>24</width>
+                           <height>24</height>
                           </size>
                          </property>
                          <property name="maximumSize">
                           <size>
-                           <width>25</width>
-                           <height>25</height>
+                           <width>24</width>
+                           <height>24</height>
                           </size>
                          </property>
                          <property name="text">
@@ -2484,6 +2510,7 @@
                        </item>
                        <item>
                         <widget class="QPushButton" name="btnSstop">
+                         <property name="iconSize"><size><width>20</width><height>20</height></size></property>
                          <property name="enabled">
                           <bool>false</bool>
                          </property>
@@ -2495,14 +2522,14 @@
                          </property>
                          <property name="minimumSize">
                           <size>
-                           <width>25</width>
-                           <height>25</height>
+                           <width>24</width>
+                           <height>24</height>
                           </size>
                          </property>
                          <property name="maximumSize">
                           <size>
-                           <width>25</width>
-                           <height>25</height>
+                           <width>24</width>
+                           <height>24</height>
                           </size>
                          </property>
                          <property name="text">
@@ -2532,6 +2559,7 @@
                        </item>
                        <item>
                         <widget class="QPushButton" name="btnLastTr">
+                         <property name="iconSize"><size><width>20</width><height>20</height></size></property>
                          <property name="sizePolicy">
                           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                            <horstretch>0</horstretch>
@@ -2540,14 +2568,14 @@
                          </property>
                          <property name="minimumSize">
                           <size>
-                           <width>25</width>
-                           <height>25</height>
+                           <width>24</width>
+                           <height>24</height>
                           </size>
                          </property>
                          <property name="maximumSize">
                           <size>
-                           <width>25</width>
-                           <height>25</height>
+                           <width>24</width>
+                           <height>24</height>
                           </size>
                          </property>
                          <property name="text">
@@ -2561,6 +2589,7 @@
                        </item>
                        <item>
                         <widget class="QPushButton" name="btnFirstTr">
+                         <property name="iconSize"><size><width>20</width><height>20</height></size></property>
                          <property name="sizePolicy">
                           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                            <horstretch>0</horstretch>
@@ -2569,14 +2598,14 @@
                          </property>
                          <property name="minimumSize">
                           <size>
-                           <width>25</width>
-                           <height>25</height>
+                           <width>24</width>
+                           <height>24</height>
                           </size>
                          </property>
                          <property name="maximumSize">
                           <size>
-                           <width>25</width>
-                           <height>25</height>
+                           <width>24</width>
+                           <height>24</height>
                           </size>
                          </property>
                          <property name="text">
@@ -2685,6 +2714,7 @@
                        </item>
                        <item>
                         <widget class="QPushButton" name="btnUpdTrh">
+                         <property name="iconSize"><size><width>20</width><height>20</height></size></property>
                          <property name="sizePolicy">
                           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                            <horstretch>0</horstretch>
@@ -2693,14 +2723,14 @@
                          </property>
                          <property name="minimumSize">
                           <size>
-                           <width>25</width>
-                           <height>25</height>
+                           <width>24</width>
+                           <height>24</height>
                           </size>
                          </property>
                          <property name="maximumSize">
                           <size>
-                           <width>25</width>
-                           <height>25</height>
+                           <width>24</width>
+                           <height>24</height>
                           </size>
                          </property>
                          <property name="text">
@@ -2860,6 +2890,7 @@
                     </property>
                     <item>
                      <widget class="QPushButton" name="btnCkNonE">
+                      <property name="iconSize"><size><width>20</width><height>20</height></size></property>
                       <property name="sizePolicy">
                        <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                         <horstretch>0</horstretch>
@@ -2868,14 +2899,14 @@
                       </property>
                       <property name="minimumSize">
                        <size>
-                        <width>25</width>
-                        <height>25</height>
+                        <width>24</width>
+                        <height>24</height>
                        </size>
                       </property>
                       <property name="maximumSize">
                        <size>
-                        <width>25</width>
-                        <height>25</height>
+                        <width>24</width>
+                        <height>24</height>
                        </size>
                       </property>
                       <property name="toolTip">
@@ -2982,6 +3013,7 @@
                       <layout class="QHBoxLayout" name="horizontalLayout_15">
                        <item>
                         <widget class="QPushButton" name="btnHexp">
+                         <property name="iconSize"><size><width>20</width><height>20</height></size></property>
                          <property name="sizePolicy">
                           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                            <horstretch>0</horstretch>
@@ -2990,14 +3022,14 @@
                          </property>
                          <property name="minimumSize">
                           <size>
-                           <width>25</width>
-                           <height>25</height>
+                           <width>24</width>
+                           <height>24</height>
                           </size>
                          </property>
                          <property name="maximumSize">
                           <size>
-                           <width>25</width>
-                           <height>25</height>
+                           <width>24</width>
+                           <height>24</height>
                           </size>
                          </property>
                          <property name="text">
@@ -3011,6 +3043,7 @@
                        </item>
                        <item>
                         <widget class="QPushButton" name="btnNexp">
+                         <property name="iconSize"><size><width>20</width><height>20</height></size></property>
                          <property name="sizePolicy">
                           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                            <horstretch>0</horstretch>
@@ -3019,14 +3052,14 @@
                          </property>
                          <property name="minimumSize">
                           <size>
-                           <width>25</width>
-                           <height>25</height>
+                           <width>24</width>
+                           <height>24</height>
                           </size>
                          </property>
                          <property name="maximumSize">
                           <size>
-                           <width>25</width>
-                           <height>25</height>
+                           <width>24</width>
+                           <height>24</height>
                           </size>
                          </property>
                          <property name="text">
@@ -3040,6 +3073,7 @@
                        </item>
                        <item>
                         <widget class="QPushButton" name="btnLexp">
+                         <property name="iconSize"><size><width>20</width><height>20</height></size></property>
                          <property name="sizePolicy">
                           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                            <horstretch>0</horstretch>
@@ -3048,14 +3082,14 @@
                          </property>
                          <property name="minimumSize">
                           <size>
-                           <width>25</width>
-                           <height>25</height>
+                           <width>24</width>
+                           <height>24</height>
                           </size>
                          </property>
                          <property name="maximumSize">
                           <size>
-                           <width>25</width>
-                           <height>25</height>
+                           <width>24</width>
+                           <height>24</height>
                           </size>
                          </property>
                          <property name="text">
@@ -3085,6 +3119,7 @@
                        </item>
                        <item>
                         <widget class="QPushButton" name="btnClrExp">
+                         <property name="iconSize"><size><width>20</width><height>20</height></size></property>
                          <property name="sizePolicy">
                           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                            <horstretch>0</horstretch>
@@ -3093,14 +3128,14 @@
                          </property>
                          <property name="minimumSize">
                           <size>
-                           <width>25</width>
-                           <height>25</height>
+                           <width>24</width>
+                           <height>24</height>
                           </size>
                          </property>
                          <property name="maximumSize">
                           <size>
-                           <width>25</width>
-                           <height>25</height>
+                           <width>24</width>
+                           <height>24</height>
                           </size>
                          </property>
                          <property name="text">
@@ -3130,6 +3165,7 @@
                        </item>
                        <item>
                         <widget class="QPushButton" name="btnUpdE">
+                         <property name="iconSize"><size><width>20</width><height>20</height></size></property>
                          <property name="enabled">
                           <bool>true</bool>
                          </property>
@@ -3141,14 +3177,14 @@
                          </property>
                          <property name="minimumSize">
                           <size>
-                           <width>25</width>
-                           <height>25</height>
+                           <width>24</width>
+                           <height>24</height>
                           </size>
                          </property>
                          <property name="maximumSize">
                           <size>
-                           <width>25</width>
-                           <height>25</height>
+                           <width>24</width>
+                           <height>24</height>
                           </size>
                          </property>
                          <property name="text">
@@ -3162,6 +3198,7 @@
                        </item>
                        <item>
                         <widget class="QPushButton" name="btnUndE">
+                         <property name="iconSize"><size><width>20</width><height>20</height></size></property>
                          <property name="enabled">
                           <bool>false</bool>
                          </property>
@@ -3173,14 +3210,14 @@
                          </property>
                          <property name="minimumSize">
                           <size>
-                           <width>25</width>
-                           <height>25</height>
+                           <width>24</width>
+                           <height>24</height>
                           </size>
                          </property>
                          <property name="maximumSize">
                           <size>
-                           <width>25</width>
-                           <height>25</height>
+                           <width>24</width>
+                           <height>24</height>
                           </size>
                          </property>
                          <property name="text">
@@ -3210,6 +3247,7 @@
                        </item>
                        <item>
                         <widget class="QPushButton" name="btnLastTr_2">
+                         <property name="iconSize"><size><width>20</width><height>20</height></size></property>
                          <property name="sizePolicy">
                           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                            <horstretch>0</horstretch>
@@ -3218,14 +3256,14 @@
                          </property>
                          <property name="minimumSize">
                           <size>
-                           <width>25</width>
-                           <height>25</height>
+                           <width>24</width>
+                           <height>24</height>
                           </size>
                          </property>
                          <property name="maximumSize">
                           <size>
-                           <width>25</width>
-                           <height>25</height>
+                           <width>24</width>
+                           <height>24</height>
                           </size>
                          </property>
                          <property name="text">
@@ -3239,6 +3277,7 @@
                        </item>
                        <item>
                         <widget class="QPushButton" name="btnFirstTr_2">
+                         <property name="iconSize"><size><width>20</width><height>20</height></size></property>
                          <property name="sizePolicy">
                           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                            <horstretch>0</horstretch>
@@ -3247,14 +3286,14 @@
                          </property>
                          <property name="minimumSize">
                           <size>
-                           <width>25</width>
-                           <height>25</height>
+                           <width>24</width>
+                           <height>24</height>
                           </size>
                          </property>
                          <property name="maximumSize">
                           <size>
-                           <width>25</width>
-                           <height>25</height>
+                           <width>24</width>
+                           <height>24</height>
                           </size>
                          </property>
                          <property name="text">

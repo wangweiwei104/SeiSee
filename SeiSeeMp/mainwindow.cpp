@@ -109,6 +109,18 @@ MainWindow::MainWindow(QWidget *parent)
     QCoreApplication::setLibraryPaths(paths);
 
     ui->setupUi(this);
+    qApp->setStyleSheet(
+        QStringLiteral(
+            "QPushButton, QToolButton { border: 2px solid transparent; "
+            "border-radius: %1px; } "
+            "QPushButton:hover, QToolButton:hover { "
+            "background-color: %2; } "
+            "QPushButton:pressed, QToolButton:pressed { "
+            "background-color: %3; }")
+            .arg(GfxStyle::ButtonCornerRadius)
+            .arg(QString::fromLatin1(GfxStyle::ButtonHoverBackground))
+            .arg(QString::fromLatin1(GfxStyle::ButtonPressedBackground)));
+
     QSettings settings("WW", "SeiSeeMp");
     m_recentDirectories = settings.value("RecentDirectories").toStringList();
 
@@ -347,10 +359,17 @@ MainWindow::MainWindow(QWidget *parent)
         GfxStyle::CompactLayoutMargin, GfxStyle::CompactLayoutMargin);
     comparisonLayout->setSpacing(GfxStyle::CompactLayoutSpacing);
     QPushButton *removeAllComparisonButton =
-        new QPushButton(tr("Remove all"), comparisonGroup);
+        new QPushButton(comparisonGroup);
+    removeAllComparisonButton->setIcon(QIcon(":/images/RemoveALL.png"));
+    removeAllComparisonButton->setText(QString());
+    removeAllComparisonButton->setToolTip(tr("Remove all"));
+    removeAllComparisonButton->setFixedSize(
+        GfxStyle::StandardIconButtonSize, GfxStyle::StandardIconButtonSize);
+    removeAllComparisonButton->setIconSize(
+        QSize(GfxStyle::StandardIconSize, GfxStyle::StandardIconSize));
     removeAllComparisonButton->setSizePolicy(
         QSizePolicy::Fixed, QSizePolicy::Fixed);
-    comparisonLayout->addWidget(removeAllComparisonButton, 0, Qt::AlignRight);
+    comparisonLayout->addWidget(removeAllComparisonButton, 0, Qt::AlignLeft);
     comparisonLayout->addWidget(&comparisonGrid);
     connect(removeAllComparisonButton, &QPushButton::clicked, this, [this]() {
         comparisonFiles.clear();

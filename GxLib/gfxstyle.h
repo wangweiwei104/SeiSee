@@ -8,8 +8,11 @@ namespace GfxStyle {
 
     // DPI 与物理单位换算基准。
     constexpr int ReferenceDpi = 96;
-    constexpr int StandardIconSize = 18;
-    constexpr int StandardIconButtonSize = 25;
+    constexpr int StandardIconSize = 20;
+    constexpr int StandardIconButtonSize = 24;
+    constexpr int ButtonCornerRadius = 4;
+    static const char ButtonHoverBackground[] = "#e7f4ff";
+    static const char ButtonPressedBackground[] = "#d7eafc";
     // Checkbox/radio indicator dimensions and label spacing, in logical pixels.
     constexpr int CheckBoxIndicatorSize = 16;
     constexpr int RadioButtonIndicatorSize = 16;

@@ -79,16 +79,17 @@
               </property>
               <item>
                <widget class="QPushButton" name="addBtn">
+                <property name="iconSize"><size><width>20</width><height>20</height></size></property>
                 <property name="minimumSize">
                  <size>
-                  <width>25</width>
-                  <height>25</height>
+                  <width>24</width>
+                  <height>24</height>
                  </size>
                 </property>
                 <property name="maximumSize">
                  <size>
-                  <width>25</width>
-                  <height>25</height>
+                  <width>24</width>
+                  <height>24</height>
                  </size>
                 </property>
                 <property name="text">
@@ -102,16 +103,17 @@
               </item>
               <item>
                <widget class="QPushButton" name="delBtn">
+                <property name="iconSize"><size><width>20</width><height>20</height></size></property>
                 <property name="minimumSize">
                  <size>
-                  <width>25</width>
-                  <height>25</height>
+                  <width>24</width>
+                  <height>24</height>
                  </size>
                 </property>
                 <property name="maximumSize">
                  <size>
-                  <width>25</width>
-                  <height>25</height>
+                  <width>24</width>
+                  <height>24</height>
                  </size>
                 </property>
                 <property name="text">
@@ -125,16 +127,17 @@
               </item>
               <item>
                <widget class="QPushButton" name="dellAllBtn">
+                <property name="iconSize"><size><width>20</width><height>20</height></size></property>
                 <property name="minimumSize">
                  <size>
-                  <width>25</width>
-                  <height>25</height>
+                  <width>24</width>
+                  <height>24</height>
                  </size>
                 </property>
                 <property name="maximumSize">
                  <size>
-                  <width>25</width>
-                  <height>25</height>
+                  <width>24</width>
+                  <height>24</height>
                  </size>
                 </property>
                 <property name="text">
@@ -164,16 +167,17 @@
               </item>
               <item>
                <widget class="QPushButton" name="upBtn">
+                <property name="iconSize"><size><width>20</width><height>20</height></size></property>
                 <property name="minimumSize">
                  <size>
-                  <width>25</width>
-                  <height>25</height>
+                  <width>24</width>
+                  <height>24</height>
                  </size>
                 </property>
                 <property name="maximumSize">
                  <size>
-                  <width>25</width>
-                  <height>25</height>
+                  <width>24</width>
+                  <height>24</height>
                  </size>
                 </property>
                 <property name="text">
@@ -187,16 +191,17 @@
               </item>
               <item>
                <widget class="QPushButton" name="downBtn">
+                <property name="iconSize"><size><width>20</width><height>20</height></size></property>
                 <property name="minimumSize">
                  <size>
-                  <width>25</width>
-                  <height>25</height>
+                  <width>24</width>
+                  <height>24</height>
                  </size>
                 </property>
                 <property name="maximumSize">
                  <size>
-                  <width>25</width>
-                  <height>25</height>
+                  <width>24</width>
+                  <height>24</height>
                  </size>
                 </property>
                 <property name="text">
