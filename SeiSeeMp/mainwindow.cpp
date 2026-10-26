@@ -301,6 +301,7 @@ MainWindow::MainWindow(QWidget *parent)
     //----------------------------------------------------------
     dirGrid.setRowCount(0);
     dirGrid.setColCount(2);
+    dirGrid.setIconSize(QSize(16, 16));
     dirGrid.verticalHeader()->setVisible(false);
 
     dirGrid.setColLabel(0, "Name");
@@ -328,6 +329,7 @@ MainWindow::MainWindow(QWidget *parent)
     comparisonGrid.setRowCount(0);
     comparisonGrid.setColCount(3);
     comparisonGrid.setFont(directoryGridFont);
+    comparisonGrid.setIconSize(QSize(16, 16));
     comparisonGrid.verticalHeader()->setVisible(false);
     comparisonGrid.setColLabel(0, "Key");
     comparisonGrid.setColLabel(1, "Name");
