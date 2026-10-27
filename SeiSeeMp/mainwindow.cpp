@@ -635,14 +635,8 @@ MainWindow::MainWindow(QWidget *parent)
     QWidget *axisScrollBarCorner = new QWidget(ui->seisFrame);
     applySystemPaletteBackground(axisScrollBarCorner, axisScrollBarTrackColor);
 
-    // 超出地震数据显示部分显示白色（待查，有时候不需要此代码也是白色）
-    QWidget *plotViewport = seisScrl->viewport();
-    plotViewport->setAutoFillBackground(true);
-    plotViewport->setBackgroundRole(QPalette::Base);
-    QPalette plotPalette = plotViewport->palette();
-    plotPalette.setColor(QPalette::Base, Qt::white);
-    plotPalette.setColor(QPalette::Window, Qt::white);
-    plotViewport->setPalette(plotPalette);
+    // 超出地震数据显示部分显示白色
+    seisScrl->viewport()->setStyleSheet("background-color: white;");
 
     // 隐藏滚动条时保留其布局空间，由外层容器继续绘制灰色背景。
     // 目的是避免zoomALLBtn、zoomHallBtn、zoomVallBtn三个按钮执行时发生bug,在底部和右侧产生白条
