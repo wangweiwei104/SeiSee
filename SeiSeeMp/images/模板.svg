@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="24"
+   height="24"
+   viewBox="0 0 24 24"
+   version="1.1"
+   id="svg1"
+   inkscape:version="1.4.4 (dcaf3e7, 2026-05-05)"
+   sodipodi:docname="模板.svg"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:document-units="px"
+     inkscape:zoom="16"
+     inkscape:cx="1"
+     inkscape:cy="9.53125"
+     inkscape:window-width="1920"
+     inkscape:window-height="1009"
+     inkscape:window-x="-8"
+     inkscape:window-y="-8"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg1"
+     showgrid="true"
+     showguides="true">
+    <inkscape:grid
+       id="grid1"
+       units="px"
+       originx="0"
+       originy="0"
+       spacingx="1"
+       spacingy="1"
+       empcolor="#0099e5"
+       empopacity="0.30196078"
+       color="#0099e5"
+       opacity="0.14901961"
+       empspacing="5"
+       enabled="true"
+       visible="true" />
+    <sodipodi:guide
+       position="2,19"
+       orientation="-1,0"
+       id="guide1"
+       inkscape:locked="false"
+       inkscape:label=""
+       inkscape:color="rgb(145,65,172)" />
+    <sodipodi:guide
+       position="22,16"
+       orientation="-1,0"
+       id="guide2"
+       inkscape:locked="false"
+       inkscape:label=""
+       inkscape:color="rgb(145,65,172)" />
+    <sodipodi:guide
+       position="18,22"
+       orientation="0,1"
+       id="guide3"
+       inkscape:locked="false"
+       inkscape:label=""
+       inkscape:color="rgb(145,65,172)" />
+    <sodipodi:guide
+       position="14,2"
+       orientation="0,1"
+       id="guide4"
+       inkscape:locked="false"
+       inkscape:label=""
+       inkscape:color="rgb(145,65,172)" />
+  </sodipodi:namedview>
+  <defs
+     id="defs1" />
+  <g
+     inkscape:label="图层 1"
+     inkscape:groupmode="layer"
+     id="layer1">
+    <path
+       id="rect5"
+       style="fill:none;stroke:#777777;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"
+       inkscape:label="rect5-r2"
+       d="m 19,7 v 12 c 0,1.108 -0.892,2 -2,2 H 7 C 5.892,21 5,20.108 5,19 V 7 Z"
+       sodipodi:nodetypes="csssscc" />
+    <path
+       style="fill:none;stroke:#777777;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none"
+       d="m 8,3 h 8"
+       id="path4" />
+    <path
+       style="display:inline;fill:none;stroke:#777777;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none"
+       d="M 3,7 H 21"
+       id="path5" />
+    <path
+       style="fill:none;stroke:#1c6dd1;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none"
+       d="m 9,11 v 6"
+       id="path6" />
+    <path
+       style="fill:none;stroke:#1c6dd1;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none"
+       d="m 15,11 v 6"
+       id="path7" />
+  </g>
+</svg>

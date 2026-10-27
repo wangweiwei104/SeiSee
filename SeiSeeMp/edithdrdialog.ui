@@ -77,7 +77,7 @@
         </property>
         <property name="icon">
          <iconset resource="myrc.qrc">
-          <normaloff>:/images/add_item.png</normaloff>:/images/add_item.png</iconset>
+          <normaloff>:/images/AddItem.png</normaloff>:/images/AddItem.png</iconset>
         </property>
         <property name="autoDefault">
          <bool>false</bool>
@@ -113,7 +113,7 @@
         </property>
         <property name="icon">
          <iconset resource="myrc.qrc">
-          <normaloff>:/images/delete_item.png</normaloff>:/images/delete_item.png</iconset>
+          <normaloff>:/images/DelItem.png</normaloff>:/images/DelItem.png</iconset>
         </property>
         <property name="autoDefault">
          <bool>false</bool>

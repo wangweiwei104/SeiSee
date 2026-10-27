@@ -124,7 +124,6 @@
             </property>
             <item>
              <widget class="QPushButton" name="selDirBtn">
-              <property name="iconSize"><size><width>20</width><height>20</height></size></property>
               <property name="sizePolicy">
                <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                 <horstretch>0</horstretch>
@@ -150,11 +149,16 @@
                <iconset resource="myrc.qrc">
                 <normaloff>:/images/OpenDir.png</normaloff>:/images/OpenDir.png</iconset>
               </property>
+              <property name="iconSize">
+               <size>
+                <width>20</width>
+                <height>20</height>
+               </size>
+              </property>
              </widget>
             </item>
             <item>
              <widget class="QPushButton" name="opFileBtn">
-              <property name="iconSize"><size><width>20</width><height>20</height></size></property>
               <property name="sizePolicy">
                <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                 <horstretch>0</horstretch>
@@ -180,11 +184,16 @@
                <iconset resource="myrc.qrc">
                 <normaloff>:/images/OpenFile.png</normaloff>:/images/OpenFile.png</iconset>
               </property>
+              <property name="iconSize">
+               <size>
+                <width>20</width>
+                <height>20</height>
+               </size>
+              </property>
              </widget>
             </item>
             <item>
              <widget class="QPushButton" name="refreshBtn">
-              <property name="iconSize"><size><width>20</width><height>20</height></size></property>
               <property name="sizePolicy">
                <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                 <horstretch>0</horstretch>
@@ -210,11 +219,16 @@
                <iconset resource="myrc.qrc">
                 <normaloff>:/images/Refresh.png</normaloff>:/images/Refresh.png</iconset>
               </property>
+              <property name="iconSize">
+               <size>
+                <width>20</width>
+                <height>20</height>
+               </size>
+              </property>
              </widget>
             </item>
             <item>
              <widget class="QPushButton" name="goBackBtn">
-              <property name="iconSize"><size><width>20</width><height>20</height></size></property>
               <property name="sizePolicy">
                <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                 <horstretch>0</horstretch>
@@ -239,6 +253,12 @@
               <property name="icon">
                <iconset resource="myrc.qrc">
                 <normaloff>:/images/GoBack.png</normaloff>:/images/GoBack.png</iconset>
+              </property>
+              <property name="iconSize">
+               <size>
+                <width>20</width>
+                <height>20</height>
+               </size>
               </property>
              </widget>
             </item>
@@ -495,6 +515,18 @@
                    </property>
                    <item>
                     <widget class="QPushButton" name="btnTxtRd">
+                     <property name="minimumSize">
+                      <size>
+                       <width>100</width>
+                       <height>24</height>
+                      </size>
+                     </property>
+                     <property name="maximumSize">
+                      <size>
+                       <width>100</width>
+                       <height>24</height>
+                      </size>
+                     </property>
                      <property name="text">
                       <string>From File</string>
                      </property>
@@ -502,19 +534,40 @@
                       <iconset resource="myrc.qrc">
                        <normaloff>:/images/FromFile.png</normaloff>:/images/FromFile.png</iconset>
                      </property>
+                     <property name="iconSize">
+                      <size>
+                       <width>20</width>
+                       <height>20</height>
+                      </size>
+                     </property>
                     </widget>
                    </item>
                    <item>
                     <widget class="QPushButton" name="btnTxtRdx">
-                     <property name="iconSize"><size><width>20</width><height>20</height></size></property>
-                     <property name="maximumSize"><size><width>24</width><height>24</height></size></property>
-                     <property name="minimumSize"><size><width>24</width><height>24</height></size></property>
+                     <property name="minimumSize">
+                      <size>
+                       <width>24</width>
+                       <height>24</height>
+                      </size>
+                     </property>
+                     <property name="maximumSize">
+                      <size>
+                       <width>24</width>
+                       <height>24</height>
+                      </size>
+                     </property>
                      <property name="text">
                       <string/>
                      </property>
                      <property name="icon">
                       <iconset resource="myrc.qrc">
                        <normaloff>:/images/FromFile.png</normaloff>:/images/FromFile.png</iconset>
+                     </property>
+                     <property name="iconSize">
+                      <size>
+                       <width>20</width>
+                       <height>20</height>
+                      </size>
                      </property>
                     </widget>
                    </item>
@@ -536,6 +589,18 @@
                    </item>
                    <item>
                     <widget class="QPushButton" name="btnTxtRst">
+                     <property name="minimumSize">
+                      <size>
+                       <width>80</width>
+                       <height>24</height>
+                      </size>
+                     </property>
+                     <property name="maximumSize">
+                      <size>
+                       <width>80</width>
+                       <height>24</height>
+                      </size>
+                     </property>
                      <property name="text">
                       <string>Reset</string>
                      </property>
@@ -543,16 +608,40 @@
                       <iconset resource="myrc.qrc">
                        <normaloff>:/images/Reset.png</normaloff>:/images/Reset.png</iconset>
                      </property>
+                     <property name="iconSize">
+                      <size>
+                       <width>20</width>
+                       <height>20</height>
+                      </size>
+                     </property>
                     </widget>
                    </item>
                    <item>
                     <widget class="QPushButton" name="btnTxtUpd">
+                     <property name="minimumSize">
+                      <size>
+                       <width>85</width>
+                       <height>24</height>
+                      </size>
+                     </property>
+                     <property name="maximumSize">
+                      <size>
+                       <width>85</width>
+                       <height>24</height>
+                      </size>
+                     </property>
                      <property name="text">
                       <string>Update</string>
                      </property>
                      <property name="icon">
                       <iconset resource="myrc.qrc">
                        <normaloff>:/images/FileSave.png</normaloff>:/images/FileSave.png</iconset>
+                     </property>
+                     <property name="iconSize">
+                      <size>
+                       <width>20</width>
+                       <height>20</height>
+                      </size>
                      </property>
                     </widget>
                    </item>
@@ -640,6 +729,18 @@
                    </property>
                    <item>
                     <widget class="QPushButton" name="btnBinRst">
+                     <property name="minimumSize">
+                      <size>
+                       <width>80</width>
+                       <height>24</height>
+                      </size>
+                     </property>
+                     <property name="maximumSize">
+                      <size>
+                       <width>80</width>
+                       <height>24</height>
+                      </size>
+                     </property>
                      <property name="text">
                       <string>Reset</string>
                      </property>
@@ -647,16 +748,40 @@
                       <iconset resource="myrc.qrc">
                        <normaloff>:/images/Reset.png</normaloff>:/images/Reset.png</iconset>
                      </property>
+                     <property name="iconSize">
+                      <size>
+                       <width>20</width>
+                       <height>20</height>
+                      </size>
+                     </property>
                     </widget>
                    </item>
                    <item>
                     <widget class="QPushButton" name="btnBinUpd">
+                     <property name="minimumSize">
+                      <size>
+                       <width>85</width>
+                       <height>24</height>
+                      </size>
+                     </property>
+                     <property name="maximumSize">
+                      <size>
+                       <width>85</width>
+                       <height>24</height>
+                      </size>
+                     </property>
                      <property name="text">
                       <string>Update</string>
                      </property>
                      <property name="icon">
                       <iconset resource="myrc.qrc">
                        <normaloff>:/images/FileSave.png</normaloff>:/images/FileSave.png</iconset>
+                     </property>
+                     <property name="iconSize">
+                      <size>
+                       <width>20</width>
+                       <height>20</height>
+                      </size>
                      </property>
                     </widget>
                    </item>
@@ -1152,7 +1277,6 @@
                     </item>
                     <item row="3" column="3">
                      <widget class="QPushButton" name="autoGainBtn">
-                      <property name="iconSize"><size><width>20</width><height>20</height></size></property>
                       <property name="minimumSize">
                        <size>
                         <width>24</width>
@@ -1167,6 +1291,12 @@
                       </property>
                       <property name="text">
                        <string>A</string>
+                      </property>
+                      <property name="iconSize">
+                       <size>
+                        <width>20</width>
+                        <height>20</height>
+                       </size>
                       </property>
                      </widget>
                     </item>
@@ -1266,7 +1396,6 @@
                     </item>
                     <item row="2" column="3">
                      <widget class="QPushButton" name="zoomVallBtn">
-                      <property name="iconSize"><size><width>20</width><height>20</height></size></property>
                       <property name="minimumSize">
                        <size>
                         <width>24</width>
@@ -1286,11 +1415,16 @@
                        <iconset resource="myrc.qrc">
                         <normaloff>:/images/Zv.png</normaloff>:/images/Zv.png</iconset>
                       </property>
+                      <property name="iconSize">
+                       <size>
+                        <width>20</width>
+                        <height>20</height>
+                       </size>
+                      </property>
                      </widget>
                     </item>
                     <item row="1" column="3">
                      <widget class="QPushButton" name="zoomHallBtn">
-                      <property name="iconSize"><size><width>20</width><height>20</height></size></property>
                       <property name="minimumSize">
                        <size>
                         <width>24</width>
@@ -1309,6 +1443,12 @@
                       <property name="icon">
                        <iconset resource="myrc.qrc">
                         <normaloff>:/images/Zh.png</normaloff>:/images/Zh.png</iconset>
+                      </property>
+                      <property name="iconSize">
+                       <size>
+                        <width>20</width>
+                        <height>20</height>
+                       </size>
                       </property>
                      </widget>
                     </item>
@@ -1389,7 +1529,6 @@
                     </item>
                     <item>
                      <widget class="QPushButton" name="procParmBtn">
-                      <property name="iconSize"><size><width>20</width><height>20</height></size></property>
                       <property name="minimumSize">
                        <size>
                         <width>24</width>
@@ -1408,6 +1547,12 @@
                       <property name="icon">
                        <iconset resource="myrc.qrc">
                         <normaloff>:/images/Procp.png</normaloff>:/images/Procp.png</iconset>
+                      </property>
+                      <property name="iconSize">
+                       <size>
+                        <width>20</width>
+                        <height>20</height>
+                       </size>
                       </property>
                      </widget>
                     </item>
@@ -1551,7 +1696,6 @@
                  </property>
                  <item>
                   <widget class="QPushButton" name="zoomAllBtn">
-                   <property name="iconSize"><size><width>20</width><height>20</height></size></property>
                    <property name="sizePolicy">
                     <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                      <horstretch>0</horstretch>
@@ -1577,11 +1721,16 @@
                     <iconset resource="myrc.qrc">
                      <normaloff>:/images/ZoomA.png</normaloff>:/images/ZoomA.png</iconset>
                    </property>
+                   <property name="iconSize">
+                    <size>
+                     <width>20</width>
+                     <height>20</height>
+                    </size>
+                   </property>
                   </widget>
                  </item>
                  <item>
                   <widget class="QPushButton" name="zoomWinBtn">
-                   <property name="iconSize"><size><width>20</width><height>20</height></size></property>
                    <property name="sizePolicy">
                     <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                      <horstretch>0</horstretch>
@@ -1607,11 +1756,16 @@
                     <iconset resource="myrc.qrc">
                      <normaloff>:/images/ZoomW.png</normaloff>:/images/ZoomW.png</iconset>
                    </property>
+                   <property name="iconSize">
+                    <size>
+                     <width>20</width>
+                     <height>20</height>
+                    </size>
+                   </property>
                   </widget>
                  </item>
                  <item>
                   <widget class="QPushButton" name="zoomOutBtn">
-                   <property name="iconSize"><size><width>20</width><height>20</height></size></property>
                    <property name="sizePolicy">
                     <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                      <horstretch>0</horstretch>
@@ -1637,11 +1791,16 @@
                     <iconset resource="myrc.qrc">
                      <normaloff>:/images/ZoomO.png</normaloff>:/images/ZoomO.png</iconset>
                    </property>
+                   <property name="iconSize">
+                    <size>
+                     <width>20</width>
+                     <height>20</height>
+                    </size>
+                   </property>
                   </widget>
                  </item>
                  <item>
                   <widget class="QPushButton" name="zoomInBtn">
-                   <property name="iconSize"><size><width>20</width><height>20</height></size></property>
                    <property name="sizePolicy">
                     <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                      <horstretch>0</horstretch>
@@ -1667,11 +1826,16 @@
                     <iconset resource="myrc.qrc">
                      <normaloff>:/images/ZoomI.png</normaloff>:/images/ZoomI.png</iconset>
                    </property>
+                   <property name="iconSize">
+                    <size>
+                     <width>20</width>
+                     <height>20</height>
+                    </size>
+                   </property>
                   </widget>
                  </item>
                  <item>
                   <widget class="QPushButton" name="zoomPreBtn">
-                   <property name="iconSize"><size><width>20</width><height>20</height></size></property>
                    <property name="sizePolicy">
                     <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                      <horstretch>0</horstretch>
@@ -1697,6 +1861,12 @@
                     <iconset resource="myrc.qrc">
                      <normaloff>:/images/ZoomP.png</normaloff>:/images/ZoomP.png</iconset>
                    </property>
+                   <property name="iconSize">
+                    <size>
+                     <width>20</width>
+                     <height>20</height>
+                    </size>
+                   </property>
                   </widget>
                  </item>
                  <item>
@@ -1717,7 +1887,6 @@
                  </item>
                  <item>
                   <widget class="QPushButton" name="axisBtn">
-                   <property name="iconSize"><size><width>20</width><height>20</height></size></property>
                    <property name="sizePolicy">
                     <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                      <horstretch>0</horstretch>
@@ -1743,11 +1912,16 @@
                     <iconset resource="myrc.qrc">
                      <normaloff>:/images/Axes.png</normaloff>:/images/Axes.png</iconset>
                    </property>
+                   <property name="iconSize">
+                    <size>
+                     <width>20</width>
+                     <height>20</height>
+                    </size>
+                   </property>
                   </widget>
                  </item>
                  <item>
                   <widget class="QPushButton" name="clearTraceHighlightBtn">
-                   <property name="iconSize"><size><width>20</width><height>20</height></size></property>
                    <property name="sizePolicy">
                     <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                      <horstretch>0</horstretch>
@@ -1773,11 +1947,16 @@
                     <iconset resource="myrc.qrc">
                      <normaloff>:/images/Clear.png</normaloff>:/images/Clear.png</iconset>
                    </property>
+                   <property name="iconSize">
+                    <size>
+                     <width>20</width>
+                     <height>20</height>
+                    </size>
+                   </property>
                   </widget>
                  </item>
                  <item>
                   <widget class="QPushButton" name="captureBtn">
-                   <property name="iconSize"><size><width>20</width><height>20</height></size></property>
                    <property name="sizePolicy">
                     <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                      <horstretch>0</horstretch>
@@ -1803,11 +1982,16 @@
                     <iconset resource="myrc.qrc">
                      <normaloff>:/images/Capture.png</normaloff>:/images/Capture.png</iconset>
                    </property>
+                   <property name="iconSize">
+                    <size>
+                     <width>20</width>
+                     <height>20</height>
+                    </size>
+                   </property>
                   </widget>
                  </item>
                  <item>
                   <widget class="QPushButton" name="exportHiResBtn">
-                   <property name="iconSize"><size><width>20</width><height>20</height></size></property>
                    <property name="sizePolicy">
                     <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                      <horstretch>0</horstretch>
@@ -1831,7 +2015,13 @@
                    </property>
                    <property name="icon">
                     <iconset resource="myrc.qrc">
-                     <normaloff>:/images/Export_image.png</normaloff>:/images/Export_image.png</iconset>
+                     <normaloff>:/images/ExpImg.png</normaloff>:/images/ExpImg.png</iconset>
+                   </property>
+                   <property name="iconSize">
+                    <size>
+                     <width>20</width>
+                     <height>20</height>
+                    </size>
                    </property>
                   </widget>
                  </item>
@@ -2112,7 +2302,6 @@
                     </property>
                     <item>
                      <widget class="QPushButton" name="btnCkAll">
-                      <property name="iconSize"><size><width>20</width><height>20</height></size></property>
                       <property name="sizePolicy">
                        <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                         <horstretch>0</horstretch>
@@ -2138,11 +2327,16 @@
                        <iconset resource="myrc.qrc">
                         <normaloff>:/images/ChkAll.png</normaloff>:/images/ChkAll.png</iconset>
                       </property>
+                      <property name="iconSize">
+                       <size>
+                        <width>20</width>
+                        <height>20</height>
+                       </size>
+                      </property>
                      </widget>
                     </item>
                     <item>
                      <widget class="QPushButton" name="btnCkNon">
-                      <property name="iconSize"><size><width>20</width><height>20</height></size></property>
                       <property name="sizePolicy">
                        <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                         <horstretch>0</horstretch>
@@ -2171,27 +2365,16 @@
                        <iconset resource="myrc.qrc">
                         <normaloff>:/images/ChkNon.png</normaloff>:/images/ChkNon.png</iconset>
                       </property>
+                      <property name="iconSize">
+                       <size>
+                        <width>20</width>
+                        <height>20</height>
+                       </size>
+                      </property>
                      </widget>
                     </item>
                     <item>
-                     <spacer name="horizontalSpacer">
-                      <property name="orientation">
-                       <enum>Qt::Horizontal</enum>
-                      </property>
-                      <property name="sizeType">
-                       <enum>QSizePolicy::Fixed</enum>
-                      </property>
-                      <property name="sizeHint" stdset="0">
-                       <size>
-                        <width>13</width>
-                        <height>19</height>
-                       </size>
-                      </property>
-                     </spacer>
-                    </item>
-                    <item>
                      <widget class="QPushButton" name="btnEdHdr">
-                      <property name="iconSize"><size><width>20</width><height>20</height></size></property>
                       <property name="enabled">
                        <bool>true</bool>
                       </property>
@@ -2221,7 +2404,13 @@
                       </property>
                       <property name="icon">
                        <iconset resource="myrc.qrc">
-                        <normaloff>:/images/edit_hdr.png</normaloff>:/images/edit_hdr.png</iconset>
+                        <normaloff>:/images/EditHdr.png</normaloff>:/images/EditHdr.png</iconset>
+                      </property>
+                      <property name="iconSize">
+                       <size>
+                        <width>20</width>
+                        <height>20</height>
+                       </size>
                       </property>
                      </widget>
                     </item>
@@ -2420,7 +2609,6 @@
                        </item>
                        <item>
                         <widget class="QPushButton" name="btnSbin">
-                         <property name="iconSize"><size><width>20</width><height>20</height></size></property>
                          <property name="sizePolicy">
                           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                            <horstretch>0</horstretch>
@@ -2443,14 +2631,19 @@
                           <string/>
                          </property>
                          <property name="icon">
-                          <iconset resource="myrc.qrc">
-                           <normaloff>:/images/Findb.png</normaloff>:/images/Findb.png</iconset>
+                          <iconset>
+                           <normaloff>:/images/FindNext.png</normaloff>:/images/FindNext.png</iconset>
+                         </property>
+                         <property name="iconSize">
+                          <size>
+                           <width>20</width>
+                           <height>20</height>
+                          </size>
                          </property>
                         </widget>
                        </item>
                        <item>
                         <widget class="QPushButton" name="btnSfwd">
-                         <property name="iconSize"><size><width>20</width><height>20</height></size></property>
                          <property name="sizePolicy">
                           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                            <horstretch>0</horstretch>
@@ -2474,13 +2667,18 @@
                          </property>
                          <property name="icon">
                           <iconset resource="myrc.qrc">
-                           <normaloff>:/images/Ffwd.png</normaloff>:/images/Ffwd.png</iconset>
+                           <normaloff>:/images/FindFwd.png</normaloff>:/images/FindFwd.png</iconset>
+                         </property>
+                         <property name="iconSize">
+                          <size>
+                           <width>20</width>
+                           <height>20</height>
+                          </size>
                          </property>
                         </widget>
                        </item>
                        <item>
                         <widget class="QPushButton" name="btnSbkw">
-                         <property name="iconSize"><size><width>20</width><height>20</height></size></property>
                          <property name="sizePolicy">
                           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                            <horstretch>0</horstretch>
@@ -2506,11 +2704,16 @@
                           <iconset resource="myrc.qrc">
                            <normaloff>:/images/FindBkw.png</normaloff>:/images/FindBkw.png</iconset>
                          </property>
+                         <property name="iconSize">
+                          <size>
+                           <width>20</width>
+                           <height>20</height>
+                          </size>
+                         </property>
                         </widget>
                        </item>
                        <item>
                         <widget class="QPushButton" name="btnSstop">
-                         <property name="iconSize"><size><width>20</width><height>20</height></size></property>
                          <property name="enabled">
                           <bool>false</bool>
                          </property>
@@ -2537,7 +2740,13 @@
                          </property>
                          <property name="icon">
                           <iconset resource="myrc.qrc">
-                           <normaloff>:/images/SStp.png</normaloff>:/images/SStp.png</iconset>
+                           <normaloff>:/images/Pause.png</normaloff>:/images/Pause.png</iconset>
+                         </property>
+                         <property name="iconSize">
+                          <size>
+                           <width>20</width>
+                           <height>20</height>
+                          </size>
                          </property>
                         </widget>
                        </item>
@@ -2559,7 +2768,6 @@
                        </item>
                        <item>
                         <widget class="QPushButton" name="btnLastTr">
-                         <property name="iconSize"><size><width>20</width><height>20</height></size></property>
                          <property name="sizePolicy">
                           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                            <horstretch>0</horstretch>
@@ -2585,11 +2793,16 @@
                           <iconset resource="myrc.qrc">
                            <normaloff>:/images/GoBottom.png</normaloff>:/images/GoBottom.png</iconset>
                          </property>
+                         <property name="iconSize">
+                          <size>
+                           <width>20</width>
+                           <height>20</height>
+                          </size>
+                         </property>
                         </widget>
                        </item>
                        <item>
                         <widget class="QPushButton" name="btnFirstTr">
-                         <property name="iconSize"><size><width>20</width><height>20</height></size></property>
                          <property name="sizePolicy">
                           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                            <horstretch>0</horstretch>
@@ -2614,6 +2827,12 @@
                          <property name="icon">
                           <iconset resource="myrc.qrc">
                            <normaloff>:/images/GoTop.png</normaloff>:/images/GoTop.png</iconset>
+                         </property>
+                         <property name="iconSize">
+                          <size>
+                           <width>20</width>
+                           <height>20</height>
+                          </size>
                          </property>
                         </widget>
                        </item>
@@ -2714,7 +2933,6 @@
                        </item>
                        <item>
                         <widget class="QPushButton" name="btnUpdTrh">
-                         <property name="iconSize"><size><width>20</width><height>20</height></size></property>
                          <property name="sizePolicy">
                           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                            <horstretch>0</horstretch>
@@ -2739,6 +2957,12 @@
                          <property name="icon">
                           <iconset resource="myrc.qrc">
                            <normaloff>:/images/FileSave.png</normaloff>:/images/FileSave.png</iconset>
+                         </property>
+                         <property name="iconSize">
+                          <size>
+                           <width>20</width>
+                           <height>20</height>
+                          </size>
                          </property>
                         </widget>
                        </item>
@@ -2890,7 +3114,6 @@
                     </property>
                     <item>
                      <widget class="QPushButton" name="btnCkNonE">
-                      <property name="iconSize"><size><width>20</width><height>20</height></size></property>
                       <property name="sizePolicy">
                        <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                         <horstretch>0</horstretch>
@@ -2918,6 +3141,12 @@
                       <property name="icon">
                        <iconset resource="myrc.qrc">
                         <normaloff>:/images/ChkNon.png</normaloff>:/images/ChkNon.png</iconset>
+                      </property>
+                      <property name="iconSize">
+                       <size>
+                        <width>20</width>
+                        <height>20</height>
+                       </size>
                       </property>
                      </widget>
                     </item>
@@ -3013,7 +3242,6 @@
                       <layout class="QHBoxLayout" name="horizontalLayout_15">
                        <item>
                         <widget class="QPushButton" name="btnHexp">
-                         <property name="iconSize"><size><width>20</width><height>20</height></size></property>
                          <property name="sizePolicy">
                           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                            <horstretch>0</horstretch>
@@ -3039,11 +3267,16 @@
                           <iconset resource="myrc.qrc">
                            <normaloff>:/images/Hexp.png</normaloff>:/images/Hexp.png</iconset>
                          </property>
+                         <property name="iconSize">
+                          <size>
+                           <width>20</width>
+                           <height>20</height>
+                          </size>
+                         </property>
                         </widget>
                        </item>
                        <item>
                         <widget class="QPushButton" name="btnNexp">
-                         <property name="iconSize"><size><width>20</width><height>20</height></size></property>
                          <property name="sizePolicy">
                           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                            <horstretch>0</horstretch>
@@ -3069,11 +3302,16 @@
                           <iconset resource="myrc.qrc">
                            <normaloff>:/images/Nexp.png</normaloff>:/images/Nexp.png</iconset>
                          </property>
+                         <property name="iconSize">
+                          <size>
+                           <width>20</width>
+                           <height>20</height>
+                          </size>
+                         </property>
                         </widget>
                        </item>
                        <item>
                         <widget class="QPushButton" name="btnLexp">
-                         <property name="iconSize"><size><width>20</width><height>20</height></size></property>
                          <property name="sizePolicy">
                           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                            <horstretch>0</horstretch>
@@ -3099,6 +3337,12 @@
                           <iconset resource="myrc.qrc">
                            <normaloff>:/images/Lexp.png</normaloff>:/images/Lexp.png</iconset>
                          </property>
+                         <property name="iconSize">
+                          <size>
+                           <width>20</width>
+                           <height>20</height>
+                          </size>
+                         </property>
                         </widget>
                        </item>
                        <item>
@@ -3119,7 +3363,6 @@
                        </item>
                        <item>
                         <widget class="QPushButton" name="btnClrExp">
-                         <property name="iconSize"><size><width>20</width><height>20</height></size></property>
                          <property name="sizePolicy">
                           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                            <horstretch>0</horstretch>
@@ -3143,7 +3386,13 @@
                          </property>
                          <property name="icon">
                           <iconset resource="myrc.qrc">
-                           <normaloff>:/images/delete_item.png</normaloff>:/images/delete_item.png</iconset>
+                           <normaloff>:/images/DelItem.png</normaloff>:/images/DelItem.png</iconset>
+                         </property>
+                         <property name="iconSize">
+                          <size>
+                           <width>20</width>
+                           <height>20</height>
+                          </size>
                          </property>
                         </widget>
                        </item>
@@ -3165,7 +3414,6 @@
                        </item>
                        <item>
                         <widget class="QPushButton" name="btnUpdE">
-                         <property name="iconSize"><size><width>20</width><height>20</height></size></property>
                          <property name="enabled">
                           <bool>true</bool>
                          </property>
@@ -3194,11 +3442,16 @@
                           <iconset resource="myrc.qrc">
                            <normaloff>:/images/FileSave.png</normaloff>:/images/FileSave.png</iconset>
                          </property>
+                         <property name="iconSize">
+                          <size>
+                           <width>20</width>
+                           <height>20</height>
+                          </size>
+                         </property>
                         </widget>
                        </item>
                        <item>
                         <widget class="QPushButton" name="btnUndE">
-                         <property name="iconSize"><size><width>20</width><height>20</height></size></property>
                          <property name="enabled">
                           <bool>false</bool>
                          </property>
@@ -3227,6 +3480,12 @@
                           <iconset resource="myrc.qrc">
                            <normaloff>:/images/Reset.png</normaloff>:/images/Reset.png</iconset>
                          </property>
+                         <property name="iconSize">
+                          <size>
+                           <width>20</width>
+                           <height>20</height>
+                          </size>
+                         </property>
                         </widget>
                        </item>
                        <item>
@@ -3247,7 +3506,6 @@
                        </item>
                        <item>
                         <widget class="QPushButton" name="btnLastTr_2">
-                         <property name="iconSize"><size><width>20</width><height>20</height></size></property>
                          <property name="sizePolicy">
                           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                            <horstretch>0</horstretch>
@@ -3273,11 +3531,16 @@
                           <iconset resource="myrc.qrc">
                            <normaloff>:/images/GoBottom.png</normaloff>:/images/GoBottom.png</iconset>
                          </property>
+                         <property name="iconSize">
+                          <size>
+                           <width>20</width>
+                           <height>20</height>
+                          </size>
+                         </property>
                         </widget>
                        </item>
                        <item>
                         <widget class="QPushButton" name="btnFirstTr_2">
-                         <property name="iconSize"><size><width>20</width><height>20</height></size></property>
                          <property name="sizePolicy">
                           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                            <horstretch>0</horstretch>
@@ -3302,6 +3565,12 @@
                          <property name="icon">
                           <iconset resource="myrc.qrc">
                            <normaloff>:/images/GoTop.png</normaloff>:/images/GoTop.png</iconset>
+                         </property>
+                         <property name="iconSize">
+                          <size>
+                           <width>20</width>
+                           <height>20</height>
+                          </size>
                          </property>
                         </widget>
                        </item>
@@ -3383,6 +3652,11 @@
     <property name="title">
      <string>File</string>
     </property>
+    <widget class="QMenu" name="menu_Recent_Folders">
+     <property name="title">
+      <string>Open Recent Folder</string>
+     </property>
+    </widget>
     <addaction name="actionOpen_Directory"/>
     <addaction name="menu_Recent_Folders"/>
     <addaction name="actionOpen_File"/>
@@ -3394,11 +3668,6 @@
     <addaction name="separator"/>
     <addaction name="actionE_xit"/>
    </widget>
-   <widget class="QMenu" name="menu_Recent_Folders">
-    <property name="title">
-     <string>Open Recent Folder</string>
-    </property>
-   </widget>
    <widget class="QMenu" name="menu_Help">
     <property name="title">
      <string>Help</string>
@@ -3409,16 +3678,16 @@
     <property name="title">
      <string>View</string>
     </property>
+    <widget class="QMenu" name="menu_Export_DPI">
+     <property name="title">
+      <string>Export image DPI</string>
+     </property>
+     <addaction name="actionExportDpi300"/>
+     <addaction name="actionExportDpi400"/>
+     <addaction name="actionExportDpi600"/>
+    </widget>
     <addaction name="actionAxes_Setup"/>
     <addaction name="menu_Export_DPI"/>
-   </widget>
-   <widget class="QMenu" name="menu_Export_DPI">
-    <property name="title">
-     <string>Export image DPI</string>
-    </property>
-    <addaction name="actionExportDpi300"/>
-    <addaction name="actionExportDpi400"/>
-    <addaction name="actionExportDpi600"/>
    </widget>
    <widget class="QMenu" name="menuProcessing">
     <property name="title">
@@ -3494,8 +3763,12 @@
    </property>
   </action>
   <action name="actionMetrics">
-   <property name="text"><string>Metrics</string></property>
-   <property name="toolTip"><string>Calculate seismic quality metrics</string></property>
+   <property name="text">
+    <string>Metrics</string>
+   </property>
+   <property name="toolTip">
+    <string>Calculate seismic quality metrics</string>
+   </property>
   </action>
   <action name="actionDifference">
    <property name="text">
@@ -3503,9 +3776,6 @@
    </property>
   </action>
   <actiongroup name="actionGroupExportDpi">
-   <property name="exclusive">
-    <bool>true</bool>
-   </property>
    <action name="actionExportDpi300">
     <property name="checkable">
      <bool>true</bool>
@@ -3513,35 +3783,38 @@
     <property name="checked">
      <bool>true</bool>
     </property>
-    <property name="data">
-     <number>300</number>
-    </property>
     <property name="text">
      <string>300 DPI</string>
+    </property>
+    <property name="data" stdset="0">
+     <number>300</number>
     </property>
    </action>
    <action name="actionExportDpi400">
     <property name="checkable">
      <bool>true</bool>
     </property>
-    <property name="data">
-     <number>400</number>
-    </property>
     <property name="text">
      <string>400 DPI</string>
+    </property>
+    <property name="data" stdset="0">
+     <number>400</number>
     </property>
    </action>
    <action name="actionExportDpi600">
     <property name="checkable">
      <bool>true</bool>
     </property>
-    <property name="data">
-     <number>600</number>
-    </property>
     <property name="text">
      <string>600 DPI</string>
     </property>
+    <property name="data" stdset="0">
+     <number>600</number>
+    </property>
    </action>
+   <property name="exclusive" stdset="0">
+    <bool>true</bool>
+   </property>
   </actiongroup>
  </widget>
  <layoutdefault spacing="6" margin="11"/>

@@ -145,7 +145,7 @@
                 </property>
                 <property name="icon">
                  <iconset resource="myrc.qrc">
-                  <normaloff>:/images/ToLeftAll.png</normaloff>:/images/ToLeftAll.png</iconset>
+                  <normaloff>:/images/ToRightAll.png</normaloff>:/images/ToRightAll.png</iconset>
                 </property>
                </widget>
               </item>

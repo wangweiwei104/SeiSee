@@ -2,74 +2,72 @@
     <qresource prefix="/">
         <file>fonts/Roboto-Regular-14.ttf</file>
         <file>fonts/TIMES.TTF</file>
-        <file>images/add_item.png</file>
-        <file>images/Axes.png</file>
+        <file>images/AddItem.png</file>
         <file>images/Autogain.png</file>
-        <file>images/Clear.png</file>
-        <file>images/ChkAll.png</file>
+        <file>images/Axes.png</file>
         <file>images/Capture.png</file>
-        <file>images/Export_image.png</file>
+        <file>images/ChkAll.png</file>
+        <file>images/ChkNon.png</file>
+        <file>images/Clear.png</file>
         <file>images/cstfile_inner.png</file>
         <file>images/cstfile_inner.svg</file>
-        <file>images/clr_log.png</file>
-        <file>images/ChkNon.png</file>
-        <file>images/delete_item.png</file>
         <file>images/cstfile.svg</file>
+        <file>images/DelItem.png</file>
         <file>images/Dir.png</file>
-        <file>images/edit_hdr.png</file>
+        <file>images/EditHdr.png</file>
+        <file>images/ExpImg.png</file>
         <file>images/FileSave.png</file>
-        <file>images/Ffwd.png</file>
-        <file>images/Filt.emf</file>
-        <file>images/Findb.png</file>
         <file>images/Filt.svg</file>
-        <file>images/GoBack.png</file>
         <file>images/FindBkw.png</file>
+        <file>images/FindFwd.png</file>
+        <file>images/FindNext.png</file>
+        <file>images/FK.png</file>
+        <file>images/Freq.png</file>
         <file>images/FromFile.png</file>
-        <file>images/GoFw.png</file>
+        <file>images/GoBack.png</file>
         <file>images/GoBottom.png</file>
+        <file>images/GoTop.png</file>
         <file>images/Hexp.png</file>
         <file>images/Lexp.png</file>
-        <file>images/GoTop.png</file>
         <file>images/Nexp.png</file>
         <file>images/OpenDir.png</file>
-        <file>images/Procp.png</file>
-        <file>images/Run.png</file>
         <file>images/OpenFile.png</file>
+        <file>images/Pause.png</file>
+        <file>images/Procp.png</file>
         <file>images/Refresh.png</file>
         <file>images/RemoveALL.png</file>
+        <file>images/Reset.png</file>
+        <file>images/Run.png</file>
         <file>images/segdfile_inner.png</file>
         <file>images/segdfile_inner.svg</file>
         <file>images/segdfile.svg</file>
-        <file>images/segyfile.svg</file>
-        <file>images/segyfile.png</file>
-        <file>images/segyfile.ico</file>
-        <file>images/SeisFile.png</file>
-        <file>images/Reset.png</file>
-        <file>images/SeiSeeMp.png</file>
-        <file>images/SeiSeeMp.ico</file>
-        <file>images/SeiSeeMp.svg</file>
-        <file>images/SeiSeeSetup.ico</file>
         <file>images/segyfile_inner.png</file>
         <file>images/segyfile_inner.svg</file>
+        <file>images/segyfile.ico</file>
+        <file>images/segyfile.png</file>
+        <file>images/segyfile.svg</file>
+        <file>images/SeiSeeMp.ico</file>
+        <file>images/SeiSeeMp.png</file>
+        <file>images/SeiSeeMp.svg</file>
+        <file>images/SeiSeeSetup.ico</file>
         <file>images/SeiSeeSetup.png</file>
         <file>images/SeiSeeSetup.svg</file>
+        <file>images/stop.png</file>
         <file>images/sufile_inner.png</file>
         <file>images/sufile_inner.svg</file>
-        <file>images/SStp.png</file>
-        <file>images/stop.png</file>
         <file>images/sufile.svg</file>
         <file>images/ToDn.png</file>
-        <file>images/ToRight.png</file>
-        <file>images/ToUp.png</file>
         <file>images/ToLeft.png</file>
-        <file>images/ToLeftAll.png</file>
-        <file>images/Unk2.png</file>
+        <file>images/ToRight.png</file>
+        <file>images/ToRightAll.png</file>
+        <file>images/ToUp.png</file>
+        <file>images/Unknow.png</file>
         <file>images/Zh.png</file>
+        <file>images/ZoomA.png</file>
+        <file>images/ZoomI.png</file>
         <file>images/ZoomO.png</file>
         <file>images/ZoomP.png</file>
         <file>images/ZoomW.png</file>
-        <file>images/ZoomI.png</file>
-        <file>images/ZoomA.png</file>
         <file>images/ZoomWCurs.xpm</file>
         <file>images/Zv.png</file>
     </qresource>
