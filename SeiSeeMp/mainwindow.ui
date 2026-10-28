@@ -1921,6 +1921,26 @@
                   </widget>
                  </item>
                  <item>
+                  <widget class="QPushButton" name="frequencyBtn">
+                   <property name="minimumSize"><size><width>24</width><height>24</height></size></property>
+                   <property name="maximumSize"><size><width>24</width><height>24</height></size></property>
+                   <property name="toolTip"><string>Frequency Spectrum</string></property>
+                   <property name="text"><string/></property>
+                   <property name="icon"><iconset resource="myrc.qrc"><normaloff>:/images/Freq.png</normaloff>:/images/Freq.png</iconset></property>
+                   <property name="iconSize"><size><width>20</width><height>20</height></size></property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QPushButton" name="fkBtn">
+                   <property name="minimumSize"><size><width>24</width><height>24</height></size></property>
+                   <property name="maximumSize"><size><width>24</width><height>24</height></size></property>
+                   <property name="toolTip"><string>F-K Spectrum</string></property>
+                   <property name="text"><string/></property>
+                   <property name="icon"><iconset resource="myrc.qrc"><normaloff>:/images/FK.png</normaloff>:/images/FK.png</iconset></property>
+                   <property name="iconSize"><size><width>20</width><height>20</height></size></property>
+                  </widget>
+                 </item>
+                 <item>
                   <widget class="QPushButton" name="clearTraceHighlightBtn">
                    <property name="sizePolicy">
                     <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
@@ -3697,6 +3717,8 @@
     <addaction name="actionHeader_Editor"/>
     <addaction name="actionDifference"/>
     <addaction name="actionMetrics"/>
+    <addaction name="actionFrequencySpectrum"/>
+    <addaction name="actionFkSpectrum"/>
    </widget>
    <addaction name="menu_File"/>
    <addaction name="menuView"/>
@@ -3704,6 +3726,14 @@
    <addaction name="menu_Help"/>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
+  <action name="actionFrequencySpectrum">
+   <property name="icon"><iconset resource="myrc.qrc"><normaloff>:/images/Freq.png</normaloff>:/images/Freq.png</iconset></property>
+   <property name="text"><string>Frequency Spectrum</string></property>
+  </action>
+  <action name="actionFkSpectrum">
+   <property name="icon"><iconset resource="myrc.qrc"><normaloff>:/images/FK.png</normaloff>:/images/FK.png</iconset></property>
+   <property name="text"><string>F-K Spectrum</string></property>
+  </action>
   <action name="actionOpen_Directory">
    <property name="icon">
     <iconset resource="myrc.qrc">

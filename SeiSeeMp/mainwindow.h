@@ -45,6 +45,8 @@
 #include "saveasdialog.h"
 #include "diffdialog.h"
 #include "metricsdialog.h"
+#include "fkspectrumdialog.h"
+#include "frequencyspectrumdialog.h"
 
 #include "workthread.h"
 
@@ -167,6 +169,8 @@ public slots:
     void winZoom(QRect r);
 
 private slots:
+    void showFkSpectrum();
+    void showFrequencySpectrum();
 
     void binHdrGridChangedEvent();
     void syncHorizontalAxisScrollBar(int minimum, int maximum);
@@ -466,6 +470,15 @@ private:
     GfxView timeRightView;
     GfxView hdrsView;
     GfxView hdrsBottomView;
+    SpectrumDialog *fkDialog = nullptr;
+    SpectrumDialog *frequencyDialog = nullptr;
+    SpectrumDialog *selectionOwner = nullptr;
+    QHash<QWidget *, bool> spectrumNavigationStates;
+    void setupSpectrumTools();
+    void showSpectrum(bool frequencyOnly);
+    void captureSpectrumRange(SpectrumDialog *dialog, const QRect &rectangle);
+    void setSpectrumSelection(SpectrumDialog *dialog, bool enabled);
+    void updateSpectrumSources();
     GfxView seisView;
     GfxView hlabView;
 
@@ -590,6 +603,7 @@ private:
     void FindTrace(QString dir);
 
 signals:
+    void traceSelectionChanged(int traceNumber);
     void stop_dirs();
     void stop_find();
     void stop_expu();

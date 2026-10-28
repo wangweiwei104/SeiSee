@@ -1,6 +1,8 @@
 #include "Toast.h"
 
 #include <cmath>
+#include <algorithm>
+#include <QApplication>
 
 static void initializeToastResources()
 {
@@ -183,6 +185,16 @@ Toast::Toast(QWidget* parent)
 
 Toast::~Toast()
 {
+    // A parent window can destroy a visible or queued toast before its timer
+    // calls hide_(). Do not retain that deleted widget in the global queues.
+    s_currentlyShown.erase(std::remove(s_currentlyShown.begin(), s_currentlyShown.end(), this), s_currentlyShown.end());
+    s_queue.erase(std::remove(s_queue.begin(), s_queue.end(), this), s_queue.end());
+    if (qApp) {
+        QTimer::singleShot(0, qApp, []() {
+            while (!s_queue.empty() && s_currentlyShown.size() < size_t(s_maximumOnScreen))
+                showNextInQueue();
+        });
+    }
 }
 
 int Toast::getMaximumOnScreen()

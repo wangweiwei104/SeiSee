@@ -24,6 +24,12 @@ private:
     QRubberBand *rubberBand;
     QPoint origin;
 
+    bool selectionMode = false;
+    bool selecting = false;
+    int selectionEdges = 0;
+    QRect selectionStart;
+    QWidget *selectionBand = nullptr;
+
     //    QScrollBar *horizontalScrollBar() const;
     //    QScrollBar *verticalScrollBar() const;
 
@@ -42,6 +48,12 @@ public:
     MyScrollArea(QWidget *plt, int mrb = 0);
 
     void setZoomW(int on);
+    void setSelectionMode(bool enabled);
+    bool isSelectionMode() const
+    {
+        return selectionMode;
+    }
+    void clearSelectionRectangle();
 
     void setVscroll(int v);
     void setHscroll(int v);
@@ -58,6 +70,7 @@ public:
 signals:
     void zoomChanged(double zx, double zy, int x, int y);
     void zoomW(QRect r);
+    void selectionChanged(QRect r);
     void mouseEvent(QMouseEvent *event);
     void keyEvent(QKeyEvent *event);
 

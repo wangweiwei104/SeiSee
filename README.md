@@ -19,6 +19,14 @@
   </a>
 </p>
 
+## 本地 FK 开发版本（2026-10-28）
+
+Tools → F-K Spectrum / Frequency Spectrum，或使用主窗 Axes Setup 下方新增按钮。频谱仅在点击计算时更新；切换文件会保留参数与缓存谱，并用灰色标识来源不匹配。支持主窗可调整矩形选区、显示参数记忆、耗时提醒及图像导出。
+
+[逐项改动、数值约定与验证说明](docs/fk-ui-20261028.md)。本地构建：`tools/build-fk.cmd`；回归：`tools/test-fk.cmd`。
+
+后续按最终 UI 增加普通频谱单道/区域、多文件对比、独立线条样式，以及两个窗口的字号控制：[最终界面与使用说明](docs/frequency-comparison-ui-20261028.md)。
+
 ## 界面
 
 主界面</br>

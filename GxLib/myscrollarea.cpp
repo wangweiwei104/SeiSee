@@ -4,6 +4,7 @@
 #include <QWidget>
 
 #include "myscrollarea.h"
+#include "gfxselectionband.h"
 
 MyScrollArea::MyScrollArea(QWidget *plt, int mrb)
 {
@@ -27,6 +28,10 @@ MyScrollArea::MyScrollArea(QWidget *plt, int mrb)
 
 void MyScrollArea::wheelEvent(QWheelEvent *event)
 {
+    if (selectionMode) {
+        event->accept();
+        return;
+    }
     double d = event->delta();
     double z = 1 + 0.002 * abs(d);
     if (d < 0)
@@ -48,6 +53,31 @@ void MyScrollArea::wheelEvent(QWheelEvent *event)
 
 void MyScrollArea::mousePressEvent(QMouseEvent *event)
 {
+    if (selectionMode) {
+        if (event->button() != Qt::LeftButton)
+            return;
+        origin = event->pos();
+        selecting = true;
+        selectionEdges = 0;
+        selectionStart = selectionBand->geometry();
+        if (selectionBand->isVisible() &&
+            selectionStart.adjusted(-6, -6, 6, 6).contains(origin)) {
+            if (qAbs(origin.x() - selectionStart.left()) <= 6)
+                selectionEdges |= 1;
+            if (qAbs(origin.x() - selectionStart.right()) <= 6)
+                selectionEdges |= 2;
+            if (qAbs(origin.y() - selectionStart.top()) <= 6)
+                selectionEdges |= 4;
+            if (qAbs(origin.y() - selectionStart.bottom()) <= 6)
+                selectionEdges |= 8;
+            if (!selectionEdges)
+                selectionEdges = 16; // Move existing window.
+        } else {
+            selectionBand->setGeometry(QRect(origin, QSize()));
+            selectionBand->show();
+        }
+        return;
+    }
     if (rubberBand) {
         if (event->button() == Qt::RightButton) {
             setCursor(Qt::ArrowCursor);
@@ -74,6 +104,14 @@ void MyScrollArea::mousePressEvent(QMouseEvent *event)
 
 void MyScrollArea::mouseReleaseEvent(QMouseEvent *event)
 {
+    if (selectionMode) {
+        if (selecting && event->button() == Qt::LeftButton) {
+            selecting = false;
+            if (selectionBand->width() > 1 && selectionBand->height() > 1)
+                emit selectionChanged(selectionBand->geometry());
+        }
+        return;
+    }
     if (rubberBand) {
         setCursor(Qt::ArrowCursor);
 
@@ -94,6 +132,39 @@ void MyScrollArea::mouseReleaseEvent(QMouseEvent *event)
 
 void MyScrollArea::mouseMoveEvent(QMouseEvent *event)
 {
+    if (selectionMode) {
+        if (!selecting)
+            return;
+        const QRect bounds =
+            viewport()->rect().intersected(QRect(plot->pos(), plot->size()));
+        const QPoint current(
+            qBound(bounds.left(), event->pos().x(), bounds.right()),
+            qBound(bounds.top(), event->pos().y(), bounds.bottom()));
+        QRect r = selectionStart;
+        if (!selectionEdges)
+            r = QRect(origin, current).normalized();
+        else if (selectionEdges == 16) {
+            r.translate(current - origin);
+            r.moveLeft(
+                qBound(bounds.left(), r.left(),
+                       qMax(bounds.left(), bounds.right() - r.width() + 1)));
+            r.moveTop(
+                qBound(bounds.top(), r.top(),
+                       qMax(bounds.top(), bounds.bottom() - r.height() + 1)));
+        } else {
+            if (selectionEdges & 1)
+                r.setLeft(current.x());
+            if (selectionEdges & 2)
+                r.setRight(current.x());
+            if (selectionEdges & 4)
+                r.setTop(current.y());
+            if (selectionEdges & 8)
+                r.setBottom(current.y());
+            r = r.normalized();
+        }
+        selectionBand->setGeometry(r.intersected(bounds));
+        return;
+    }
     int x = event->x();
     int y = event->y();
 
@@ -154,6 +225,10 @@ void MyScrollArea::on_hScroll(int)
 
 void MyScrollArea::keyPressEvent(QKeyEvent *event)
 {
+    if (selectionMode) {
+        event->accept();
+        return;
+    }
     emit keyEvent(event);
     QWidget::keyPressEvent(event);
 }
@@ -165,6 +240,8 @@ void MyScrollArea::scrollContentsBy(int dx, int dy)
 
 void MyScrollArea::setZoomW(int on)
 {
+    if (selectionMode)
+        return;
     if (on && !rubberBand) {
         rubberBand = new QRubberBand(QRubberBand::Rectangle, this);
 
@@ -177,8 +254,35 @@ void MyScrollArea::setZoomW(int on)
     }
 }
 
+void MyScrollArea::setSelectionMode(bool enabled)
+{
+    if (selectionMode == enabled)
+        return;
+    setZoomW(0);
+    mv = 0;
+    selecting = false;
+    selectionMode = enabled;
+    if (enabled) {
+        if (!selectionBand)
+            selectionBand = new GfxSelectionBand(viewport());
+        setCursor(QCursor(QPixmap(":/images/SelectWCurs.xpm"), 8, 8));
+    } else {
+        clearSelectionRectangle();
+        unsetCursor();
+    }
+}
+
+void MyScrollArea::clearSelectionRectangle()
+{
+    selecting = false;
+    if (selectionBand)
+        selectionBand->hide();
+}
+
 void MyScrollArea::emitZoomChanged(double zx, double zy, int x, int y)
 {
+    if (selectionMode)
+        return;
     // zx==0 && zy==0 - scrolling to xc, yc;
     // else           - central zoom
 

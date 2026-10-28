@@ -156,3 +156,18 @@ else:win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../libC
 else:win32:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../libCwp/release/libCwp.lib
 else:win32: PRE_TARGETDEPS += $$OUT_PWD/../libCwp/debug/libCwp.lib
 else:unix: PRE_TARGETDEPS += $$OUT_PWD/../libCwp/liblibCwp.a
+
+# Spectrum dialogs reuse CWP FFT and share the main-window/export interface.
+SOURCES += fkspectrumdialog.cpp fktransform.cpp
+HEADERS += fkspectrumdialog.h fktransform.h fkcolormaps.h
+FORMS += fkspectrumdialog.ui
+SOURCES += spectrumdialog.cpp frequencyspectrumdialog.cpp
+HEADERS += spectrumdialog.h frequencyspectrumdialog.h
+FORMS += frequencyspectrumdialog.ui
+contains(CONFIG, fk_regression) {
+    TARGET = fk_regression
+    QT += testlib
+    CONFIG += console testcase
+    SOURCES -= main.cpp
+    SOURCES += $$PWD/../tests/fk_regression.cpp
+}

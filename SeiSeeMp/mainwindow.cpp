@@ -836,6 +836,7 @@ MainWindow::MainWindow(QWidget *parent)
 
     setAcceptDrops(true);
     qApp->installEventFilter(this);
+    setupSpectrumTools();
 
     //    exprList["CDP"] = SeisTrExpr("H(21,4)");
     //    exprList["SP" ] = SeisTrExpr("L-N+1");
@@ -992,6 +993,8 @@ void MainWindow::execProc(SeisFile *sf, int ns, double si, float *smp)
 
 MainWindow::~MainWindow()
 {
+    if (fkDialog) fkDialog->shutdown();
+    if (frequencyDialog) frequencyDialog->shutdown();
     if (m_exportThread && m_exportThread->isRunning()) {
         if (m_exportWorker)
             m_exportWorker->requestCancel();
@@ -1342,6 +1345,7 @@ void MainWindow::FillDirGrid(QList<DirItem> list)
 
         if (nf >= 0) {
             dirGrid.setCurCell(nf);
+            return; // Keep the requested file selected instead of immediately selecting "..".
         } else {
             return;
         }
@@ -1406,6 +1410,7 @@ void MainWindow::SelectTrace(int it)
     }
 
     SetTrEdCurVal();
+    emit traceSelectionChanged(it >= 0 && it < seisSrc.Nt() ? it + 1 : 0);
 }
 
 void MainWindow::viewMouseEvent(QMouseEvent *event)
@@ -1852,6 +1857,8 @@ int MainWindow::xprintf(QPlainTextEdit *edit, const char *fmt, ...)
 
 void MainWindow::closeEvent(QCloseEvent *event)
 {
+    if (fkDialog) fkDialog->close();
+    if (frequencyDialog) frequencyDialog->close();
     MetricsDlg.shutdown();
     if (m_exportInProgress) {
         m_closeAfterExport = true;
@@ -2018,6 +2025,7 @@ int MainWindow::OpenSeisFile(int frm)
     SeisFile *sf = seisSrc.Sfile();
 
     seisSrc.setSfile(NULL);
+    updateSpectrumSources();
 
     if (sf)
         delete sf;
@@ -2105,6 +2113,7 @@ int MainWindow::OpenSeisFile(int frm)
     ui->InfoTab->setTabText(2, "Trace");
 
     seisSrc.setSfile(sf);
+    updateSpectrumSources();
 
     _dly_min = 0;
     _dly_max = 0;
@@ -2186,6 +2195,9 @@ int MainWindow::InitSeisView()
 
 void MainWindow::Clear()
 {
+    seisScrl->clearSelectionRectangle();
+    if (fkDialog) fkDialog->setSource(nullptr);
+    if (frequencyDialog) frequencyDialog->setSource(nullptr);
     ui->seisFrame->setVisible(false);
     ui->InfoTxt->clear();
     ui->TxtHdrEdit->clear();
@@ -2926,6 +2938,7 @@ void MainWindow::ClampZoom(double &xs, double &ys)
 
 void MainWindow::SetZoom(double xs, double ys, int xo, int yo, bool push)
 {
+    if (seisScrl->isSelectionMode()) return;
     double xsp, ysp;
     int xop, yop;
 
@@ -4741,4 +4754,142 @@ void MainWindow::on_actionMetrics_triggered()
     MetricsDlg.curDir = QDir(curDir).absolutePath();
     MetricsDlg.savDir = &savDir;
     MetricsDlg.show();
+}
+
+void MainWindow::setupSpectrumTools()
+{
+    seisScrl->setObjectName("seismicScrollArea");
+    connect(ui->actionFrequencySpectrum, &QAction::triggered, this, &MainWindow::showFrequencySpectrum);
+    connect(ui->actionFkSpectrum, &QAction::triggered, this, &MainWindow::showFkSpectrum);
+    connect(ui->frequencyBtn, &QPushButton::clicked, this, &MainWindow::showFrequencySpectrum);
+    connect(ui->fkBtn, &QPushButton::clicked, this,
+            &MainWindow::showFkSpectrum);
+    connect(seisScrl, &MyScrollArea::selectionChanged, this,
+            [this](const QRect &rectangle) {
+                if (selectionOwner)
+                    captureSpectrumRange(selectionOwner, rectangle);
+            });
+}
+
+void MainWindow::showFkSpectrum()
+{
+    showSpectrum(false);
+}
+void MainWindow::showFrequencySpectrum()
+{
+    showSpectrum(true);
+}
+
+void MainWindow::showSpectrum(bool frequencyOnly)
+{
+    SeisFile *file = seisSrc.Sfile();
+    if (!file || !file->Active() || !ui->seisFrame->isVisible())
+        return;
+    SpectrumDialog *&dialog = frequencyOnly ? frequencyDialog : fkDialog;
+    if (!dialog) {
+        dialog = frequencyOnly ? static_cast<SpectrumDialog *>(new FrequencySpectrumDialog(file, curDir, this))
+                               : static_cast<SpectrumDialog *>(new FkSpectrumDialog(file, curDir, this));
+        SpectrumDialog *target = dialog;
+        if (frequencyOnly)
+            connect(this, &MainWindow::traceSelectionChanged,
+                    static_cast<FrequencySpectrumDialog *>(target), &FrequencySpectrumDialog::setMainTrace);
+        connect(target, &SpectrumDialog::currentViewRequested, this,
+                [this, target]() {
+                    captureSpectrumRange(target, seisScrl->viewport()->rect());
+                });
+        connect(target, &SpectrumDialog::selectionRequested, this,
+                [this, target](bool enabled) {
+                    setSpectrumSelection(target, enabled);
+                });
+        captureSpectrumRange(target, seisScrl->viewport()->rect());
+    }
+    dialog->setSource(file);
+    if (frequencyOnly)
+        static_cast<FrequencySpectrumDialog *>(dialog)->setMainTrace(seisSct.selTr() + 1);
+    dialog->show();
+    dialog->raise();
+    dialog->activateWindow();
+}
+
+void MainWindow::captureSpectrumRange(SpectrumDialog *dialog,
+                                      const QRect &rectangle)
+{
+    SeisFile *file = seisSrc.Sfile();
+    if (!file || !file->Active() || file->Nt() < 1 || file->Ns() < 1 ||
+        file->Si() <= 0)
+        return;
+    // Scroll viewport pixels -> plot pixels -> physical coordinates -> file
+    // indices.
+    const QRect area =
+        rectangle.intersected(QRect(seisView.pos(), seisView.size()));
+    if (area.isEmpty())
+        return;
+    const QPoint a = area.topLeft() - seisView.pos();
+    const QPoint b = area.bottomRight() - seisView.pos();
+    const double x0 = seisSrc.Tx(seisSct.pix2x(a.x()));
+    const double x1 = seisSrc.Tx(seisSct.pix2x(b.x()));
+    const int firstTrace =
+        qBound(0, int(std::ceil(qMin(x0, x1) - 1e-7)), file->Nt() - 1);
+    const int lastTrace = qBound(
+        firstTrace, int(std::floor(qMax(x0, x1) + 1e-7)), file->Nt() - 1);
+    const double y0 = seisSct.pix2y(a.y()), y1 = seisSct.pix2y(b.y());
+    const int firstSample = qBound(
+        0, int(std::ceil(qMin(y0, y1) / file->Si() - 1e-7)), file->Ns() - 1);
+    const int lastSample =
+        qBound(firstSample, int(std::floor(qMax(y0, y1) / file->Si() + 1e-7)),
+               file->Ns() - 1);
+    dialog->setInitialRange(firstTrace + 1, lastTrace + 1,
+                            firstSample * file->Si() * 1000,
+                            lastSample * file->Si() * 1000);
+}
+
+void MainWindow::setSpectrumSelection(SpectrumDialog *dialog, bool enabled)
+{
+    if (!enabled && selectionOwner != dialog)
+        return;
+    if (enabled && selectionOwner && selectionOwner != dialog) {
+        auto button = selectionOwner->findChild<QPushButton *>("fkSelect");
+        if (button)
+            button->setChecked(false);
+    }
+    selectionOwner = enabled ? dialog : nullptr;
+    seisScrl->setSelectionMode(enabled);
+    // Both axis scrollbars and the normal controls must honor selection mode.
+    const QList<QWidget *> navigation = {ui->zoomAllBtn,
+                                         ui->zoomVallBtn,
+                                         ui->zoomHallBtn,
+                                         ui->zoomInBtn,
+                                         ui->zoomOutBtn,
+                                         ui->zoomWinBtn,
+                                         ui->zoomPreBtn,
+                                         ui->edTr,
+                                         ui->edTm,
+                                         ui->TrSlider,
+                                         ui->TmSlider,
+                                         ui->rbDirRev,
+                                         ui->rbDirNorm,
+                                         seisScrl->horizontalScrollBar(),
+                                         seisScrl->verticalScrollBar(),
+                                         hdrsScrl->horizontalScrollBar(),
+                                         hdrsBottomScrl->horizontalScrollBar(),
+                                         timeScrl->verticalScrollBar(),
+                                         timeRightScrl->verticalScrollBar()};
+    for (auto widget : navigation) {
+        if (enabled) {
+            if (!spectrumNavigationStates.contains(widget))
+                spectrumNavigationStates.insert(widget, widget->isEnabled());
+            widget->setEnabled(false);
+        } else if (spectrumNavigationStates.contains(widget)) {
+            widget->setEnabled(spectrumNavigationStates.take(widget));
+        }
+    }
+}
+
+void MainWindow::updateSpectrumSources()
+{
+    seisScrl->clearSelectionRectangle();
+    if (fkDialog)
+        fkDialog->setSource(seisSrc.Sfile());
+    if (frequencyDialog)
+        frequencyDialog->setSource(seisSrc.Sfile());
 }
