@@ -70,6 +70,20 @@ class FkRegression : public QObject
         QWidget *canvas = get<QWidget>(dialog, canvasName);
         QVERIFY(!get<QWidget>(canvas, "analysisSelectionBand")->isVisible());
         get<QPushButton>(dialog, "fkZoomWindow")->click();
+        const QImage cursor =
+            canvas->cursor().pixmap().toImage().convertToFormat(
+                QImage::Format_ARGB32);
+        QVERIFY(!cursor.isNull());
+        int opaque = 0;
+        for (int y = 0; y < cursor.height(); ++y)
+            for (int x = 0; x < cursor.width(); ++x) {
+                const auto pixel = cursor.pixel(x, y);
+                if (qAlpha(pixel)) {
+                    ++opaque;
+                    QCOMPARE(qRed(pixel) + qGreen(pixel) + qBlue(pixel), 0);
+                }
+            }
+        QVERIFY(opaque > 40);
         const QPoint from(canvas->width() * .35, canvas->height() * .35);
         const QPoint to(canvas->width() * .65, canvas->height() * .65);
         QTest::mousePress(canvas, Qt::LeftButton, Qt::NoModifier, from);
@@ -126,7 +140,7 @@ private slots:
                         float(std::cos(.31 * t + .7 * x) +
                               .17 * std::sin(.67 * t - .21 * x));
             auto result = calculateFk(input, nx, nt, .002, 25);
-            QCOMPARE(result.nf, (nt + 1) / 2);
+            QCOMPARE(result.nf, nt / 2 + 1);
             QCOMPARE(result.nk, nx);
             QVERIFY(std::abs(result.df - 1 / (nt * .002)) < 1e-12);
             QVERIFY(std::abs(result.k0 + (nx / 2) / (nx * 25.)) < 1e-12);
@@ -173,6 +187,100 @@ private slots:
         auto result = calculateFrequency(samples, 4, 64, .002);
         QCOMPARE(result.nk, 1);
         QVERIFY(std::abs(result.amplitude[8] - 80) < 1e-4);
+    }
+    void nyquistEndpointsAndDecibels()
+    {
+        for (int nt : {64, 65}) {
+            QVector<float> input(4 * nt);
+            for (int x = 0; x < 4; ++x)
+                for (int t = 0; t < nt; ++t)
+                    input[x * nt + t] =
+                        (t % 2 ? -1.f : 1.f) * (x % 2 ? -1.f : 1.f);
+            const auto f = calculateFrequency(input, 4, nt, .002);
+            const auto fk = calculateFk(input, 4, nt, .002, 25);
+            QCOMPARE(f.frequencyLimit, 250.0);
+            QCOMPARE(fk.frequencyLimit, 250.0);
+            QCOMPARE(fk.wavenumberLimit, .02);
+            QCOMPARE(f.nf, nt / 2 + 1);
+            if (nt % 2 == 0) {
+                QCOMPARE((f.nf - 1) * f.df, 250.0);
+                QVERIFY(std::abs(f.amplitude.last() - nt) < 1e-4);
+                QVERIFY(std::abs(fk.amplitude[(fk.nf - 1) * 4] - 4 * nt) <
+                        1e-3);
+            } else
+                QVERIFY((f.nf - 1) * f.df < f.frequencyLimit);
+        }
+        QCOMPARE(spectrumAmplitudeValue(1, true), 0.0);
+        QCOMPARE(spectrumAmplitudeValue(10, true), 20.0);
+        QCOMPARE(spectrumAmplitudeValue(.1, true), -20.0);
+        QCOMPARE(spectrumAmplitudeValue(0, true), -240.0);
+    }
+    void physicalDisplayBoundsAndAutomaticImageNaming()
+    {
+        QSettings settings("WW", "SeiSeeMp");
+        settings.remove("FrequencySpectrum");
+        settings.remove("FkSpectrum");
+        // Migrate the actual old full-bin defaults; keep deliberate custom
+        // limits.
+        settings.setValue("FrequencySpectrum/display/initialized", true);
+        settings.setValue("FrequencySpectrum/display/fkFmin", 0);
+        settings.setValue("FrequencySpectrum/display/fkFmax",
+                          511 * 500.0 / 1024);
+        settings.setValue("FrequencySpectrum/display/fkCmin", 0);
+        settings.setValue("FrequencySpectrum/display/fkCmax", 600);
+        SgyFile file, other;
+        open(file, pathA);
+        open(other, pathB);
+        FrequencySpectrumDialog frequency(&file, out);
+        FkSpectrumDialog fk(&file, out);
+        for (SpectrumDialog *dialog :
+             QList<SpectrumDialog *>({&fk, &frequency})) {
+            QSignalSpy updated(dialog, &SpectrumDialog::spectrumUpdated);
+            dialog->show();
+            get<QPushButton>(dialog, "fkCalculate")->click();
+            QTRY_COMPARE(updated.count(), 1);
+            QTRY_VERIFY(!dialog->isCalculating());
+            QCOMPARE(get<QDoubleSpinBox>(dialog, "fkFmax")->value(), 250.0);
+            if (dialog == &fk) {
+                QCOMPARE(get<QDoubleSpinBox>(dialog, "fkKmin")->value(), -.02);
+                QCOMPARE(get<QDoubleSpinBox>(dialog, "fkKmax")->value(), .02);
+                captureZoomSelection(dialog, "fkPlot", "fk-black-cursor");
+            }
+            get<QDoubleSpinBox>(dialog, "fkFmax")->setValue(180);
+            get<QComboBox>(dialog, "fkScale")->setCurrentIndex(1);
+            dialog->grab().save(out + (dialog == &fk
+                                           ? "/fk-decibels.png"
+                                           : "/frequency-decibels.png"));
+            QCOMPARE(updated.count(), 1);
+            // Input edits/source switching must not misname a cached result.
+            if (dialog == &frequency)
+                get<QCheckBox>(dialog, "frequencySelection")->setChecked(true);
+            get<QSpinBox>(dialog, "fkFirst")->setValue(8);
+            dialog->setSource(&other);
+            QString mode = dialog == &fk ? "fk" : "frequency";
+            const QString pattern = "source-a_1_*_" + mode + "*png";
+            QDir dir(QFileInfo(pathA).absolutePath());
+            for (const auto &name : dir.entryList({pattern}, QDir::Files))
+                QVERIFY(dir.remove(name));
+            get<QPushButton>(dialog, "fkCapture")->click();
+            auto names = dir.entryList({pattern}, QDir::Files);
+            QCOMPARE(names.size(), 1);
+            const QString first = names.first();
+            QVERIFY(first.contains("_f_0_180"));
+            QVERIFY(first.contains("_dB_"));
+            get<QPushButton>(dialog, "fkCapture")->click();
+            QVERIFY(dir.exists(QFileInfo(first).completeBaseName() + "_1.png"));
+            dialog->setExportDpi(300);
+            get<QPushButton>(dialog, "fkExport")->click();
+            const QString large =
+                QFileInfo(first).completeBaseName() + "_300.png";
+            QVERIFY(dir.exists(large));
+            QImage image(dir.filePath(large));
+            QVERIFY(!image.isNull());
+            QCOMPARE(image.dotsPerMeterX(), qRound(300 / .0254));
+            QCOMPARE(updated.count(), 1);
+            dialog->close();
+        }
     }
     void sourceSwitchRetainsParametersAndCache()
     {
@@ -446,8 +554,7 @@ private slots:
         };
         clickTrace(.3);
         QVERIFY(!selected.isEmpty());
-        int initial = selected.last()[0].toInt();
-        QVERIFY(initial > 0 && initial <= 96);
+        const int initial = selected.last()[0].toInt();
         get<QPushButton>(&window, "frequencyBtn")->click();
         auto dialog = window.findChild<FrequencySpectrumDialog *>(
             "FrequencySpectrumDialog");
@@ -458,53 +565,76 @@ private slots:
         const double start = get<QDoubleSpinBox>(dialog, "fkStart")->value(),
                      end = get<QDoubleSpinBox>(dialog, "fkEnd")->value();
         QSignalSpy updated(dialog, &SpectrumDialog::spectrumUpdated);
+        // Rapid main-window selections coalesce into one automatic calculation.
+        clickTrace(.45);
         clickTrace(.65);
-        int second = selected.last()[0].toInt();
-        QVERIFY(second != initial);
-        QCOMPARE(first->value(), second);
-        QCOMPARE(updated.count(), 0);
+        clickTrace(.55);
+        int latest = selected.last()[0].toInt();
+        QCOMPARE(first->value(), latest);
+        QTRY_COMPARE(updated.count(), 1);
+        QTRY_VERIFY(!dialog->isCalculating());
+        auto verifyTrace = [&](int traceNumber) {
+            SgyFile file;
+            open(file, pathA);
+            const int a = int(std::ceil(start / 2 - 1e-7)),
+                      b = int(std::floor(end / 2 + 1e-7));
+            QVector<float> raw(b - a + 1);
+            auto samples = file.Rs(traceNumber - 1);
+            std::copy(samples + a, samples + b + 1, raw.begin());
+            auto expected = calculateFrequency(raw, 1, raw.size(), .002);
+            auto actual = dialog->spectra();
+            QCOMPARE(actual.size(), 1);
+            QCOMPARE(actual[0].spectrum.nf, expected.nf);
+            for (int f = 0; f < expected.nf; ++f)
+                QVERIFY(std::abs(expected.amplitude[f] -
+                                 actual[0].spectrum.amplitude[f]) <
+                        qMax(1e-4, double(expected.amplitude[f]) * 2e-5));
+        };
+        verifyTrace(latest);
+        // Region inputs remain manual and do not follow main-window clicks.
         get<QCheckBox>(dialog, "frequencySelection")->setChecked(true);
         first->setValue(7);
         last->setValue(11);
-        clickTrace(.45);
-        int latest = selected.last()[0].toInt();
+        clickTrace(.35);
+        QTest::qWait(200);
         QCOMPARE(first->value(), 7);
         QCOMPARE(last->value(), 11);
+        QCOMPARE(updated.count(), 1);
         get<QCheckBox>(dialog, "frequencySingle")->setChecked(true);
-        QCOMPARE(first->value(), latest);
-        QCOMPARE(last->value(), 11);
         get<QAbstractButton>(&window, "rbDirRev")->setChecked(true);
         clickTrace(.25);
-        QCOMPARE(first->value(), selected.last()[0].toInt());
-        QCOMPARE(updated.count(), 0);
-        int calculatedTrace = first->value();
-        get<QPushButton>(dialog, "fkCalculate")->click();
-        clickTrace(.6);
-        int pending = selected.last()[0].toInt();
-        QVERIFY(pending != calculatedTrace);
-        QCOMPARE(first->value(), pending);
-        QTRY_COMPARE(updated.count(), 1);
+        latest = selected.last()[0].toInt();
+        QCOMPARE(first->value(), latest);
+        QTRY_COMPARE(updated.count(), 2);
         QTRY_VERIFY(!dialog->isCalculating());
-        QCOMPARE(first->value(), pending);
-        QVERIFY(get<QLabel>(dialog, "fkRangeStatus")
-                    ->text()
-                    .contains(QString("Trace: %1 ").arg(calculatedTrace)));
-        SgyFile file;
-        open(file, pathA);
-        int a = int(std::ceil(start / 2 - 1e-7)),
-            b = int(std::floor(end / 2 + 1e-7));
-        QVector<float> raw(b - a + 1);
-        const auto samples = file.Rs(calculatedTrace - 1);
-        std::copy(samples + a, samples + b + 1, raw.begin());
-        auto expected = calculateFrequency(raw, 1, raw.size(), .002);
-        auto result = dialog->spectra();
-        QCOMPARE(result.size(), 1);
-        for (int f = 0; f < expected.nf; ++f)
-            QVERIFY(std::abs(expected.amplitude[f] -
-                             result[0].spectrum.amplitude[f]) <
-                    qMax(1e-4, double(expected.amplitude[f]) * 2e-5));
+        verifyTrace(latest);
+        // A selection arriving while a worker owns a request is not dropped.
+        get<QPushButton>(dialog, "fkCalculate")->click();
+        QVERIFY(dialog->isCalculating());
+        clickTrace(.6);
+        latest = selected.last()[0].toInt();
+        QTRY_VERIFY(get<QLabel>(dialog, "fkRangeStatus")
+                        ->text()
+                        .contains(QString("Trace: %1 ").arg(latest)));
+        QTRY_VERIFY(!dialog->isCalculating());
+        verifyTrace(latest);
+        const int count = updated.count();
+        get<QCheckBox>(dialog, "frequencyGrid")->setChecked(true);
+        get<QComboBox>(dialog, "fkScale")->setCurrentIndex(1);
+        dialog->close();
+        dialog->show();
+        QTest::qWait(250);
+        QCOMPARE(updated.count(), count);
+        QCOMPARE(get<QDoubleSpinBox>(dialog, "fkFmax")->value(), 250.0);
         QCOMPARE(get<QDoubleSpinBox>(dialog, "fkStart")->value(), start);
         QCOMPARE(get<QDoubleSpinBox>(dialog, "fkEnd")->value(), end);
+        auto dpiAction = get<QAction>(&window, "actionExportDpi400");
+        auto dpiMenu = get<QMenu>(&window, "menu_Export_DPI");
+        QSignalSpy dpiChanged(dpiMenu, &QMenu::triggered);
+        dpiAction->trigger();
+        QCOMPARE(dpiChanged.count(), 1);
+        QCOMPARE(dpiAction->data().toInt(), 400);
+        QCOMPARE(dialog->exportDpi(), 400);
         dialog->grab().save(out + "/frequency-linked-trace.png");
         window.close();
     }
@@ -573,7 +703,7 @@ private slots:
         auto trace = file.Rs(3);
         std::copy(trace + 10, trace + 74, raw.begin());
         auto expected = calculateFrequency(raw, 1, 64, .002);
-        QCOMPARE(actual[0].spectrum.nf, 32);
+        QCOMPARE(actual[0].spectrum.nf, 33);
         for (int i = 0; i < expected.nf; ++i) {
             double tolerance = qMax(1e-4, double(expected.amplitude[i]) * 2e-5);
             QVERIFY(std::abs(actual[0].spectrum.amplitude[i] -

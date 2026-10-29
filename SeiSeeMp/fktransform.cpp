@@ -87,10 +87,12 @@ FkSpectrum calculateFk(const QVector<float> &traces, int nx, int nt, double dt,
     };
     FkSpectrum out;
     out.nk = nx;
-    out.nf = (nt + 1) / 2;
+    out.nf = nt / 2 + 1;
     out.df = 1.0 / (nt * dt);
     out.dk = 1.0 / (nx * dx);
     out.k0 = -(nx / 2) * out.dk;
+    out.frequencyLimit = .5 / dt;
+    out.wavenumberLimit = .5 / dx;
     out.amplitude.resize(out.nf * nx);
     QVector<float> data = traces;
     for (float v : data)
@@ -163,9 +165,10 @@ FkSpectrum calculateFrequency(const QVector<float> &traces, int nx, int nt,
         traces.size() != qint64(nx) * nt || !std::isfinite(dt) || dt <= 0)
         throw std::runtime_error("Invalid frequency range.");
     FkSpectrum result;
-    result.nf = (nt + 1) / 2;
+    result.nf = nt / 2 + 1;
     result.nk = 1;
     result.df = 1.0 / (nt * dt);
+    result.frequencyLimit = .5 / dt;
     result.amplitude.fill(0, result.nf);
     FkForwardFft fft(nt);
     std::vector<complex> line(nt);
@@ -205,6 +208,11 @@ QString spectrumSourceKey(const QString &path)
     return name + QLatin1Char('|') + QString::number(info.size()) +
            QLatin1Char('|') +
            QString::number(info.lastModified().toMSecsSinceEpoch());
+}
+
+double spectrumAmplitudeValue(double amplitude, bool decibels)
+{
+    return decibels ? 20 * std::log10(qMax(amplitude, 1e-12)) : amplitude;
 }
 
 void FkWorker::run()

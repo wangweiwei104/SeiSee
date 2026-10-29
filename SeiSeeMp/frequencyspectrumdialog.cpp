@@ -83,18 +83,13 @@ public:
                       int(GfxStyle::LabelFontPointSize)));
         band = new GfxSelectionBand(this);
     }
-    int legendRows() const
-    {
-        return qMin(3, (curves.size() + 1) / 2);
-    }
     QRectF dataRect() const
     {
         const auto metrics = fontMetrics();
         double left =
             qMin(width() / 3.0,
                  double(qMax(72, metrics.horizontalAdvance("-0000.00") + 24)));
-        int bottom =
-            3 * metrics.height() + 18 + legendRows() * (metrics.height() + 3);
+        int bottom = 3 * metrics.height() + 18;
         return QRectF(left, metrics.height() + 16,
                       qMax(50.0, width() - left - 25),
                       qMax(50, height() - metrics.height() - 16 - bottom));
@@ -105,13 +100,11 @@ public:
     }
     double maxFrequency() const
     {
-        return curves.isEmpty() ? 1
-                                : (curves.first().spectrum.nf - 1) *
-                                      curves.first().spectrum.df;
+        return curves.isEmpty() ? 1 : curves.first().spectrum.frequencyLimit;
     }
     double value(float amplitude) const
     {
-        return logarithmic ? std::log10(double(amplitude) + 1e-12) : amplitude;
+        return spectrumAmplitudeValue(amplitude, logarithmic);
     }
     void changeView(QRectF range, bool remember = true)
     {
@@ -240,9 +233,11 @@ protected:
         }
         if (curves.isEmpty()) {
             painter.setPen(Qt::black);
-            painter.drawText(
-                box, Qt::AlignCenter,
-                tr("Select a trace or region and click Calculate"));
+            painter.drawText(box, Qt::AlignCenter,
+                             single
+                                 ? tr("Select a trace in the main window; the "
+                                      "spectrum updates automatically")
+                                 : tr("Select a region and click Calculate"));
         }
         painter.save();
         painter.setClipRect(box);
@@ -298,15 +293,27 @@ protected:
         painter.drawText(
             QRectF(-box.height() / 2, -fh / 2, box.height(), fh + 2),
             Qt::AlignCenter,
-            logarithmic ? tr("log10 amplitude")
-            : single    ? tr("FFT amplitude")
-                        : tr("Mean FFT amplitude"));
+            logarithmic ? tr("Amplitude (dB)") : tr("Amplitude"));
         painter.restore();
-        for (int i = 0; i < qMin(6, curves.size()); ++i) {
+        int legendWidth = 0;
+        for (int i = 0; i < curves.size(); ++i) {
+            QString label = (i == 0 ? tr("Main: ") : QString("%1: ").arg(i)) +
+                            QFileInfo(curves[i].path).fileName();
+            legendWidth =
+                qMax(legendWidth, fontMetrics().horizontalAdvance(label) + 35);
+        }
+        legendWidth = qMin(legendWidth, int(box.width() * .65));
+        const int legendCount =
+            qMin(curves.size(), qMax(1, int((box.height() - 16) / (fh + 3))));
+        QRectF legend(box.right() - legendWidth - 8, box.top() + 8, legendWidth,
+                      legendCount * (fh + 3));
+        if (!curves.isEmpty())
+            painter.fillRect(legend.adjusted(-4, -3, 4, 3),
+                             QColor(255, 255, 255, 210));
+        for (int i = 0; i < legendCount; ++i) {
             const auto &curve = curves[i];
             const auto style = styles.value(curve.id);
-            double x = box.left() + (i % 2) * box.width() / 2,
-                   y = box.bottom() + 2 * fh + 19 + (i / 2) * (fh + 3);
+            double x = legend.left(), y = legend.top() + i * (fh + 3);
             painter.setPen(
                 QPen(stale ? QColor(145, 145, 145) : style.color, style.width));
             painter.drawLine(QPointF(x, y + fh / 2),
@@ -314,18 +321,19 @@ protected:
             painter.setPen(Qt::black);
             QString name = (i == 0 ? tr("Main: ") : QString("%1: ").arg(i)) +
                            QFileInfo(curve.path).fileName();
-            if (i == 5 && curves.size() > 6)
-                name = tr("+ %1 comparison files").arg(curves.size() - 5);
+            if (i == legendCount - 1 && curves.size() > legendCount)
+                name = tr("+ %1 comparison files")
+                           .arg(curves.size() - legendCount + 1);
             painter.drawText(
-                QRectF(x + 27, y, box.width() / 2 - 35, fh + 2),
+                QRectF(x + 27, y, legend.width() - 27, fh + 2),
                 Qt::AlignLeft | Qt::AlignVCenter,
                 fontMetrics().elidedText(name, Qt::ElideMiddle,
-                                         int(box.width() / 2 - 35)));
+                                         int(legend.width() - 27)));
         }
         if (stale && !curves.isEmpty()) {
             painter.setPen(QColor(145, 145, 145));
             painter.drawText(box.adjusted(6, 6, -6, -6),
-                             Qt::AlignTop | Qt::AlignRight,
+                             Qt::AlignBottom | Qt::AlignRight,
                              tr("Different source - cached spectra"));
         }
     }
@@ -350,6 +358,10 @@ FrequencySpectrumDialog::FrequencySpectrumDialog(SeisFile *file,
     setSizeGripEnabled(true);
     resize(1000, 620);
     qRegisterMetaType<FkSpectrum>("FkSpectrum");
+    automaticTimer = new QTimer(this);
+    automaticTimer->setSingleShot(true);
+    connect(automaticTimer, &QTimer::timeout, this,
+            &FrequencySpectrumDialog::runAutomatic);
     auto modes = new QButtonGroup(this);
     modes->setExclusive(true);
     modes->addButton(ui->frequencySingle, 0);
@@ -381,6 +393,9 @@ FrequencySpectrumDialog::FrequencySpectrumDialog(SeisFile *file,
     ui->fkCmax->setValue(1);
     ui->fkScale->clear();
     ui->fkScale->addItems({"Abs", "Log10"});
+    ui->fkScale->setToolTip(
+        tr("Log10: amplitude in dB = 20*log10(max(amplitude, 1e-12)), "
+           "reference amplitude 1."));
     colorChoices(ui->frequencyColor);
     colorChoices(ui->comparisonColor);
     ui->comparisonColor->setCurrentIndex(1);
@@ -470,6 +485,12 @@ FrequencySpectrumDialog::FrequencySpectrumDialog(SeisFile *file,
                 setInputMode();
                 if (checked && mainTrace > 0)
                     setMainTrace(mainTrace);
+                if (checked)
+                    requestAutomatic();
+                else {
+                    automaticTimer->stop();
+                    automaticPending = false;
+                }
                 saveSettings();
             });
     connect(ui->fkCurrentView, &QPushButton::clicked, this,
@@ -493,6 +514,8 @@ FrequencySpectrumDialog::FrequencySpectrumDialog(SeisFile *file,
         }
     });
     connect(ui->fkCalculate, &QPushButton::clicked, this, [this]() {
+        automaticTimer->stop();
+        automaticPending = false;
         if (batchRunning) {
             cancelled = true;
             if (worker)
@@ -516,6 +539,7 @@ FrequencySpectrumDialog::FrequencySpectrumDialog(SeisFile *file,
                 plot->curves.remove(i);
         updateComparisonControls();
         applyDisplay();
+        requestAutomatic();
     });
     connect(files, QOverload<int>::of(&QComboBox::currentIndexChanged), this,
             [this]() { updateComparisonControls(); });
@@ -537,6 +561,7 @@ FrequencySpectrumDialog::FrequencySpectrumDialog(SeisFile *file,
     connect(ui->fkScale, QOverload<int>::of(&QComboBox::currentIndexChanged),
             this, [this]() {
                 applyDisplay();
+                autoAmplitude();
                 saveSettings();
             });
     connect(ui->frequencyGrid, &QCheckBox::toggled, this, [this]() {
@@ -562,7 +587,8 @@ FrequencySpectrumDialog::FrequencySpectrumDialog(SeisFile *file,
             [this]() { plot->zoom(1.5); });
     connect(ui->fkZoomWindow, &QPushButton::clicked, this, [this]() {
         plot->windowZoom = true;
-        plot->setCursor(QCursor(QPixmap(":/images/ZoomWCurs.xpm"), 10, 8));
+        plot->setCursor(
+            QCursor(QPixmap(":/images/SelectionBlackCurs.xpm"), 8, 8));
     });
     connect(ui->fkZoomPrevious, &QPushButton::clicked, this, [this]() {
         if (!plot->history.isEmpty())
@@ -572,6 +598,11 @@ FrequencySpectrumDialog::FrequencySpectrumDialog(SeisFile *file,
             [this]() { exportImage(true); });
     connect(ui->fkExport, &QPushButton::clicked, this,
             [this]() { exportImage(false); });
+    connect(ui->fkFirst, QOverload<int>::of(&QSpinBox::valueChanged), this,
+            [this]() { requestAutomatic(); });
+    for (auto spin : {ui->fkStart, ui->fkEnd})
+        connect(spin, QOverload<double>::of(&QDoubleSpinBox::valueChanged),
+                this, [this]() { requestAutomatic(); });
 }
 
 void FrequencySpectrumDialog::setSource(SeisFile *file)
@@ -579,8 +610,11 @@ void FrequencySpectrumDialog::setSource(SeisFile *file)
     const bool active = file && file->Active();
     const QString nextPath =
         active ? QString::fromLocal8Bit(file->Fname().c_str()) : QString();
-    if (path != nextPath)
+    if (path != nextPath) {
         mainTrace = 0;
+        automaticTimer->stop();
+        automaticPending = false;
+    }
     path = nextPath;
     traceCount = active ? file->Nt() : 0;
     sampleCount = active ? file->Ns() : 0;
@@ -595,12 +629,11 @@ void FrequencySpectrumDialog::setMainTrace(int traceNumber)
     mainTrace = traceNumber;
     if (!ui->frequencySingle->isChecked())
         return;
-    // Running requests keep their captured range. This selects the next input
-    // even while the main window remains interactive during a calculation.
     ui->fkFirst->setValue(traceNumber);
     if (!batchRunning)
         messageStatus->setText(
-            tr("Trace %1 selected; click Calculate").arg(traceNumber));
+            tr("Trace %1 selected; updating spectrum...").arg(traceNumber));
+    requestAutomatic();
 }
 bool FrequencySpectrumDialog::isSourceCurrent() const
 {
@@ -615,9 +648,13 @@ void FrequencySpectrumDialog::updateSourceState()
     fileStatus->setToolTip(path);
     ui->fkCalculate->setEnabled(batchRunning || !path.isEmpty());
     if (!batchRunning)
-        messageStatus->setText(plot->curves.isEmpty() ? tr("Click Calculate")
-                               : plot->stale ? tr("Cached / other source")
-                                             : tr("Cached / current source"));
+        messageStatus->setText(
+            plot->curves.isEmpty()
+                ? (ui->frequencySingle->isChecked()
+                       ? tr("Automatic single-trace calculation")
+                       : tr("Click Calculate"))
+            : plot->stale ? tr("Cached / other source")
+                          : tr("Cached / current source"));
 }
 void FrequencySpectrumDialog::setInputMode()
 {
@@ -668,6 +705,7 @@ void FrequencySpectrumDialog::addComparisonFiles(const QStringList &paths)
     }
     updateComparisonControls();
     messageStatus->setText(tr("Files changed; click Calculate"));
+    requestAutomatic();
 }
 void FrequencySpectrumDialog::updateComparisonControls()
 {
@@ -730,8 +768,63 @@ QVector<FrequencyCurve> FrequencySpectrumDialog::spectra() const
     return plot->curves;
 }
 
+QString FrequencySpectrumDialog::requestSignature() const
+{
+    QStringList fields = {spectrumSourceKey(path),
+                          QString::number(fileType),
+                          QString::number(ui->frequencySingle->isChecked()),
+                          QString::number(ui->fkFirst->value()),
+                          QString::number(ui->frequencySingle->isChecked()
+                                              ? ui->fkFirst->value()
+                                              : ui->fkLast->value()),
+                          QString::number(ui->fkStart->value(), 'g', 17),
+                          QString::number(ui->fkEnd->value(), 'g', 17)};
+    for (const auto &name : comparisons)
+        fields.append(spectrumSourceKey(name));
+    return fields.join('\n');
+}
+void FrequencySpectrumDialog::requestAutomatic()
+{
+    if (restoring || !isVisible() || !ui->frequencySingle->isChecked() ||
+        path.isEmpty())
+        return;
+    const auto signature = requestSignature();
+    if ((!batchRunning && signature == computedSignature) ||
+        (batchRunning && !cancelled && signature == runningSignature)) {
+        automaticPending = false;
+        automaticTimer->stop();
+        return;
+    }
+    automaticPending = true;
+    automaticTimer->start(120);
+}
+void FrequencySpectrumDialog::runAutomatic()
+{
+    if (!automaticPending || !isVisible() ||
+        !ui->frequencySingle->isChecked() || path.isEmpty())
+        return;
+    if (batchRunning) {
+        cancelled = true;
+        if (worker)
+            worker->requestInterruption();
+        return;
+    }
+    if (requestSignature() == computedSignature) {
+        automaticPending = false;
+        return;
+    }
+    begin();
+}
+void FrequencySpectrumDialog::showEvent(QShowEvent *event)
+{
+    QDialog::showEvent(event);
+    requestAutomatic();
+}
+
 void FrequencySpectrumDialog::begin()
 {
+    automaticTimer->stop();
+    automaticPending = false;
     if (path.isEmpty() || dt <= 0)
         return;
     const int first = ui->fkFirst->value() - 1,
@@ -751,6 +844,7 @@ void FrequencySpectrumDialog::begin()
         toast(tr("Large selection. Calculating all files may take time; you "
                  "can cancel."));
     requests.clear();
+    runningSignature = requestSignature();
     pending.clear();
     errors.clear();
     jobIndex = 0;
@@ -851,11 +945,25 @@ void FrequencySpectrumDialog::finishBatch(bool success)
     setInputMode();
     ui->fkCalculate->setIcon(QIcon(":/images/Run.png"));
     if (success && !pending.isEmpty()) {
+        const int nt =
+            requests.first().sampleLast - requests.first().sampleFirst + 1;
+        const double legacyFrequencyMax =
+            ((nt + 1) / 2 - 1) * pending.first().spectrum.df;
+        const bool fullF =
+            !haveDisplayRange ||
+            (ui->fkFmin->value() == 0 &&
+             ((!plot->curves.isEmpty() &&
+               std::abs(ui->fkFmax->value() - plot->maxFrequency()) < 1e-6) ||
+              (!physicalBounds &&
+               std::abs(ui->fkFmax->value() - legacyFrequencyMax) < 1e-5)));
+        computedSignature = runningSignature;
         plot->curves = pending;
         computedKey = pending.first().sourceKey;
         plot->single = batchSingle;
         plot->history.clear();
         const auto &r = requests.first();
+        setCaptureRange(r.path, r.first + 1, r.last + 1, r.sampleFirst * r.dt,
+                        r.sampleLast * r.dt);
         computedRange =
             batchSingle ? tr("Trace: %1").arg(r.first + 1)
                         : tr("Traces: %1-%2").arg(r.first + 1).arg(r.last + 1);
@@ -867,15 +975,17 @@ void FrequencySpectrumDialog::finishBatch(bool success)
                 .arg(r.last + 1)
                 .arg(r.sampleFirst * r.dt * 1000, 0, 'g', 6)
                 .arg(r.sampleLast * r.dt * 1000, 0, 'g', 6);
-        if (!haveDisplayRange) {
+        if (fullF) {
             restoring = true;
             ui->fkFmin->setValue(0);
             ui->fkFmax->setValue(plot->maxFrequency());
             restoring = false;
-            autoAmplitude();
         }
+        if (!haveDisplayRange)
+            autoAmplitude();
         applyDisplay();
         haveDisplayRange = true;
+        physicalBounds = true;
         progress->setValue(100);
         emit spectrumUpdated();
     }
@@ -883,8 +993,8 @@ void FrequencySpectrumDialog::finishBatch(bool success)
     updateSourceState();
     if (success && ui->frequencySingle->isChecked() &&
         ui->fkFirst->value() != requests.first().first + 1)
-        messageStatus->setText(
-            tr("Trace %1 selected; click Calculate").arg(ui->fkFirst->value()));
+        messageStatus->setText(tr("Trace %1 selected; updating spectrum...")
+                                   .arg(ui->fkFirst->value()));
     if (cancelled)
         messageStatus->setText(tr("Cancelled; cache retained"));
     if (!errors.isEmpty()) {
@@ -893,6 +1003,9 @@ void FrequencySpectrumDialog::finishBatch(bool success)
         toast(errors.join("\n"));
     }
     saveSettings();
+    if (automaticPending && isVisible() && ui->frequencySingle->isChecked() &&
+        !automaticTimer->isActive())
+        automaticTimer->start(0);
 }
 void FrequencySpectrumDialog::applyDisplay()
 {
@@ -940,8 +1053,7 @@ void FrequencySpectrumDialog::autoAmplitude()
             if (f * curve.spectrum.df >= ui->fkFmin->value() &&
                 f * curve.spectrum.df <= ui->fkFmax->value()) {
                 double value = curve.spectrum.amplitude[f];
-                if (log)
-                    value = std::log10(value + 1e-12);
+                value = spectrumAmplitudeValue(value, log);
                 lo = qMin(lo, value);
                 hi = qMax(hi, value);
             }
@@ -968,6 +1080,7 @@ void FrequencySpectrumDialog::loadSettings()
     else
         ui->frequencySelection->setChecked(true);
     haveDisplayRange = settings.value("display/initialized", false).toBool();
+    physicalBounds = settings.value("display/boundsVersion", 0).toInt() >= 2;
     for (auto spin : {ui->fkFmin, ui->fkFmax, ui->fkCmin, ui->fkCmax}) {
         bool ok = false;
         double v =
@@ -982,6 +1095,11 @@ void FrequencySpectrumDialog::loadSettings()
         settings.value("display/fontSize", 9).toInt());
     ui->fkScale->setCurrentIndex(
         qBound(0, settings.value("advance/fkScale", 0).toInt(), 1));
+    if (ui->fkScale->currentIndex() == 1 &&
+        settings.value("display/amplitudeVersion", 1).toInt() < 2) {
+        ui->fkCmin->setValue(20 * ui->fkCmin->value());
+        ui->fkCmax->setValue(20 * ui->fkCmax->value());
+    }
     int count = settings.beginReadArray("lineStyles");
     for (int i = 0; i < count; ++i) {
         settings.setArrayIndex(i);
@@ -1009,6 +1127,8 @@ void FrequencySpectrumDialog::saveSettings()
     settings.beginGroup("FrequencySpectrum");
     settings.setValue("singleTrace", ui->frequencySingle->isChecked());
     settings.setValue("display/initialized", haveDisplayRange);
+    settings.setValue("display/boundsVersion", physicalBounds ? 2 : 0);
+    settings.setValue("display/amplitudeVersion", 2);
     for (auto spin : {ui->fkFmin, ui->fkFmax, ui->fkCmin, ui->fkCmax})
         settings.setValue("display/" + spin->objectName(), spin->value());
     settings.setValue("display/grid", ui->frequencyGrid->isChecked());
@@ -1044,29 +1164,20 @@ void FrequencySpectrumDialog::exportImage(bool capture)
         toast(tr("Calculate spectra first."));
         return;
     }
-    int dpi = 0;
-    if (!capture) {
-        bool ok = false;
-        QString value =
-            QInputDialog::getItem(this, tr("Export image DPI"), tr("DPI"),
-                                  {"300", "400", "600"}, 0, false, &ok);
-        if (!ok)
-            return;
-        dpi = value.toInt();
-    }
-    QString name = QFileDialog::getSaveFileName(
-        this, tr("Save spectra"),
-        QDir(directory).filePath("frequency-comparison.png"),
-        tr("PNG (*.png)"));
-    if (name.isEmpty())
-        return;
-    if (!name.endsWith(".png", Qt::CaseInsensitive))
-        name += ".png";
-    if (!savePng(name, dpi))
-        toast(tr("Image save failed or exceeds 64 million pixels."));
+    const int dpi = capture ? 0 : exportDpi();
+    const QString details = QString("frequency_%1_%2_f_%3_%4_compare_%5")
+                                .arg(plot->single ? "single" : "selection")
+                                .arg(plot->logarithmic ? "dB" : "Abs")
+                                .arg(plot->flo, 0, 'g', 8)
+                                .arg(plot->fhi, 0, 'g', 8)
+                                .arg(plot->curves.size() - 1);
+    const QString name = nextImagePath(details, dpi);
+    imageExportNotice(savePng(name, dpi), name);
 }
 void FrequencySpectrumDialog::shutdown()
 {
+    automaticTimer->stop();
+    automaticPending = false;
     saveSettings();
     plot->band->hide();
     plot->windowZoom = false;

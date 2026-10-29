@@ -45,6 +45,7 @@ private:
     int fileType = 1, traceCount = 0, sampleCount = 0;
     double dt = 0;
     bool frequencyOnly = false, restoring = false, haveDisplayRange = false;
+    bool physicalBounds = false;
     void begin();
     void receive(const FkSpectrum &result);
     bool applyDisplay(bool autoColors = false);

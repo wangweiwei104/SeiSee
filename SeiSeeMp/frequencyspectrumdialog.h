@@ -12,6 +12,7 @@ namespace Ui {
 class FrequencyPlot;
 class QLabel;
 class QProgressBar;
+class QTimer;
 
 struct FrequencyCurve {
     QString id, path, sourceKey;
@@ -52,6 +53,7 @@ public:
 protected:
     void closeEvent(QCloseEvent *event) override;
     void reject() override;
+    void showEvent(QShowEvent *event) override;
 
 private:
     struct Request {
@@ -64,6 +66,7 @@ private:
     QLabel *fileStatus, *rangeStatus, *compareStatus, *messageStatus;
     QProgressBar *progress;
     FkWorker *worker = nullptr;
+    QTimer *automaticTimer;
     QVector<Request> requests;
     QVector<FrequencyCurve> pending;
     QStringList comparisons, errors;
@@ -74,6 +77,12 @@ private:
     double dt = 0;
     bool batchRunning = false, cancelled = false, primaryFailed = false;
     bool restoring = false, haveDisplayRange = false, batchSingle = true;
+    bool automaticPending = false;
+    bool physicalBounds = false;
+    QString computedSignature, runningSignature;
+    QString requestSignature() const;
+    void requestAutomatic();
+    void runAutomatic();
     void begin();
     void launchNext();
     void finishBatch(bool success);

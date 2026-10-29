@@ -74,5 +74,6 @@
         <file>images/MqSel.png</file>
         <file>images/ClrSel.png</file>
         <file>images/SelectWCurs.xpm</file>
+        <file>images/SelectionBlackCurs.xpm</file>
     </qresource>
 </RCC>

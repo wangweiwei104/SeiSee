@@ -5,11 +5,13 @@
 #include <QVector>
 #include <functional>
 
-// Positive frequency rows (even-length Nyquist omitted), fftshift k columns.
+// Nonnegative real-signal frequencies, including even-length Nyquist.
+// Physical display bounds are separate from the FFT-bin centers.
 struct FkSpectrum {
     QVector<float> amplitude;
     int nf = 0, nk = 0;
     double df = 0, dk = 0, k0 = 0;
+    double frequencyLimit = 0, wavenumberLimit = 0;
 };
 Q_DECLARE_METATYPE(FkSpectrum)
 
@@ -44,5 +46,6 @@ protected:
 };
 
 QString spectrumSourceKey(const QString &path);
+double spectrumAmplitudeValue(double amplitude, bool decibels);
 
 #endif

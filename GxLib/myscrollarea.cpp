@@ -265,7 +265,7 @@ void MyScrollArea::setSelectionMode(bool enabled)
     if (enabled) {
         if (!selectionBand)
             selectionBand = new GfxSelectionBand(viewport());
-        setCursor(QCursor(QPixmap(":/images/SelectWCurs.xpm"), 8, 8));
+        setCursor(QCursor(QPixmap(":/images/SelectionBlackCurs.xpm"), 8, 8));
     } else {
         clearSelectionRectangle();
         unsetCursor();

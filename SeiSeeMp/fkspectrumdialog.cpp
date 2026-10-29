@@ -62,12 +62,12 @@ public:
             span = qBound((high - low) * 1e-6, span, high - low);
             return QPair<double, double>(qBound(low, a, high - span), span);
         };
-        auto f = constrain(range.y(), range.height(), 0,
-                           (spectrum.nf - 1) * spectrum.df);
-        auto k = frequencyOnly
-                     ? qMakePair(0.0, 1.0)
-                     : constrain(range.x(), range.width(), spectrum.k0,
-                                 spectrum.k0 + (spectrum.nk - 1) * spectrum.dk);
+        auto f =
+            constrain(range.y(), range.height(), 0, spectrum.frequencyLimit);
+        auto k = frequencyOnly ? qMakePair(0.0, 1.0)
+                               : constrain(range.x(), range.width(),
+                                           -spectrum.wavenumberLimit,
+                                           spectrum.wavenumberLimit);
         if (remember && range != view()) {
             if (history.size() >= 100)
                 history.removeFirst();
@@ -97,7 +97,7 @@ public:
     double value(int f, int k) const
     {
         double a = spectrum.amplitude[f * spectrum.nk + k];
-        return logarithmic ? std::log10(a + 1e-12) : a;
+        return spectrumAmplitudeValue(a, logarithmic);
     }
     QRgb rgb(double v) const
     {
@@ -218,7 +218,7 @@ protected:
             image.setDevicePixelRatio(ratio);
             for (int y = 0; y < image.height(); ++y) {
                 double hz = fhi - (fhi - flo) * (y + .5) / image.height();
-                if (hz < 0 || hz > (spectrum.nf - 1) * spectrum.df) {
+                if (hz < 0 || hz > spectrum.frequencyLimit) {
                     auto row = reinterpret_cast<QRgb *>(image.scanLine(y));
                     std::fill(row, row + image.width(), qRgb(255, 255, 255));
                     continue;
@@ -230,15 +230,17 @@ protected:
                 QRgb *row = reinterpret_cast<QRgb *>(image.scanLine(y));
                 for (int x = 0; x < image.width(); ++x) {
                     double k = klo + (khi - klo) * (x + .5) / image.width();
-                    if (k < spectrum.k0 ||
-                        k > spectrum.k0 + (spectrum.nk - 1) * spectrum.dk) {
+                    if (k < -spectrum.wavenumberLimit ||
+                        k > spectrum.wavenumberLimit) {
                         row[x] = qRgb(255, 255, 255);
                         continue;
                     }
-                    double ki = qBound(0.0, (k - spectrum.k0) / spectrum.dk,
-                                       double(spectrum.nk - 1));
+                    double ki =
+                        std::fmod((k - spectrum.k0) / spectrum.dk, spectrum.nk);
+                    if (ki < 0)
+                        ki += spectrum.nk;
                     if (smooth) {
-                        int k0 = int(ki), k1 = qMin(k0 + 1, spectrum.nk - 1);
+                        int k0 = int(ki), k1 = (k0 + 1) % spectrum.nk;
                         double fx = ki - k0;
                         double a =
                             value(f0, k0) * (1 - fx) + value(f0, k1) * fx;
@@ -246,8 +248,8 @@ protected:
                             value(f1, k0) * (1 - fx) + value(f1, k1) * fx;
                         row[x] = rgb(a * (1 - fy) + b * fy);
                     } else
-                        row[x] = rgb(
-                            value(int(std::round(fi)), int(std::round(ki))));
+                        row[x] = rgb(value(int(std::round(fi)),
+                                           int(std::round(ki)) % spectrum.nk));
                 }
             }
             p.drawImage(box, image);
@@ -286,9 +288,9 @@ protected:
         p.rotate(-90);
         p.drawText(QRectF(-box.height() / 2, -fh / 2, box.height(), fh + 3),
                    Qt::AlignCenter,
-                   frequencyOnly ? (logarithmic ? tr("log10 amplitude")
-                                                : tr("Mean FFT amplitude"))
-                                 : tr("Frequency (Hz)"));
+                   frequencyOnly
+                       ? (logarithmic ? tr("Amplitude (dB)") : tr("Amplitude"))
+                       : tr("Frequency (Hz)"));
         p.restore();
         if (!frequencyOnly) {
             QRectF bar(box.right() + 24, box.top(), 18, box.height());
@@ -299,6 +301,10 @@ protected:
                     QColor::fromRgb(rgb(clo + (chi - clo) * i / 255)));
             p.fillRect(bar, gradient);
             p.drawRect(bar);
+            p.drawText(QRectF(bar.left() - 4, bar.top() - fh - 4,
+                              width() - bar.left(), fh + 3),
+                       Qt::AlignLeft | Qt::AlignVCenter,
+                       logarithmic ? tr("dB") : tr("Amplitude"));
             for (int i = 0; i <= ticks; ++i)
                 p.drawText(
                     QRectF(bar.right() + 4,
@@ -377,6 +383,9 @@ FkSpectrumDialog::FkSpectrumDialog(SeisFile *file, const QString &dir,
     ui->fkPalette->addItems({"Jet", "Viridis", "Inferno", "Gray", "RdBu"});
     ui->fkScale->clear();
     ui->fkScale->addItems({"Abs", "Log10"});
+    ui->fkScale->setToolTip(
+        tr("Log10: amplitude in dB = 20*log10(max(amplitude, 1e-12)), "
+           "reference amplitude 1."));
     ui->fkInterpolation->clear();
     ui->fkInterpolation->addItems({tr("Smooth"), tr("Nearest")});
     ui->fkFontSize->setRange(6, 24);
@@ -492,13 +501,13 @@ FkSpectrumDialog::FkSpectrumDialog(SeisFile *file, const QString &dir,
     connect(ui->fkFullK, &QPushButton::clicked, this, [this]() {
         if (plot->spectrum.amplitude.isEmpty())
             return;
-        plot->setView(QRectF(plot->spectrum.k0, plot->flo,
-                             (plot->spectrum.nk - 1) * plot->spectrum.dk,
+        plot->setView(QRectF(-plot->spectrum.wavenumberLimit, plot->flo,
+                             2 * plot->spectrum.wavenumberLimit,
                              plot->fhi - plot->flo));
     });
     connect(ui->fkFullF, &QPushButton::clicked, this, [this]() {
         plot->setView(QRectF(plot->klo, 0, plot->khi - plot->klo,
-                             (plot->spectrum.nf - 1) * plot->spectrum.df));
+                             plot->spectrum.frequencyLimit));
     });
     connect(ui->fkAutoColor, &QPushButton::clicked, this, [this]() {
         applyDisplay(true);
@@ -506,9 +515,9 @@ FkSpectrumDialog::FkSpectrumDialog(SeisFile *file, const QString &dir,
     });
     connect(ui->fkZoomAll, &QPushButton::clicked, this, [this]() {
         const auto &s = plot->spectrum;
-        plot->setView(QRectF(frequencyOnly ? 0 : s.k0, 0,
-                             frequencyOnly ? 1 : (s.nk - 1) * s.dk,
-                             (s.nf - 1) * s.df));
+        plot->setView(QRectF(frequencyOnly ? 0 : -s.wavenumberLimit, 0,
+                             frequencyOnly ? 1 : 2 * s.wavenumberLimit,
+                             s.frequencyLimit));
     });
     connect(ui->fkZoomIn, &QPushButton::clicked, this,
             [this]() { plot->zoom(1.0 / 1.5); });
@@ -516,7 +525,8 @@ FkSpectrumDialog::FkSpectrumDialog(SeisFile *file, const QString &dir,
             [this]() { plot->zoom(1.5); });
     connect(ui->fkZoomWindow, &QPushButton::clicked, this, [this]() {
         plot->windowZoom = true;
-        plot->setCursor(QCursor(QPixmap(":/images/ZoomWCurs.xpm"), 10, 8));
+        plot->setCursor(
+            QCursor(QPixmap(":/images/SelectionBlackCurs.xpm"), 8, 8));
     });
     connect(ui->fkZoomPrevious, &QPushButton::clicked, this, [this]() {
         if (!plot->history.isEmpty())
@@ -540,7 +550,7 @@ FkSpectrumDialog::FkSpectrumDialog(SeisFile *file, const QString &dir,
         connect(combo, QOverload<int>::of(&QComboBox::currentIndexChanged),
                 this, [this]() {
                     if (!restoring) {
-                        applyDisplay();
+                        applyDisplay(sender() == ui->fkScale);
                         saveSettings();
                     }
                 });
@@ -671,7 +681,31 @@ void FkSpectrumDialog::receive(const FkSpectrum &result)
 {
     if (!worker || sender() != worker || worker->isInterruptionRequested())
         return;
+    const auto &old = plot->spectrum;
+    const int nt = worker->sampleLast - worker->sampleFirst + 1;
+    const double legacyFrequencyMax = ((nt + 1) / 2 - 1) * result.df;
+    const bool fullF =
+        !haveDisplayRange ||
+        (ui->fkFmin->value() == 0 &&
+         ((!old.amplitude.isEmpty() &&
+           std::abs(ui->fkFmax->value() - old.frequencyLimit) < 1e-6) ||
+          (!physicalBounds &&
+           std::abs(ui->fkFmax->value() - legacyFrequencyMax) < 1e-5)));
+    const bool fullK =
+        !haveDisplayRange ||
+        ((!old.amplitude.isEmpty() &&
+          std::abs(ui->fkKmin->value() + old.wavenumberLimit) < 1e-8 &&
+          std::abs(ui->fkKmax->value() - old.wavenumberLimit) < 1e-8) ||
+         (!physicalBounds && std::abs(ui->fkKmin->value() - result.k0) < 1e-8 &&
+          std::abs(ui->fkKmax->value() -
+                   (result.k0 + (result.nk - 1) * result.dk)) < 1e-8));
     plot->spectrum = result;
+    setCaptureRange(
+        worker->path, worker->first + 1, worker->last + 1,
+        worker->sampleFirst /
+            (result.df * (worker->sampleLast - worker->sampleFirst + 1)),
+        worker->sampleLast /
+            (result.df * (worker->sampleLast - worker->sampleFirst + 1)));
     computedKey = worker->sourceKey;
     plot->history.clear();
     plot->caption =
@@ -690,16 +724,18 @@ void FkSpectrumDialog::receive(const FkSpectrum &result)
     if (!frequencyOnly)
         plot->caption += tr(" | dx=%1 m").arg(worker->dx, 0, 'g', 6);
     restoring = true;
-    if (!haveDisplayRange) {
+    if (fullF) {
         ui->fkFmin->setValue(0);
-        ui->fkFmax->setValue((result.nf - 1) * result.df);
-        ui->fkKmin->setValue(frequencyOnly ? 0 : result.k0);
-        ui->fkKmax->setValue(
-            frequencyOnly ? 1 : result.k0 + (result.nk - 1) * result.dk);
+        ui->fkFmax->setValue(result.frequencyLimit);
+    }
+    if (fullK) {
+        ui->fkKmin->setValue(frequencyOnly ? 0 : -result.wavenumberLimit);
+        ui->fkKmax->setValue(frequencyOnly ? 1 : result.wavenumberLimit);
     }
     restoring = false;
     applyDisplay(!haveDisplayRange);
     haveDisplayRange = true;
+    physicalBounds = true;
     saveSettings();
     updateSourceState();
     emit spectrumUpdated();
@@ -727,7 +763,7 @@ bool FkSpectrumDialog::applyDisplay(bool autoColors)
                         (s.k0 + k * s.dk >= ui->fkKmin->value() - 1e-9 &&
                          s.k0 + k * s.dk <= ui->fkKmax->value() + 1e-9)) {
                         double v = s.amplitude[f * s.nk + k];
-                        values.push_back(log ? std::log10(v + 1e-12) : v);
+                        values.push_back(spectrumAmplitudeValue(v, log));
                     }
         if (values.empty()) {
             messageStatus->setText(tr("No bins in range"));
@@ -789,6 +825,7 @@ void FkSpectrumDialog::loadSettings()
     settings.beginGroup(frequencyOnly ? "FrequencySpectrum" : "FkSpectrum");
     ui->fkFontSize->setValue(settings.value("advance/fontSize", 9).toInt());
     haveDisplayRange = settings.value("display/initialized", false).toBool();
+    physicalBounds = settings.value("display/boundsVersion", 0).toInt() >= 2;
     for (auto spin : {ui->fkFmin, ui->fkFmax, ui->fkKmin, ui->fkKmax,
                       ui->fkCmin, ui->fkCmax}) {
         bool ok = false;
@@ -801,6 +838,11 @@ void FkSpectrumDialog::loadSettings()
     for (auto combo : {ui->fkPalette, ui->fkScale, ui->fkInterpolation}) {
         int i = settings.value("advance/" + combo->objectName(), 0).toInt();
         combo->setCurrentIndex(qBound(0, i, combo->count() - 1));
+    }
+    if (ui->fkScale->currentIndex() == 1 &&
+        settings.value("display/amplitudeVersion", 1).toInt() < 2) {
+        ui->fkCmin->setValue(20 * ui->fkCmin->value());
+        ui->fkCmax->setValue(20 * ui->fkCmax->value());
     }
     if (ui->fkFmin->value() >= ui->fkFmax->value() ||
         ui->fkKmin->value() >= ui->fkKmax->value() ||
@@ -817,6 +859,8 @@ void FkSpectrumDialog::saveSettings()
     settings.beginGroup(frequencyOnly ? "FrequencySpectrum" : "FkSpectrum");
     settings.setValue("advance/fontSize", ui->fkFontSize->value());
     settings.setValue("display/initialized", haveDisplayRange);
+    settings.setValue("display/boundsVersion", physicalBounds ? 2 : 0);
+    settings.setValue("display/amplitudeVersion", 2);
     for (auto spin : {ui->fkFmin, ui->fkFmax, ui->fkKmin, ui->fkKmax,
                       ui->fkCmin, ui->fkCmax})
         settings.setValue("display/" + spin->objectName(), spin->value());
@@ -837,28 +881,15 @@ void FkSpectrumDialog::exportImage(bool capture)
         toast(tr("Calculate a spectrum first."));
         return;
     }
-    int dpi = 0;
-    if (!capture) {
-        bool ok = false;
-        QString choice =
-            QInputDialog::getItem(this, tr("Export image DPI"), tr("DPI"),
-                                  {"300", "400", "600"}, 0, false, &ok);
-        if (!ok)
-            return;
-        dpi = choice.toInt();
-    }
-    QString name = QFileDialog::getSaveFileName(
-        this, tr("Save spectrum"),
-        QDir(directory).filePath((frequencyOnly ? "frequency" : "fk") +
-                                 QString("-spectrum.png")),
-        tr("PNG image (*.png)"));
-    if (name.isEmpty())
-        return;
-    if (!name.endsWith(".png", Qt::CaseInsensitive))
-        name += ".png";
-    if (!savePng(name, dpi))
-        toast(tr("Image save failed or the image exceeds 64 million pixels. "
-                 "Try a lower DPI."));
+    const int dpi = capture ? 0 : exportDpi();
+    const QString details = QString("fk_%1_f_%2_%3_k_%4_%5")
+                                .arg(plot->logarithmic ? "dB" : "Abs")
+                                .arg(plot->flo, 0, 'g', 8)
+                                .arg(plot->fhi, 0, 'g', 8)
+                                .arg(plot->klo, 0, 'g', 8)
+                                .arg(plot->khi, 0, 'g', 8);
+    const QString name = nextImagePath(details, dpi);
+    imageExportNotice(savePng(name, dpi), name);
 }
 
 void FkSpectrumDialog::shutdown()

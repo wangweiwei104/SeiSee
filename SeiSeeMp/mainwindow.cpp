@@ -109,6 +109,11 @@ MainWindow::MainWindow(QWidget *parent)
     QCoreApplication::setLibraryPaths(paths);
 
     ui->setupUi(this);
+    // QAction::data is not a Qt property: Designer setProperty("data") does
+    // not populate the value read by the DPI menu handler.
+    ui->actionExportDpi300->setData(300);
+    ui->actionExportDpi400->setData(400);
+    ui->actionExportDpi600->setData(600);
     qApp->setStyleSheet(
         QStringLiteral(
             "QPushButton, QToolButton { border: 2px solid transparent; "
@@ -1217,6 +1222,10 @@ void MainWindow::on_menu_Recent_Folders_triggered(QAction *action)
 void MainWindow::on_menu_Export_DPI_triggered(QAction *action)
 {
     m_exportDpi = action->data().toInt();
+    if (fkDialog)
+        fkDialog->setExportDpi(m_exportDpi);
+    if (frequencyDialog)
+        frequencyDialog->setExportDpi(m_exportDpi);
 }
 
 void MainWindow::addRecentDirectory(const QString &directory)
@@ -4804,6 +4813,7 @@ void MainWindow::showSpectrum(bool frequencyOnly)
         captureSpectrumRange(target, seisScrl->viewport()->rect());
     }
     dialog->setSource(file);
+    dialog->setExportDpi(m_exportDpi);
     if (frequencyOnly)
         static_cast<FrequencySpectrumDialog *>(dialog)->setMainTrace(seisSct.selTr() + 1);
     dialog->show();
