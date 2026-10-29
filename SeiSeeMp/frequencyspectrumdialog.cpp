@@ -217,31 +217,10 @@ protected:
                          Qt::AlignCenter,
                          fontMetrics().elidedText(caption, Qt::ElideMiddle,
                                                   int(box.width())));
-        int xIntervals = qBound(
-            2,
-            int(box.width() /
-                qMax(90, fontMetrics().horizontalAdvance("000.000") + 25)),
-            4);
-        SpectrumTicks xticks;
-        for (;;) {
-            xticks = spectrumTicks(flo, fhi, xIntervals);
-            bool overlap = false;
-            for (int i = 1; i < xticks.values.size(); ++i) {
-                const double space = (xticks.values[i] - xticks.values[i - 1]) /
-                                     (fhi - flo) * box.width();
-                const double needed =
-                    (fontMetrics().horizontalAdvance(xticks.labels[i - 1]) +
-                     fontMetrics().horizontalAdvance(xticks.labels[i])) /
-                        2.0 +
-                    12;
-                overlap = overlap || space < needed;
-            }
-            if (!overlap || xIntervals <= 2)
-                break;
-            --xIntervals;
-        }
-        const auto yticks =
-            spectrumTicks(alo, ahi, qBound(2, int(box.height() / (fh * 3)), 6));
+        const auto xticks = spectrumAxisTicks(flo, fhi, int(box.width()),
+                                              fontMetrics(), true, 1);
+        const auto yticks = spectrumAxisTicks(alo, ahi, int(box.height()),
+                                              fontMetrics(), false);
         if (grid) {
             painter.setPen(QPen(QColor(210, 210, 210), 0, Qt::DashLine));
             for (double value : xticks.values) {
@@ -414,12 +393,21 @@ FrequencySpectrumDialog::FrequencySpectrumDialog(SeisFile *file,
         spin->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Fixed);
         spin->setMinimumWidth(45);
     }
-    for (auto spin : {ui->fkFmin, ui->fkFmax, ui->fkCmin, ui->fkCmax}) {
+    for (auto spin : QList<QDoubleSpinBox *>{ui->fkFmin, ui->fkFmax, ui->fkCmin,
+                                             ui->fkCmax}) {
         spin->setRange(-1e100, 1e100);
         spin->setDecimals(6);
         spin->setKeyboardTracking(false);
         spin->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Fixed);
         spin->setMinimumWidth(65);
+    }
+    for (auto spin : {ui->fkStart, ui->fkEnd}) {
+        spin->setDisplayDecimals(0);
+        spin->setSingleStep(1);
+    }
+    for (auto spin : {ui->fkFmin, ui->fkFmax}) {
+        spin->setDisplayDecimals(1);
+        spin->setSingleStep(.1);
     }
     ui->fkFmin->setMinimum(0);
     ui->fkFmax->setMinimum(0);
@@ -583,7 +571,8 @@ FrequencySpectrumDialog::FrequencySpectrumDialog(SeisFile *file,
     for (auto combo : {ui->comparisonColor, ui->comparisonLineWidth})
         connect(combo, QOverload<int>::of(&QComboBox::currentIndexChanged),
                 this, [this]() { updateLineStyle(false); });
-    for (auto spin : {ui->fkFmin, ui->fkFmax, ui->fkCmin, ui->fkCmax})
+    for (auto spin : QList<QDoubleSpinBox *>{ui->fkFmin, ui->fkFmax, ui->fkCmin,
+                                             ui->fkCmax})
         connect(spin, QOverload<double>::of(&QDoubleSpinBox::valueChanged),
                 this, [this]() {
                     if (!restoring) {
@@ -1007,8 +996,8 @@ void FrequencySpectrumDialog::finishBatch(bool success)
                 .arg(batchSingle ? tr("Single trace") : tr("Region mean"))
                 .arg(r.first + 1)
                 .arg(r.last + 1)
-                .arg(r.sampleFirst * r.dt * 1000, 0, 'g', 6)
-                .arg(r.sampleLast * r.dt * 1000, 0, 'g', 6);
+                .arg(r.sampleFirst * r.dt * 1000, 0, 'f', 0)
+                .arg(r.sampleLast * r.dt * 1000, 0, 'f', 0);
         if (fullF) {
             restoring = true;
             ui->fkFmin->setValue(0);
@@ -1060,8 +1049,8 @@ void FrequencySpectrumDialog::applyDisplay()
     rangeStatus->setText(
         (computedRange.isEmpty() ? tr("Trace") : computedRange) +
         tr(" | f: %1-%2 Hz")
-            .arg(plot->flo, 0, 'g', 4)
-            .arg(plot->fhi, 0, 'g', 4));
+            .arg(plot->flo, 0, 'f', 1)
+            .arg(plot->fhi, 0, 'f', 1));
     rangeStatus->setToolTip(plot->caption);
 }
 void FrequencySpectrumDialog::fullFrequency()
@@ -1109,13 +1098,12 @@ void FrequencySpectrumDialog::loadSettings()
     restoring = true;
     QSettings settings("WW", "SeiSeeMp");
     settings.beginGroup("FrequencySpectrum");
-    if (settings.value("singleTrace", true).toBool())
-        ui->frequencySingle->setChecked(true);
-    else
-        ui->frequencySelection->setChecked(true);
+    // Each new frequency window starts in single-trace mode.
+    ui->frequencySingle->setChecked(true);
     haveDisplayRange = settings.value("display/initialized", false).toBool();
     physicalBounds = settings.value("display/boundsVersion", 0).toInt() >= 2;
-    for (auto spin : {ui->fkFmin, ui->fkFmax, ui->fkCmin, ui->fkCmax}) {
+    for (auto spin : QList<QDoubleSpinBox *>{ui->fkFmin, ui->fkFmax, ui->fkCmin,
+                                             ui->fkCmax}) {
         bool ok = false;
         double v =
             settings.value("display/" + spin->objectName(), spin->value())
@@ -1159,11 +1147,11 @@ void FrequencySpectrumDialog::saveSettings()
         return;
     QSettings settings("WW", "SeiSeeMp");
     settings.beginGroup("FrequencySpectrum");
-    settings.setValue("singleTrace", ui->frequencySingle->isChecked());
     settings.setValue("display/initialized", haveDisplayRange);
     settings.setValue("display/boundsVersion", physicalBounds ? 2 : 0);
     settings.setValue("display/amplitudeVersion", 2);
-    for (auto spin : {ui->fkFmin, ui->fkFmax, ui->fkCmin, ui->fkCmax})
+    for (auto spin : QList<QDoubleSpinBox *>{ui->fkFmin, ui->fkFmax, ui->fkCmin,
+                                             ui->fkCmax})
         settings.setValue("display/" + spin->objectName(), spin->value());
     settings.setValue("display/grid", ui->frequencyGrid->isChecked());
     settings.setValue("display/fontSize", ui->frequencyFontSize->value());

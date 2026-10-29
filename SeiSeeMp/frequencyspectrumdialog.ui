@@ -148,7 +148,7 @@
             </widget>
            </item>
            <item>
-            <widget class="QDoubleSpinBox" name="fkStart" />
+            <widget class="SpectrumSpinBox" name="fkStart" />
            </item>
            <item>
             <widget class="QLabel" name="label_4">
@@ -164,7 +164,7 @@
             </widget>
            </item>
            <item>
-            <widget class="QDoubleSpinBox" name="fkEnd" />
+            <widget class="SpectrumSpinBox" name="fkEnd" />
            </item>
            <item>
             <widget class="QPushButton" name="fkAllTime">
@@ -357,7 +357,7 @@
             </widget>
            </item>
            <item>
-            <widget class="QDoubleSpinBox" name="fkFmin" />
+            <widget class="SpectrumSpinBox" name="fkFmin" />
            </item>
            <item>
             <widget class="QLabel" name="label_8">
@@ -382,7 +382,7 @@
             </widget>
            </item>
            <item>
-            <widget class="QDoubleSpinBox" name="fkFmax" />
+            <widget class="SpectrumSpinBox" name="fkFmax" />
            </item>
            <item>
             <widget class="QPushButton" name="frequencyFullRange">
@@ -1053,6 +1053,13 @@
    </item>
   </layout>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>SpectrumSpinBox</class>
+   <extends>QDoubleSpinBox</extends>
+   <header>spectrumspinbox.h</header>
+  </customwidget>
+ </customwidgets>
  <resources>
   <include location="myrc.qrc" />
  </resources>

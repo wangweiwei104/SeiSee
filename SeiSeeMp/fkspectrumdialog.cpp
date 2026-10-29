@@ -1,6 +1,7 @@
 #include "fkspectrumdialog.h"
 #include "ui_fkspectrumdialog.h"
 #include "fkcolormaps.h"
+#include "spectrumticks.h"
 #include "gfxstyle.h"
 #include "gfxselectionband.h"
 #include "seisfile.h"
@@ -256,28 +257,31 @@ protected:
         }
         p.setPen(Qt::black);
         p.drawRect(box);
-        const int ticks = qBound(
-            2,
-            int(qMin(box.width() /
-                         (fontMetrics().horizontalAdvance("-0.0000") + 20),
-                     box.height() / (3 * fh))),
-            4);
-        for (int i = 0; i <= ticks; ++i) {
-            double a = double(i) / ticks, x = box.left() + a * box.width(),
-                   y = box.bottom() - a * box.height();
+        const double xlow = frequencyOnly ? flo : klo,
+                     xhigh = frequencyOnly ? fhi : khi;
+        const double ylow = frequencyOnly ? clo : flo,
+                     yhigh = frequencyOnly ? chi : fhi;
+        const auto xticks =
+            spectrumAxisTicks(xlow, xhigh, int(box.width()), fontMetrics(),
+                              true, frequencyOnly ? 1 : 3);
+        const auto yticks =
+            spectrumAxisTicks(ylow, yhigh, int(box.height()), fontMetrics(),
+                              false, frequencyOnly ? -1 : 1);
+        for (int i = 0; i < xticks.values.size(); ++i) {
+            const double x = box.left() + (xticks.values[i] - xlow) /
+                                              (xhigh - xlow) * box.width();
             p.drawLine(QPointF(x, box.bottom()), QPointF(x, box.bottom() + 5));
+            const int width =
+                fontMetrics().horizontalAdvance(xticks.labels[i]) + 8;
+            p.drawText(QRectF(x - width / 2., box.bottom() + 7, width, fh + 3),
+                       Qt::AlignCenter, xticks.labels[i]);
+        }
+        for (int i = 0; i < yticks.values.size(); ++i) {
+            const double y = box.bottom() - (yticks.values[i] - ylow) /
+                                                (yhigh - ylow) * box.height();
             p.drawLine(QPointF(box.left() - 5, y), QPointF(box.left(), y));
-            p.drawText(QRectF(x - box.width() / ticks / 2, box.bottom() + 7,
-                              box.width() / ticks, fh + 3),
-                       Qt::AlignCenter,
-                       QString::number(frequencyOnly ? flo + a * (fhi - flo)
-                                                     : klo + a * (khi - klo),
-                                       'g', 4));
-            p.drawText(QRectF(25, y - fh / 2, box.left() - 33, fh + 3),
-                       Qt::AlignRight | Qt::AlignVCenter,
-                       QString::number(frequencyOnly ? clo + a * (chi - clo)
-                                                     : flo + a * (fhi - flo),
-                                       'g', 4));
+            p.drawText(QRectF(25, y - fh / 2., box.left() - 33, fh + 3),
+                       Qt::AlignRight | Qt::AlignVCenter, yticks.labels[i]);
         }
         p.drawText(QRectF(box.left(), height() - fh - 9, box.width(), fh + 3),
                    Qt::AlignCenter,
@@ -301,17 +305,20 @@ protected:
                     QColor::fromRgb(rgb(clo + (chi - clo) * i / 255)));
             p.fillRect(bar, gradient);
             p.drawRect(bar);
-            p.drawText(QRectF(bar.left() - 4, bar.top() - fh - 4,
-                              width() - bar.left(), fh + 3),
-                       Qt::AlignLeft | Qt::AlignVCenter,
-                       logarithmic ? tr("dB") : tr("Amplitude"));
-            for (int i = 0; i <= ticks; ++i)
-                p.drawText(
-                    QRectF(bar.right() + 4,
-                           bar.bottom() - i * bar.height() / ticks - fh / 2,
-                           width() - bar.right() - 5, fh + 3),
-                    Qt::AlignLeft | Qt::AlignVCenter,
-                    QString::number(clo + (chi - clo) * i / ticks, 'g', 4));
+            if (logarithmic)
+                p.drawText(QRectF(bar.left() - 4, bar.top() - fh - 4,
+                                  width() - bar.left(), fh + 3),
+                           Qt::AlignLeft | Qt::AlignVCenter, tr("dB"));
+            const auto colorTicks = spectrumAxisTicks(
+                clo, chi, int(bar.height()), fontMetrics(), false);
+            for (int i = 0; i < colorTicks.values.size(); ++i) {
+                const double y = bar.bottom() - (colorTicks.values[i] - clo) /
+                                                    (chi - clo) * bar.height();
+                p.drawText(QRectF(bar.right() + 4, y - fh / 2.,
+                                  width() - bar.right() - 5, fh + 3),
+                           Qt::AlignLeft | Qt::AlignVCenter,
+                           colorTicks.labels[i]);
+            }
         }
         if (stale && !spectrum.amplitude.isEmpty()) {
             p.setPen(Qt::darkGray);
@@ -365,13 +372,29 @@ FkSpectrumDialog::FkSpectrumDialog(SeisFile *file, const QString &dir,
     ui->fkSpacing->setRange(.000001, 1e6);
     ui->fkSpacing->setDecimals(6);
     ui->fkSpacing->setValue(25);
-    for (auto spin : {ui->fkFmin, ui->fkFmax, ui->fkKmin, ui->fkKmax,
-                      ui->fkCmin, ui->fkCmax}) {
+    for (auto spin :
+         QList<QDoubleSpinBox *>{ui->fkFmin, ui->fkFmax, ui->fkKmin, ui->fkKmax,
+                                 ui->fkCmin, ui->fkCmax}) {
         spin->setRange(-1e30, 1e30);
         spin->setDecimals(9);
         spin->setKeyboardTracking(false);
         spin->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Fixed);
         spin->setMinimumWidth(45);
+    }
+    for (auto spin : {ui->fkStart, ui->fkEnd}) {
+        spin->setDisplayDecimals(0);
+        spin->setSingleStep(1);
+    }
+    for (auto spin : {ui->fkFmin, ui->fkFmax}) {
+        spin->setDisplayDecimals(1);
+        spin->setSingleStep(.1);
+    }
+    ui->fkSpacing->setDisplayDecimals(1);
+    ui->fkSpacing->setSingleStep(.1);
+    for (auto spin : {ui->fkKmin, ui->fkKmax}) {
+        spin->setMinimumWidth(65);
+        spin->setDisplayDecimals(3);
+        spin->setSingleStep(.001);
     }
     ui->fkFmin->setMinimum(0);
     ui->fkFmax->setMinimum(0);
@@ -536,8 +559,9 @@ FkSpectrumDialog::FkSpectrumDialog(SeisFile *file, const QString &dir,
             [this]() { exportImage(true); });
     connect(ui->fkExport, &QPushButton::clicked, this,
             [this]() { exportImage(false); });
-    for (auto spin : {ui->fkFmin, ui->fkFmax, ui->fkKmin, ui->fkKmax,
-                      ui->fkCmin, ui->fkCmax})
+    for (auto spin :
+         QList<QDoubleSpinBox *>{ui->fkFmin, ui->fkFmax, ui->fkKmin, ui->fkKmax,
+                                 ui->fkCmin, ui->fkCmax})
         connect(spin, QOverload<double>::of(&QDoubleSpinBox::valueChanged),
                 this, [this]() {
                     if (!restoring) {
@@ -716,13 +740,13 @@ void FkSpectrumDialog::receive(const FkSpectrum &result)
             .arg(worker->sampleFirst * 1000.0 /
                      (result.df *
                       (worker->sampleLast - worker->sampleFirst + 1)),
-                 0, 'g', 6)
+                 0, 'f', 0)
             .arg(worker->sampleLast * 1000.0 /
                      (result.df *
                       (worker->sampleLast - worker->sampleFirst + 1)),
-                 0, 'g', 6);
+                 0, 'f', 0);
     if (!frequencyOnly)
-        plot->caption += tr(" | dx=%1 m").arg(worker->dx, 0, 'g', 6);
+        plot->caption += tr(" | dx=%1 m").arg(worker->dx, 0, 'f', 1);
     restoring = true;
     if (fullF) {
         ui->fkFmin->setValue(0);
@@ -805,13 +829,14 @@ bool FkSpectrumDialog::applyDisplay(bool autoColors)
 
 void FkSpectrumDialog::updateRangeStatus()
 {
-    const QString text = frequencyOnly
-                             ? tr("f: %1-%2 Hz").arg(plot->flo).arg(plot->fhi)
-                             : tr("k: %1-%2 | f: %3-%4 Hz")
-                                   .arg(plot->klo, 0, 'g', 4)
-                                   .arg(plot->khi, 0, 'g', 4)
-                                   .arg(plot->flo, 0, 'g', 4)
-                                   .arg(plot->fhi, 0, 'g', 4);
+    const QString text = frequencyOnly ? tr("f: %1-%2 Hz")
+                                             .arg(plot->flo, 0, 'f', 1)
+                                             .arg(plot->fhi, 0, 'f', 1)
+                                       : tr("k: %1-%2 | f: %3-%4 Hz")
+                                             .arg(plot->klo, 0, 'f', 3)
+                                             .arg(plot->khi, 0, 'f', 3)
+                                             .arg(plot->flo, 0, 'f', 1)
+                                             .arg(plot->fhi, 0, 'f', 1);
     rangeStatus->setText(text);
     rangeStatus->setToolTip(plot->caption + "\n" + text);
 }
@@ -826,8 +851,9 @@ void FkSpectrumDialog::loadSettings()
     ui->fkFontSize->setValue(settings.value("advance/fontSize", 9).toInt());
     haveDisplayRange = settings.value("display/initialized", false).toBool();
     physicalBounds = settings.value("display/boundsVersion", 0).toInt() >= 2;
-    for (auto spin : {ui->fkFmin, ui->fkFmax, ui->fkKmin, ui->fkKmax,
-                      ui->fkCmin, ui->fkCmax}) {
+    for (auto spin :
+         QList<QDoubleSpinBox *>{ui->fkFmin, ui->fkFmax, ui->fkKmin, ui->fkKmax,
+                                 ui->fkCmin, ui->fkCmax}) {
         bool ok = false;
         double v =
             settings.value("display/" + spin->objectName(), spin->value())
@@ -861,8 +887,9 @@ void FkSpectrumDialog::saveSettings()
     settings.setValue("display/initialized", haveDisplayRange);
     settings.setValue("display/boundsVersion", physicalBounds ? 2 : 0);
     settings.setValue("display/amplitudeVersion", 2);
-    for (auto spin : {ui->fkFmin, ui->fkFmax, ui->fkKmin, ui->fkKmax,
-                      ui->fkCmin, ui->fkCmax})
+    for (auto spin :
+         QList<QDoubleSpinBox *>{ui->fkFmin, ui->fkFmax, ui->fkKmin, ui->fkKmax,
+                                 ui->fkCmin, ui->fkCmax})
         settings.setValue("display/" + spin->objectName(), spin->value());
     for (auto combo : {ui->fkPalette, ui->fkScale, ui->fkInterpolation})
         settings.setValue("advance/" + combo->objectName(),

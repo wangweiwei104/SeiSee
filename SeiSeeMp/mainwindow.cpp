@@ -602,6 +602,8 @@ MainWindow::MainWindow(QWidget *parent)
     timeRightScrl = new MyScrollArea(&timeRightView, 1);
     horizontalAxisScrollBar = new QScrollBar(Qt::Horizontal, this);
     verticalAxisScrollBar = new QScrollBar(Qt::Vertical, this);
+    horizontalAxisScrollBar->setObjectName("seismicHorizontalScrollBar");
+    verticalAxisScrollBar->setObjectName("seismicVerticalScrollBar");
 
     // 给滚动条区域和角落区域设置背景色，用在其隐藏时保留占位区域，确保视觉上保持一致
     const QColor axisScrollBarTrackColor =
@@ -4878,6 +4880,8 @@ void MainWindow::setSpectrumSelection(SpectrumDialog *dialog, bool enabled)
                                          ui->TmSlider,
                                          ui->rbDirRev,
                                          ui->rbDirNorm,
+                                         horizontalAxisScrollBar,
+                                         verticalAxisScrollBar,
                                          seisScrl->horizontalScrollBar(),
                                          seisScrl->verticalScrollBar(),
                                          hdrsScrl->horizontalScrollBar(),

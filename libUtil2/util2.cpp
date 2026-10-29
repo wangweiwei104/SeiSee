@@ -1260,7 +1260,8 @@ int is_segy_f(const char *fname, int &s, int &cgg, int &junk)
 
     struct stat st;
 
-    stat(fname, &st);
+    if (stat(fname, &st) != 0)
+        return 0;
 
     flen = getfilesize64(fname);
 
@@ -1268,6 +1269,10 @@ int is_segy_f(const char *fname, int &s, int &cgg, int &junk)
         return 0; // Too short
 
     int f = open(fname, O_RDONLY | O_BINARY);
+    // Files can be locked by another writer while scanning a directory.
+    // Do not pass an invalid descriptor to the Windows CRT seek/read API.
+    if (f < 0)
+        return 0;
 
     p = 0;
 
@@ -1356,7 +1361,8 @@ int is_su_f(const char *fname, int &s)
     byte buf[240];
 
     struct stat st;
-    stat(fname, &st);
+    if (stat(fname, &st) != 0)
+        return 0;
 
     if ((st.st_mode & S_IFREG) == 0)
         return 0; // Is not ordianry file
@@ -1369,6 +1375,10 @@ int is_su_f(const char *fname, int &s)
         return 0; // Too short
 
     int f = open(fname, O_RDONLY | O_BINARY);
+    // Files can be locked by another writer while scanning a directory.
+    // Do not pass an invalid descriptor to the Windows CRT seek/read API.
+    if (f < 0)
+        return 0;
 
     lseek64(f, 0, SEEK_SET);
     cnt = read(f, buf, 240);
