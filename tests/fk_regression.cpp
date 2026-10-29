@@ -7,6 +7,7 @@
 #include "mainwindow.h"
 #include "sgyfile.h"
 #include "Toast.h"
+#include "spectrumticks.h"
 
 class FkRegression : public QObject
 {
@@ -187,6 +188,91 @@ private slots:
         auto result = calculateFrequency(samples, 4, 64, .002);
         QCOMPARE(result.nk, 1);
         QVERIFY(std::abs(result.amplitude[8] - 80) < 1e-4);
+    }
+    void regularSpectrumTickIntervals()
+    {
+        QCOMPARE(spectrumTicks(0, 100, 4).labels,
+                 QStringList({"0", "25", "50", "75", "100"}));
+        QCOMPARE(spectrumTicks(0, 250, 4).labels,
+                 QStringList({"0", "50", "100", "150", "200", "250"}));
+        QCOMPARE(spectrumTicks(0, 71.69, 6).labels,
+                 QStringList({"0", "10", "20", "30", "40", "50", "60", "70"}));
+        QCOMPARE(spectrumTicks(-43, 17, 6).labels,
+                 QStringList({"-40", "-30", "-20", "-10", "0", "10"}));
+        QCOMPARE(spectrumTicks(.001, .009, 4).labels,
+                 QStringList({"0.002", "0.004", "0.006", "0.008"}));
+        QCOMPARE(spectrumTicks(13.2, 96.5, 4).labels,
+                 QStringList({"20", "40", "60", "80"}));
+        // Small amplitudes, large amplitudes and zoomed offsets retain unique,
+        // ordered labels and never force a tick at an irregular view endpoint.
+        for (int exponent = -18; exponent <= 18; exponent += 3) {
+            const double scale = std::pow(10.0, exponent);
+            const double low = -2.3 * scale, high = 7.1 * scale;
+            const auto ticks = spectrumTicks(low, high, 6);
+            QVERIFY(ticks.values.size() >= 3 && ticks.values.size() < 32);
+            QCOMPARE(
+                QSet<QString>(ticks.labels.begin(), ticks.labels.end()).size(),
+                ticks.labels.size());
+            for (int i = 0; i < ticks.values.size(); ++i) {
+                QVERIFY(ticks.values[i] >= low - ticks.step * 1e-8);
+                QVERIFY(ticks.values[i] <= high + ticks.step * 1e-8);
+                QVERIFY(ticks.labels[i] != "-0");
+                if (i)
+                    QVERIFY(std::abs((ticks.values[i] - ticks.values[i - 1]) /
+                                         ticks.step -
+                                     1) < 1e-8);
+            }
+        }
+        const auto zoomed = spectrumTicks(1e12, 1e12 + .01, 4);
+        QVERIFY(zoomed.values.size() >= 2);
+        QCOMPARE(
+            QSet<QString>(zoomed.labels.begin(), zoomed.labels.end()).size(),
+            zoomed.labels.size());
+        QVERIFY(spectrumTicks(1, 1, 4).values.isEmpty());
+        QVERIFY(spectrumTicks(2, 1, 4).values.isEmpty());
+        QVERIFY(spectrumTicks(0, std::numeric_limits<double>::infinity(), 4)
+                    .values.isEmpty());
+        QVERIFY(spectrumTicks(std::numeric_limits<double>::quiet_NaN(), 1, 4)
+                    .values.isEmpty());
+    }
+    void frequencyRegularTicksRedrawWithoutFft()
+    {
+        QSettings settings("WW", "SeiSeeMp");
+        settings.remove("FrequencySpectrum");
+        SgyFile file;
+        open(file, pathDouble);
+        FrequencySpectrumDialog dialog(&file, out);
+        get<QCheckBox>(&dialog, "frequencySelection")->setChecked(true);
+        dialog.setInitialRange(1, 16, 0, 126);
+        dialog.show();
+        QSignalSpy updated(&dialog, &SpectrumDialog::spectrumUpdated);
+        get<QPushButton>(&dialog, "fkCalculate")->click();
+        QTRY_COMPARE(updated.count(), 1);
+        QTRY_VERIFY(!dialog.isCalculating());
+        const auto before = dialog.spectra();
+        get<QDoubleSpinBox>(&dialog, "fkFmin")->setValue(0);
+        get<QDoubleSpinBox>(&dialog, "fkFmax")->setValue(100);
+        get<QDoubleSpinBox>(&dialog, "fkCmin")->setValue(0);
+        get<QDoubleSpinBox>(&dialog, "fkCmax")->setValue(71.69);
+        get<QCheckBox>(&dialog, "frequencyGrid")->setChecked(true);
+        dialog.grab().save(out + "/frequency-regular-ticks.png");
+        QVERIFY(
+            dialog.savePng(out + "/frequency-regular-ticks-300dpi.png", 300));
+        get<QComboBox>(&dialog, "fkScale")->setCurrentIndex(1);
+        get<QDoubleSpinBox>(&dialog, "fkCmin")->setValue(-43);
+        get<QDoubleSpinBox>(&dialog, "fkCmax")->setValue(17);
+        dialog.grab().save(out + "/frequency-regular-ticks-db.png");
+        get<QPushButton>(&dialog, "frequencyFullRange")->click();
+        QCOMPARE(get<QDoubleSpinBox>(&dialog, "fkFmax")->value(), 250.0);
+        get<QSpinBox>(&dialog, "frequencyFontSize")->setValue(14);
+        dialog.resize(760, 540);
+        dialog.grab().save(out + "/frequency-regular-ticks-font14.png");
+        QCOMPARE(get<QDoubleSpinBox>(&dialog, "fkCmin")->value(), -43.0);
+        QCOMPARE(get<QDoubleSpinBox>(&dialog, "fkCmax")->value(), 17.0);
+        QCOMPARE(dialog.spectra()[0].spectrum.amplitude,
+                 before[0].spectrum.amplitude);
+        QCOMPARE(updated.count(), 1);
+        dialog.close();
     }
     void nyquistEndpointsAndDecibels()
     {

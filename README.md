@@ -29,6 +29,8 @@ Tools → F-K Spectrum / Frequency Spectrum，或使用主窗 Axes Setup 下方�
 
 最新六项更改、Nyquist 边界、dB 定义及自动导出命名见 [r5 说明](docs/spectra-r5-20261029.md)。
 
+普通频谱已增加横、纵轴规则刻度，如 0/25/50/75/100 Hz 和 0/10/20…；见 [r6 规则刻度说明](docs/spectrum-regular-ticks-20261029.md)。
+
 ## 界面
 
 主界面</br>

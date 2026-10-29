@@ -2,6 +2,7 @@
 #include "ui_frequencyspectrumdialog.h"
 #include "gfxstyle.h"
 #include "gfxselectionband.h"
+#include "spectrumticks.h"
 #include "seisfile.h"
 #include "Toast.h"
 #include <QtWidgets>
@@ -86,13 +87,17 @@ public:
     QRectF dataRect() const
     {
         const auto metrics = fontMetrics();
-        double left =
-            qMin(width() / 3.0,
-                 double(qMax(72, metrics.horizontalAdvance("-0000.00") + 24)));
-        int bottom = 3 * metrics.height() + 18;
+        const int bottom = 3 * metrics.height() + 18;
+        const double plotHeight =
+            qMax(50, height() - metrics.height() - 16 - bottom);
+        const auto ticks = spectrumTicks(
+            alo, ahi, qBound(2, int(plotHeight / (metrics.height() * 3)), 6));
+        int labelWidth = 0;
+        for (const auto &label : ticks.labels)
+            labelWidth = qMax(labelWidth, metrics.horizontalAdvance(label));
+        double left = qMin(width() / 3.0, double(qMax(72, labelWidth + 32)));
         return QRectF(left, metrics.height() + 16,
-                      qMax(50.0, width() - left - 25),
-                      qMax(50, height() - metrics.height() - 16 - bottom));
+                      qMax(50.0, width() - left - 25), plotHeight);
     }
     QRectF view() const
     {
@@ -212,21 +217,46 @@ protected:
                          Qt::AlignCenter,
                          fontMetrics().elidedText(caption, Qt::ElideMiddle,
                                                   int(box.width())));
-        int xticks = qBound(
+        int xIntervals = qBound(
             2,
             int(box.width() /
                 qMax(90, fontMetrics().horizontalAdvance("000.000") + 25)),
-            6);
-        int yticks = qBound(2, int(box.height() / (fh * 3)), 6);
+            4);
+        SpectrumTicks xticks;
+        for (;;) {
+            xticks = spectrumTicks(flo, fhi, xIntervals);
+            bool overlap = false;
+            for (int i = 1; i < xticks.values.size(); ++i) {
+                const double space = (xticks.values[i] - xticks.values[i - 1]) /
+                                     (fhi - flo) * box.width();
+                const double needed =
+                    (fontMetrics().horizontalAdvance(xticks.labels[i - 1]) +
+                     fontMetrics().horizontalAdvance(xticks.labels[i])) /
+                        2.0 +
+                    12;
+                overlap = overlap || space < needed;
+            }
+            if (!overlap || xIntervals <= 2)
+                break;
+            --xIntervals;
+        }
+        const auto yticks =
+            spectrumTicks(alo, ahi, qBound(2, int(box.height() / (fh * 3)), 6));
         if (grid) {
             painter.setPen(QPen(QColor(210, 210, 210), 0, Qt::DashLine));
-            for (int i = 1; i < xticks; ++i) {
-                double x = box.left() + i * box.width() / xticks;
+            for (double value : xticks.values) {
+                double x =
+                    box.left() + (value - flo) / (fhi - flo) * box.width();
+                if (x <= box.left() || x >= box.right())
+                    continue;
                 painter.drawLine(QPointF(x, box.top()),
                                  QPointF(x, box.bottom()));
             }
-            for (int i = 1; i < yticks; ++i) {
-                double y = box.bottom() - i * box.height() / yticks;
+            for (double value : yticks.values) {
+                double y =
+                    box.bottom() - (value - alo) / (ahi - alo) * box.height();
+                if (y <= box.top() || y >= box.bottom())
+                    continue;
                 painter.drawLine(QPointF(box.left(), y),
                                  QPointF(box.right(), y));
             }
@@ -267,22 +297,26 @@ protected:
         painter.restore();
         painter.setPen(Qt::black);
         painter.drawRect(box);
-        for (int i = 0; i <= xticks; ++i) {
-            double x = box.left() + i * box.width() / xticks;
+        for (int i = 0; i < xticks.values.size(); ++i) {
+            double x = box.left() +
+                       (xticks.values[i] - flo) / (fhi - flo) * box.width();
             painter.drawLine(QPointF(x, box.bottom()),
                              QPointF(x, box.bottom() + 4));
-            painter.drawText(
-                QRectF(x - 45, box.bottom() + 6, 90, fh + 2), Qt::AlignCenter,
-                QString::number(flo + (fhi - flo) * i / xticks, 'g', 4));
+            const double labelWidth =
+                fontMetrics().horizontalAdvance(xticks.labels[i]) + 8;
+            painter.drawText(QRectF(qBound(0.0, x - labelWidth / 2,
+                                           qMax(0.0, width() - labelWidth)),
+                                    box.bottom() + 6, labelWidth, fh + 2),
+                             Qt::AlignCenter, xticks.labels[i]);
         }
-        for (int i = 0; i <= yticks; ++i) {
-            double y = box.bottom() - i * box.height() / yticks;
+        for (int i = 0; i < yticks.values.size(); ++i) {
+            double y = box.bottom() -
+                       (yticks.values[i] - alo) / (ahi - alo) * box.height();
             painter.drawLine(QPointF(box.left() - 4, y),
                              QPointF(box.left(), y));
-            painter.drawText(
-                QRectF(20, y - fh / 2, box.left() - 27, fh + 2),
-                Qt::AlignRight | Qt::AlignVCenter,
-                QString::number(alo + (ahi - alo) * i / yticks, 'g', 4));
+            painter.drawText(QRectF(20, y - fh / 2, box.left() - 27, fh + 2),
+                             Qt::AlignRight | Qt::AlignVCenter,
+                             yticks.labels[i]);
         }
         painter.drawText(
             QRectF(box.left(), box.bottom() + fh + 12, box.width(), fh + 3),

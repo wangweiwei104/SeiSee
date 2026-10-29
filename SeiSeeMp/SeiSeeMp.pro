@@ -162,7 +162,7 @@ SOURCES += fkspectrumdialog.cpp fktransform.cpp
 HEADERS += fkspectrumdialog.h fktransform.h fkcolormaps.h
 FORMS += fkspectrumdialog.ui
 SOURCES += spectrumdialog.cpp frequencyspectrumdialog.cpp
-HEADERS += spectrumdialog.h frequencyspectrumdialog.h
+HEADERS += spectrumdialog.h frequencyspectrumdialog.h spectrumticks.h
 FORMS += frequencyspectrumdialog.ui
 contains(CONFIG, fk_regression) {
     TARGET = fk_regression
