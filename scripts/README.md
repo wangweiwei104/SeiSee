@@ -155,19 +155,11 @@ JOBS=8 \
 .\scripts\publish-windows-release.ps1
 ```
 
-确认更新说明和待上传文件无误后，安装 [GitHub CLI](https://cli.github.com/) 并运行 `gh auth login`。Ubuntu 可按以下步骤安装：
+确认更新说明和待上传文件无误后，安装 [GitHub CLI](https://cli.github.com/) 并运行 `gh auth login`。
 
+***Windows*** 可按以下步骤安装：
 ```bash
-(type -p wget >/dev/null || sudo apt install wget -y) \
-  && sudo mkdir -p -m 755 /etc/apt/keyrings \
-  && wget -qO- https://cli.github.com/packages/githubcli-archive-keyring.gpg \
-  | sudo tee /etc/apt/keyrings/githubcli-archive-keyring.gpg >/dev/null \
-  && sudo chmod go+r /etc/apt/keyrings/githubcli-archive-keyring.gpg \
-  && sudo mkdir -p -m 755 /etc/apt/sources.list.d \
-  && echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" \
-  | sudo tee /etc/apt/sources.list.d/github-cli.list >/dev/null \
-  && sudo apt update \
-  && sudo apt install gh -y
+winget install --id GitHub.cli
 ```
 
 安装完成后登录并授权：
@@ -206,7 +198,22 @@ bash ./scripts/publish-linux-release.sh
 bash ./scripts/publish-linux-release.sh --publish
 ```
 
-发布前需安装 [GitHub CLI](https://cli.github.com/) 并运行 `gh auth login`。如果该版本的 Release 已存在（例如已发布 Windows 安装程序），脚本只上传 Linux AppImage；同名 Linux 文件会被替换，原有 Windows 附件、Release 说明和发布状态保持不变。如果 Release 尚不存在，则根据 `CHANGELOG.md` 创建 Release 并附上 Linux AppImage。默认不带 `--publish` 时只预览，不会连接 GitHub 或上传文件；如需发布到其他仓库，可传入 `--repo OWNER/REPO`。查询 GitHub Release 时若遇到 `EOF`、超时或暂时性服务器错误，脚本会自动重试最多两次；持续失败时会报错退出，不会误判为 Release 不存在。
+发布前需安装 [GitHub CLI](https://cli.github.com/) （如下）并运行 `gh auth login`。如果该版本的 Release 已存在（例如已发布 Windows 安装程序），脚本只上传 Linux AppImage；同名 Linux 文件会被替换，原有 Windows 附件、Release 说明和发布状态保持不变。如果 Release 尚不存在，则根据 `CHANGELOG.md` 创建 Release 并附上 Linux AppImage。默认不带 `--publish` 时只预览，不会连接 GitHub 或上传文件；如需发布到其他仓库，可传入 `--repo OWNER/REPO`。查询 GitHub Release 时若遇到 `EOF`、超时或暂时性服务器错误，脚本会自动重试最多两次；持续失败时会报错退出，不会误判为 Release 不存在。
+
+***Ubuntu***  安装[GitHub CLI](https://cli.github.com/) 如下：
+
+```bash
+(type -p wget >/dev/null || sudo apt install wget -y) \
+  && sudo mkdir -p -m 755 /etc/apt/keyrings \
+  && wget -qO- https://cli.github.com/packages/githubcli-archive-keyring.gpg \
+  | sudo tee /etc/apt/keyrings/githubcli-archive-keyring.gpg >/dev/null \
+  && sudo chmod go+r /etc/apt/keyrings/githubcli-archive-keyring.gpg \
+  && sudo mkdir -p -m 755 /etc/apt/sources.list.d \
+  && echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" \
+  | sudo tee /etc/apt/sources.list.d/github-cli.list >/dev/null \
+  && sudo apt update \
+  && sudo apt install gh -y
+```
 
 如果上传时收到 `HTTP 403: Resource not accessible by personal access token`，检查 `gh auth status -h github.com` 确认实际使用的 GitHub 账号和认证方式，并确认当前 token 对目标仓库有写入 Release 所需的 Contents 权限：
 
