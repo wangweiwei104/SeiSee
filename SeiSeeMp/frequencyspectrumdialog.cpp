@@ -218,7 +218,7 @@ protected:
                          fontMetrics().elidedText(caption, Qt::ElideMiddle,
                                                   int(box.width())));
         const auto xticks = spectrumAxisTicks(flo, fhi, int(box.width()),
-                                              fontMetrics(), true, 1);
+                                              fontMetrics(), true);
         const auto yticks = spectrumAxisTicks(alo, ahi, int(box.height()),
                                               fontMetrics(), false);
         if (grid) {

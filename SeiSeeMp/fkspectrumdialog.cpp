@@ -263,10 +263,10 @@ protected:
                      yhigh = frequencyOnly ? chi : fhi;
         const auto xticks =
             spectrumAxisTicks(xlow, xhigh, int(box.width()), fontMetrics(),
-                              true, frequencyOnly ? 1 : 3);
+                              true);
         const auto yticks =
             spectrumAxisTicks(ylow, yhigh, int(box.height()), fontMetrics(),
-                              false, frequencyOnly ? -1 : 1);
+                              false);
         for (int i = 0; i < xticks.values.size(); ++i) {
             const double x = box.left() + (xticks.values[i] - xlow) /
                                               (xhigh - xlow) * box.width();
