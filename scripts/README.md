@@ -2,28 +2,7 @@
 
 本目录提供 Windows Inno Setup 安装程序和 Linux AppImage 两种打包脚本。脚本会从项目源码构建 Release 版本，并将安装包写入项目根目录下的 `dist` 文件夹。
 
-## 从 SVG 重新生成数据文件图标
-
-`render-file-icons.ps1` 使用 Qt SVG 模块，从 `SeiSeeMp/images` 中的四个 SVG 源文件重新生成对应的 PNG 文件。需要安装 Qt（包含 QtSvg）、C++ 编译器和 qmake；Windows 上使用 Qt 5.15.2 MinGW 8.1，Linux 上如果要运行这个图标生成脚本，需另行安装 PowerShell 7、Qt 开发包及 make。PowerShell 7 只用于运行此 `.ps1` 图标脚本；Linux Docker 打包和 Linux AppImage 发布脚本均使用 Bash，不依赖 PowerShell。
-
-在项目根目录运行（Windows PowerShell 或已安装 PowerShell 7 的 Linux）：
-
-```powershell
-./scripts/render-file-icons.ps1
-```
-
-默认输出 512×512 PNG。Qt 或 MinGW 安装在其他目录时，可指定工具路径；Linux 上可将 Qt 的 `bin` 目录传给 `-QtBin`。也可以通过 `-Size` 调整输出尺寸：
-
-```powershell
-.\scripts\render-file-icons.ps1 `
-  -QtBin "C:\Qt\5.15.2\mingw81_64\bin" `
-  -MinGWBin "C:\Qt\Tools\mingw810_64\bin" `
-  -Size 512
-```
-
-脚本会从 `segyfile.svg`、`segdfile.svg`、`sufile.svg` 和 `cstfile.svg` 生成对应 PNG。SVG 是源文件，修改后重新运行脚本即可更新 PNG。
-
-## Windows 安装程序
+## Windows 安装程序制作
 
 ### 前置条件
 
@@ -122,6 +101,26 @@ source scripts/qt-env.sh
 ```
 
 该脚本默认使用 `/home/ww/Qt/5.15.2/gcc_64`，设置 `QT_ROOT`、`QMAKE`、`PATH`、`LD_LIBRARY_PATH`、`QT_PLUGIN_PATH`、`QT_QPA_PLATFORM_PLUGIN_PATH`、`QML2_IMPORT_PATH`、`CMAKE_PREFIX_PATH` 和 `PKG_CONFIG_PATH`。如 Qt 安装在其他位置，可先设置 `QT_ROOT` 覆盖默认值。本机的 `~/.bashrc` 已直接配置这些环境变量；改动后执行 `source ~/.bashrc` 使当前终端生效，新开的 Bash 终端会自动加载。
+
+> [!TIP]
+> **快速安装 Docker 的两种方式（Ubuntu 下推荐的docker安装方式，不建议使用snap版的）：**
+>
+> **方式一：官方脚本（推荐新手）**
+>
+> ```bash
+> curl -fsSL https://get.docker.com | sudo bash
+> sudo usermod -aG docker $USER
+> ```
+>
+> **方式二：手动添加源（推荐生产环境）**
+>
+> ```bash
+> sudo apt-get install -y ca-certificates curl gnupg
+> sudo install -m 0755 -d /etc/apt/keyrings
+> curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
+> sudo chmod a+r /etc/apt/keyrings/docker.asc
+> ```
+
 
 ### 运行
 
