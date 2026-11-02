@@ -53,6 +53,18 @@ public:
     {
         return selectionMode;
     }
+    QRect selectionRectangle(const QWidget *target) const
+    {
+        if (!selectionBand || !selectionBand->isVisible() || !target)
+            return QRect();
+        return QRect(selectionBand->mapTo(target, QPoint(0, 0)),
+                     selectionBand->size());
+    }
+    QColor selectionColor() const
+    {
+        const QWidget *band = selectionBand ? selectionBand : viewport();
+        return band->palette().color(QPalette::Active, QPalette::Highlight);
+    }
     void clearSelectionRectangle();
 
     void setVscroll(int v);

@@ -3558,9 +3558,12 @@ void MainWindow::captureCurrentView(int requestedDpi)
 
         m_exportStatus->setText(
             tr("Starting high-resolution image worker..."));
+        const QRect selectionRect =
+            seisScrl->selectionRectangle(ui->seisFrame);
         m_exportThread = new QThread(this);
         m_exportWorker = new ImageExportWorker(
-            capturedImage, seismicSnapshot, outputPath);
+            capturedImage, seismicSnapshot, outputPath, selectionRect,
+            seisScrl->selectionColor());
         m_exportWorker->moveToThread(m_exportThread);
 
         connect(m_exportThread, SIGNAL(started()), m_exportWorker,

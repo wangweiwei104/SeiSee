@@ -19,21 +19,26 @@ public:
         hide(); // Child widgets otherwise appear when the plot first shows.
     }
 
+    static void paintBand(QPainter &painter, const QRect &rect,
+                          const QColor &border)
+    {
+        QColor fill = border;
+        fill.setAlpha(64);
+        painter.fillRect(rect, fill);
+        QPen pen(border);
+        pen.setWidth(0);
+        painter.setPen(pen);
+        painter.setBrush(Qt::NoBrush);
+        painter.drawRect(rect.adjusted(0, 0, -1, -1));
+    }
+
 protected:
     void paintEvent(QPaintEvent *) override
     {
         const QColor border =
             palette().color(QPalette::Active, QPalette::Highlight);
-        QColor fill = border;
-        fill.setAlpha(64);
         QPainter painter(this);
-        painter.fillRect(rect(), fill);
-        QPen pen(border);
-        pen.setWidth(
-            0); // One physical pixel, matching the main selection edge.
-        painter.setPen(pen);
-        painter.setBrush(Qt::NoBrush);
-        painter.drawRect(rect().adjusted(0, 0, -1, -1));
+        paintBand(painter, rect(), border);
     }
 };
 
