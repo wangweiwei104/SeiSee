@@ -16,8 +16,10 @@
 
 #include <QDir>
 #include <QFile>
+#include <QColor>
 #include <QImage>
 #include <QObject>
+#include <QRect>
 #include <QTextStream>
 
 #include "seisfile.h"
@@ -252,7 +254,10 @@ class ImageExportWorker : public Worker
 public:
     explicit ImageExportWorker(const QImage &image,
                                const SeisSectionCaptureSnapshot &snapshot,
-                               const QString &outputPath, QObject *parent = 0);
+                               const QString &outputPath,
+                               const QRect &selectionRect = QRect(),
+                               const QColor &selectionColor = QColor(),
+                               QObject *parent = 0);
 
     void requestCancel();
 
@@ -264,6 +269,8 @@ protected:
     QImage m_image;
     SeisSectionCaptureSnapshot m_snapshot;
     QString m_outputPath;
+    QRect m_selectionRect;
+    QColor m_selectionColor;
     std::atomic<bool> m_cancelRequested;
     bool m_wasCanceled;
     bool m_succeeded;

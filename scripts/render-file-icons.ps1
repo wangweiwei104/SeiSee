@@ -84,10 +84,10 @@ function Convert-PngsToIco {
 $repositoryRoot = Split-Path -Parent $PSScriptRoot
 $imageDirectory = Join-Path (Join-Path $repositoryRoot "SeiSeeMp") "images"
 $iconMappings = @(
-    @{ Svg = "segyfile_inner.svg"; Png = "segyfile_inner.png" },
-    @{ Svg = "segdfile_inner.svg"; Png = "segdfile_inner.png" },
-    @{ Svg = "sufile_inner.svg"; Png = "sufile_inner.png" },
-    @{ Svg = "cstfile_inner.svg"; Png = "cstfile_inner.png" },
+    @{ Svg = "segyfile.svg"; Png = "segyfile.png" },
+    @{ Svg = "segdfile.svg"; Png = "segdfile.png" },
+    @{ Svg = "sufile.svg"; Png = "sufile.png" },
+    @{ Svg = "cstfile.svg"; Png = "cstfile.png" },
     @{ Svg = "segyfile.svg"; Png = "segyfile.png" },
     @{ Svg = "segdfile.svg"; Png = "segdfile.png" },
     @{ Svg = "sufile.svg"; Png = "sufile.png" },

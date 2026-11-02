@@ -1330,13 +1330,13 @@ void MainWindow::FillDirGrid(QList<DirItem> list)
                 // dirGrid.setCell(nr, 1, "");
 
                 if (type == 1) {
-                    dirGrid.setImgName(nr, 0, ":/images/segyfile_inner.png");
+                    dirGrid.setImgName(nr, 0, ":/images/segyfile.png");
                     dirGrid.setCell(nr, 1, "SEG-Y");
                 } else if (type == 2) {
-                    dirGrid.setImgName(nr, 0, ":/images/sufile_inner.png");
+                    dirGrid.setImgName(nr, 0, ":/images/sufile.png");
                     dirGrid.setCell(nr, 1, "SU");
                 } else if (type == 3) {
-                    dirGrid.setImgName(nr, 0, ":/images/cstfile_inner.png");
+                    dirGrid.setImgName(nr, 0, ":/images/cstfile.png");
                     dirGrid.setCell(nr, 1, "CST");
                 }
             }
@@ -1815,15 +1815,15 @@ void MainWindow::refreshComparisonGrid()
         comparisonGrid.setTag(row, 2, file.type);
         if (file.type == 1) {
             comparisonGrid.setImgName(row, 1,
-                                      ":/images/segyfile_inner.png");
+                                      ":/images/segyfile.png");
             comparisonGrid.setCell(row, 2, "SEG-Y");
         } else if (file.type == 2) {
             comparisonGrid.setImgName(row, 1,
-                                      ":/images/sufile_inner.png");
+                                      ":/images/sufile.png");
             comparisonGrid.setCell(row, 2, "SU");
         } else {
             comparisonGrid.setImgName(row, 1,
-                                      ":/images/cstfile_inner.png");
+                                      ":/images/cstfile.png");
             comparisonGrid.setCell(row, 2, "CST");
         }
     }
@@ -3559,9 +3559,12 @@ void MainWindow::captureCurrentView(int requestedDpi)
 
         m_exportStatus->setText(
             tr("Starting high-resolution image worker..."));
+        const QRect selectionRect =
+            seisScrl->selectionRectangle(ui->seisFrame);
         m_exportThread = new QThread(this);
         m_exportWorker = new ImageExportWorker(
-            capturedImage, seismicSnapshot, outputPath);
+            capturedImage, seismicSnapshot, outputPath, selectionRect,
+            seisScrl->selectionColor());
         m_exportWorker->moveToThread(m_exportThread);
 
         connect(m_exportThread, SIGNAL(started()), m_exportWorker,

@@ -9,9 +9,10 @@
         <file>images/ChkAll.png</file>
         <file>images/ChkNon.png</file>
         <file>images/Clear.png</file>
-        <file>images/cstfile_inner.png</file>
-        <file>images/cstfile_inner.svg</file>
+        <file>images/ClrSel.png</file>
+        <file>images/cstfile.png</file>
         <file>images/cstfile.svg</file>
+        <file>images/CurView.png</file>
         <file>images/DelItem.png</file>
         <file>images/Dir.png</file>
         <file>images/EditHdr.png</file>
@@ -29,6 +30,7 @@
         <file>images/GoTop.png</file>
         <file>images/Hexp.png</file>
         <file>images/Lexp.png</file>
+        <file>images/MqSel.png</file>
         <file>images/Nexp.png</file>
         <file>images/OpenDir.png</file>
         <file>images/OpenFile.png</file>
@@ -38,11 +40,8 @@
         <file>images/RemoveALL.png</file>
         <file>images/Reset.png</file>
         <file>images/Run.png</file>
-        <file>images/segdfile_inner.png</file>
-        <file>images/segdfile_inner.svg</file>
+        <file>images/segdfile.png</file>
         <file>images/segdfile.svg</file>
-        <file>images/segyfile_inner.png</file>
-        <file>images/segyfile_inner.svg</file>
         <file>images/segyfile.ico</file>
         <file>images/segyfile.png</file>
         <file>images/segyfile.svg</file>
@@ -50,11 +49,11 @@
         <file>images/SeiSeeMp.png</file>
         <file>images/SeiSeeMp.svg</file>
         <file>images/SeiSeeSetup.ico</file>
-        <file>images/SeiSeeSetup.png</file>
         <file>images/SeiSeeSetup.svg</file>
+        <file>images/SelectionBlackCurs.xpm</file>
+        <file>images/SelectWCurs.xpm</file>
         <file>images/stop.png</file>
-        <file>images/sufile_inner.png</file>
-        <file>images/sufile_inner.svg</file>
+        <file>images/sufile.png</file>
         <file>images/sufile.svg</file>
         <file>images/ToDn.png</file>
         <file>images/ToLeft.png</file>
@@ -70,10 +69,5 @@
         <file>images/ZoomW.png</file>
         <file>images/ZoomWCurs.xpm</file>
         <file>images/Zv.png</file>
-        <file>images/CurView.png</file>
-        <file>images/MqSel.png</file>
-        <file>images/ClrSel.png</file>
-        <file>images/SelectWCurs.xpm</file>
-        <file>images/SelectionBlackCurs.xpm</file>
     </qresource>
 </RCC>

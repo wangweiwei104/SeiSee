@@ -18,6 +18,7 @@
 #include <time.h>
 
 #include "gfxutil.h"
+#include "gfxselectionband.h"
 #include "util2.h"
 #include "util2qt.h"
 
@@ -787,11 +788,15 @@ void DiffWorker::DiffTrcByIdx(int outf)
 ImageExportWorker::ImageExportWorker(const QImage &image,
                                      const SeisSectionCaptureSnapshot &snapshot,
                                      const QString &outputPath,
+                                     const QRect &selectionRect,
+                                     const QColor &selectionColor,
                                      QObject *parent)
     : Worker(parent)
     , m_image(image)
     , m_snapshot(snapshot)
     , m_outputPath(outputPath)
+    , m_selectionRect(selectionRect)
+    , m_selectionColor(selectionColor)
     , m_cancelRequested(false)
     , m_wasCanceled(false)
     , m_succeeded(false)
@@ -837,6 +842,14 @@ void ImageExportWorker::process()
         qRound(m_snapshot.targetPosition.y() *
                m_snapshot.captureScaleY));
     imagePainter.drawImage(sectionPosition, sectionImage);
+    if (!m_selectionRect.isEmpty()) {
+        imagePainter.save();
+        imagePainter.scale(m_snapshot.captureScaleX,
+                           m_snapshot.captureScaleY);
+        GfxSelectionBand::paintBand(imagePainter, m_selectionRect,
+                                    m_selectionColor);
+        imagePainter.restore();
+    }
     imagePainter.end();
 
     emit exportProgress(tr("Encoding and saving PNG..."));
