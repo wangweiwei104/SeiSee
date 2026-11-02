@@ -54,6 +54,7 @@ public:
         return selectionMode;
     }
     void clearSelectionRectangle();
+    void setSelectionRectangle(const QRect &rectangle);
 
     void setVscroll(int v);
     void setHscroll(int v);

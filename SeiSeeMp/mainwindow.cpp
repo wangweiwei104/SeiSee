@@ -2320,6 +2320,7 @@ void MainWindow::fitAxesToViewport()
     timeRightView.setFixedHeight(axisHeight);
     hdrsView.setFixedWidth(axisWidth);
     hdrsBottomView.setFixedWidth(axisWidth);
+    syncFkSelectionRectangle();
 }
 
 void MainWindow::resizeEvent(QResizeEvent *event)
@@ -4801,6 +4802,14 @@ void MainWindow::showSpectrum(bool frequencyOnly)
         dialog = frequencyOnly ? static_cast<SpectrumDialog *>(new FrequencySpectrumDialog(file, curDir, this))
                                : static_cast<SpectrumDialog *>(new FkSpectrumDialog(file, curDir, this));
         SpectrumDialog *target = dialog;
+        if (!frequencyOnly)
+            connect(static_cast<FkSpectrumDialog *>(target),
+                    &FkSpectrumDialog::inputRangeChanged, this, [this, target]() {
+                        if (selectionOwner == target) {
+                            fkSelectionHasRange = true;
+                            syncFkSelectionRectangle();
+                        }
+                    });
         if (frequencyOnly)
             connect(this, &MainWindow::traceSelectionChanged,
                     static_cast<FrequencySpectrumDialog *>(target), &FrequencySpectrumDialog::setMainTrace);
@@ -4865,6 +4874,7 @@ void MainWindow::setSpectrumSelection(SpectrumDialog *dialog, bool enabled)
             button->setChecked(false);
     }
     selectionOwner = enabled ? dialog : nullptr;
+    fkSelectionHasRange = false;
     seisScrl->setSelectionMode(enabled);
     // Both axis scrollbars and the normal controls must honor selection mode.
     const QList<QWidget *> navigation = {ui->zoomAllBtn,
@@ -4897,6 +4907,34 @@ void MainWindow::setSpectrumSelection(SpectrumDialog *dialog, bool enabled)
             widget->setEnabled(spectrumNavigationStates.take(widget));
         }
     }
+}
+
+void MainWindow::syncFkSelectionRectangle()
+{
+    if (!fkDialog || selectionOwner != fkDialog || !fkSelectionHasRange)
+        return;
+    SeisFile *file = seisSrc.Sfile();
+    if (!file || !file->Active() || file->Nt() < 1 || file->Ns() < 1 ||
+        file->Si() <= 0)
+        return;
+    const QRectF range = static_cast<FkSpectrumDialog *>(fkDialog)->inputRange();
+    // Preserve the requested trace/time range across files. Only its visible
+    // projection is clipped; a shorter file must not overwrite the inputs.
+    const double first = qMax(1.0, range.left());
+    const double last = qMin(double(file->Nt()), range.right());
+    const double start = qMax(0.0, range.top());
+    const double end =
+        qMin((file->Ns() - 1) * file->Si() * 1000, range.bottom());
+    if (first > last || start > end) {
+        seisScrl->clearSelectionRectangle();
+        return;
+    }
+    const QPoint a(seisSct.x2pix(seisSrc.Tp(first - 1)),
+                   seisSct.y2pix(start / 1000));
+    const QPoint b(seisSct.x2pix(seisSrc.Tp(last - 1)),
+                   seisSct.y2pix(end / 1000));
+    seisScrl->setSelectionRectangle(
+        QRect(a, b).normalized().translated(seisView.pos()));
 }
 
 void MainWindow::updateSpectrumSources()
