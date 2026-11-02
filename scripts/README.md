@@ -2,6 +2,16 @@
 
 本目录提供 Windows Inno Setup 安装程序和 Linux AppImage 两种打包脚本。脚本会从项目源码构建 Release 版本，并将安装包写入项目根目录下的 `dist` 文件夹。
 
+## 从 SVG 生成多尺寸 ICO
+
+[`svg-to-ico.ps1`](./svg-to-ico.ps1) 使用 ImageMagick 将 SVG 转换为适用于 Windows（包括 Windows 11）的多尺寸 ICO。运行前需安装 ImageMagick，并确保 `magick` 命令位于 `PATH` 中：
+
+```powershell
+.\scripts\svg-to-ico.ps1
+```
+
+默认将 `SeiSeeMp/images/SeiSeeMp.svg` 转换为同目录下的 `SeiSeeMp.ico`。要添加其他图标，在脚本开头的 `$IconMappings` 中增加 SVG/ICO 文件名映射；`$IcoSizes` 集中配置 ICO 内的尺寸，默认包含 16 至 256 像素的常用 Windows shell 和高 DPI 尺寸。
+
 ## Windows 安装程序制作
 
 ### 前置条件
