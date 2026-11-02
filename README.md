@@ -2,7 +2,7 @@
   <h1 align="center">地震数据查看器SeiSee</h1>
 </div>
 
-<div align="center">一个支持Windows/Linux的地震数据查看工具,并不仅于此。</div>
+<div align="center">一个支持Windows/Linux的地震数据查看工具，并不止于此。</div>
 <br>
 <p align="center">
   <a href="https://github.com/wangweiwei104/SeiSee/releases/latest">
