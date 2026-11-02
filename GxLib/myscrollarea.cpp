@@ -279,6 +279,24 @@ void MyScrollArea::clearSelectionRectangle()
         selectionBand->hide();
 }
 
+void MyScrollArea::setSelectionRectangle(const QRect &rectangle)
+{
+    if (!selectionMode)
+        return;
+    const QRect bounds =
+        viewport()->rect().intersected(QRect(plot->pos(), plot->size()));
+    const QRect visible = rectangle.intersected(bounds);
+    if (visible.isEmpty()) {
+        clearSelectionRectangle();
+        return;
+    }
+    selectionBand->setGeometry(visible);
+    selectionBand->show();
+    selectionBand->raise();
+    // This is a projection of an existing data range, not a mouse edit.
+    // Emitting selectionChanged here would feed rounded pixels back to it.
+}
+
 void MyScrollArea::emitZoomChanged(double zx, double zy, int x, int y)
 {
     if (selectionMode)

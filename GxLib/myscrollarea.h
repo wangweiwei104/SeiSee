@@ -66,6 +66,7 @@ public:
         return band->palette().color(QPalette::Active, QPalette::Highlight);
     }
     void clearSelectionRectangle();
+    void setSelectionRectangle(const QRect &rectangle);
 
     void setVscroll(int v);
     void setHscroll(int v);

@@ -473,11 +473,13 @@ private:
     SpectrumDialog *fkDialog = nullptr;
     SpectrumDialog *frequencyDialog = nullptr;
     SpectrumDialog *selectionOwner = nullptr;
+    bool fkSelectionHasRange = false;
     QHash<QWidget *, bool> spectrumNavigationStates;
     void setupSpectrumTools();
     void showSpectrum(bool frequencyOnly);
     void captureSpectrumRange(SpectrumDialog *dialog, const QRect &rectangle);
     void setSpectrumSelection(SpectrumDialog *dialog, bool enabled);
+    void syncFkSelectionRectangle();
     void updateSpectrumSources();
     GfxView seisView;
     GfxView hlabView;

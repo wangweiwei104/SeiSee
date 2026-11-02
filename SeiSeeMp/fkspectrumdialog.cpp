@@ -509,6 +509,12 @@ FkSpectrumDialog::FkSpectrumDialog(SeisFile *file, const QString &dir,
             &FkSpectrumDialog::currentViewRequested);
     connect(ui->fkSelect, &QPushButton::toggled, this,
             &FkSpectrumDialog::selectionRequested);
+    for (auto spin : {ui->fkFirst, ui->fkLast})
+        connect(spin, QOverload<int>::of(&QSpinBox::valueChanged), this,
+                [this]() { emit inputRangeChanged(); });
+    for (auto spin : {ui->fkStart, ui->fkEnd})
+        connect(spin, QOverload<double>::of(&QDoubleSpinBox::valueChanged),
+                this, [this]() { emit inputRangeChanged(); });
     connect(ui->fkClearSelection, &QPushButton::clicked, this, [this]() {
         ui->fkSelect->setChecked(false);
         emit selectionRequested(false);
@@ -618,11 +624,20 @@ void FkSpectrumDialog::setInitialRange(int firstTrace, int lastTrace,
 {
     if (worker)
         return;
+    const QSignalBlocker firstBlock(ui->fkFirst), lastBlock(ui->fkLast),
+        startBlock(ui->fkStart), endBlock(ui->fkEnd);
     ui->fkFirst->setValue(firstTrace);
     ui->fkLast->setValue(lastTrace);
     ui->fkStart->setValue(startMs);
     ui->fkEnd->setValue(endMs);
     messageStatus->setText(tr("Range selected; click Calculate"));
+    emit inputRangeChanged();
+}
+
+QRectF FkSpectrumDialog::inputRange() const
+{
+    return QRectF(QPointF(ui->fkFirst->value(), ui->fkStart->value()),
+                  QPointF(ui->fkLast->value(), ui->fkEnd->value()));
 }
 
 void FkSpectrumDialog::toast(const QString &text)
