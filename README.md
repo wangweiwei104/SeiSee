@@ -2,7 +2,7 @@
   <h1 align="center">地震数据查看器SeiSee</h1>
 </div>
 
-<div align="center">一个支持Windows/Linux的地震数据查看工具,源代码开发者为：https://mail.dmng.ru/freeware/</div>
+<div align="center">一个支持Windows/Linux的地震数据查看工具,并不仅于此。</div>
 <br>
 <p align="center">
   <a href="https://github.com/wangweiwei104/SeiSee/releases/latest">
@@ -153,7 +153,7 @@ APPIMAGE_EXTRACT_AND_RUN=1 ./SeiSee-*.AppImage
 
 ## 免责声明
 
-本项目仅供学习交流用途，开发者不负任何责任
+本项目仅供学习交流用途，开发者不负任何责任。原始的代码来自于：https://mail.dmng.ru/freeware/
 
 ## 许可证
 
