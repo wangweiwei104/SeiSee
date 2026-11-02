@@ -18,6 +18,7 @@
 #include <QFile>
 #include <QColor>
 #include <QImage>
+#include <QPicture>
 #include <QObject>
 #include <QRect>
 #include <QTextStream>
@@ -259,6 +260,8 @@ public:
                                const QColor &selectionColor = QColor(),
                                QObject *parent = 0);
 
+    void setOverlay(const QPicture &overlay) { m_overlay = overlay; }
+
     void requestCancel();
 
 signals:
@@ -267,6 +270,7 @@ signals:
 
 protected:
     QImage m_image;
+    QPicture m_overlay;
     SeisSectionCaptureSnapshot m_snapshot;
     QString m_outputPath;
     QRect m_selectionRect;

@@ -621,11 +621,18 @@ FrequencySpectrumDialog::FrequencySpectrumDialog(SeisFile *file,
             [this]() { exportImage(true); });
     connect(ui->fkExport, &QPushButton::clicked, this,
             [this]() { exportImage(false); });
-    connect(ui->fkFirst, QOverload<int>::of(&QSpinBox::valueChanged), this,
-            [this]() { requestAutomatic(); });
+    for (auto spin : {ui->fkFirst, ui->fkLast})
+        connect(spin, QOverload<int>::of(&QSpinBox::valueChanged), this,
+                [this]() {
+                    emit inputRangeChanged();
+                    requestAutomatic();
+                });
     for (auto spin : {ui->fkStart, ui->fkEnd})
         connect(spin, QOverload<double>::of(&QDoubleSpinBox::valueChanged),
-                this, [this]() { requestAutomatic(); });
+                this, [this]() {
+                    emit inputRangeChanged();
+                    requestAutomatic();
+                });
 }
 
 void FrequencySpectrumDialog::setSource(SeisFile *file)
@@ -699,10 +706,19 @@ void FrequencySpectrumDialog::setInitialRange(int first, int last, double start,
 {
     if (batchRunning)
         return;
+    const QSignalBlocker firstBlock(ui->fkFirst), lastBlock(ui->fkLast),
+        startBlock(ui->fkStart), endBlock(ui->fkEnd);
     ui->fkFirst->setValue(first);
     ui->fkLast->setValue(last);
     ui->fkStart->setValue(start);
     ui->fkEnd->setValue(end);
+    emit inputRangeChanged();
+    requestAutomatic();
+}
+QRectF FrequencySpectrumDialog::inputRange() const
+{
+    return QRectF(QPointF(ui->fkFirst->value(), ui->fkStart->value()),
+                  QPointF(ui->fkLast->value(), ui->fkEnd->value()));
 }
 void FrequencySpectrumDialog::addComparisonFiles(const QStringList &paths)
 {

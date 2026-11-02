@@ -162,6 +162,8 @@ SOURCES += fkspectrumdialog.cpp fktransform.cpp
 HEADERS += fkspectrumdialog.h fktransform.h fkcolormaps.h
 FORMS += fkspectrumdialog.ui
 SOURCES += spectrumdialog.cpp frequencyspectrumdialog.cpp
+SOURCES += velocitypick.cpp velocitydialog.cpp
+HEADERS += velocitypick.h velocitydialog.h
 HEADERS += spectrumdialog.h frequencyspectrumdialog.h spectrumticks.h spectrumspinbox.h
 FORMS += frequencyspectrumdialog.ui
 contains(CONFIG, fk_regression) {
@@ -170,4 +172,12 @@ contains(CONFIG, fk_regression) {
     CONFIG += console testcase
     SOURCES -= main.cpp
     SOURCES += $$PWD/../tests/fk_regression.cpp
+}
+
+contains(CONFIG, velocity_regression) {
+    TARGET = velocity_regression
+    QT += testlib
+    CONFIG += console testcase
+    SOURCES -= main.cpp
+    SOURCES += $$PWD/../tests/velocity_regression.cpp
 }

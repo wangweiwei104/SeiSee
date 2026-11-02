@@ -24,7 +24,7 @@ public:
     void setSource(SeisFile *file);
     void setInitialRange(int firstTrace, int lastTrace, double startMs,
                          double endMs);
-    QRectF inputRange() const;
+    QRectF inputRange() const override;
     void shutdown();
     bool isCalculating() const
     {
@@ -32,9 +32,6 @@ public:
     }
     bool isSourceCurrent() const;
     bool savePng(const QString &filename, int dpi = 0);
-
-signals:
-    void inputRangeChanged();
 
 protected:
     void closeEvent(QCloseEvent *event) override;

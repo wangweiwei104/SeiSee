@@ -38,6 +38,7 @@ public:
     void setSource(SeisFile *file) override;
     void setInitialRange(int firstTrace, int lastTrace, double startMs,
                          double endMs) override;
+    QRectF inputRange() const override;
     void shutdown() override;
     bool isCalculating() const override
     {

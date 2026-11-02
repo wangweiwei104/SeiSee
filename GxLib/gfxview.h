@@ -139,6 +139,7 @@ signals:
     void dpiChanged();
     void OnPrevDraw(GfxView *view);
     void OnPostDraw(GfxView *view);
+    void overlayPaint(QPainter *painter);
     void mouseEvent(QMouseEvent *event);
     void wheel_Event(QWheelEvent *event);
     void timeSetEvent(double time);

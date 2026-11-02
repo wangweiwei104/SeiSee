@@ -47,6 +47,7 @@
 #include "metricsdialog.h"
 #include "fkspectrumdialog.h"
 #include "frequencyspectrumdialog.h"
+#include "velocitydialog.h"
 
 #include "workthread.h"
 
@@ -171,6 +172,7 @@ public slots:
 private slots:
     void showFkSpectrum();
     void showFrequencySpectrum();
+    void showVelocityPicking();
 
     void binHdrGridChangedEvent();
     void syncHorizontalAxisScrollBar(int minimum, int maximum);
@@ -473,13 +475,17 @@ private:
     SpectrumDialog *fkDialog = nullptr;
     SpectrumDialog *frequencyDialog = nullptr;
     SpectrumDialog *selectionOwner = nullptr;
-    bool fkSelectionHasRange = false;
+    bool spectrumSelectionHasRange = false;
     QHash<QWidget *, bool> spectrumNavigationStates;
+    VelocityDialog *velocityDialog = nullptr;
+    void setAnalysisNavigationLocked(bool enabled);
+    void setVelocityInteraction(bool enabled);
+    void paintVelocityOverlay(QPainter &painter);
     void setupSpectrumTools();
     void showSpectrum(bool frequencyOnly);
     void captureSpectrumRange(SpectrumDialog *dialog, const QRect &rectangle);
     void setSpectrumSelection(SpectrumDialog *dialog, bool enabled);
-    void syncFkSelectionRectangle();
+    void syncSpectrumSelectionRectangle();
     void updateSpectrumSources();
     GfxView seisView;
     GfxView hlabView;

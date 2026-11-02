@@ -1000,6 +1000,11 @@ void MainWindow::execProc(SeisFile *sf, int ns, double si, float *smp)
 
 MainWindow::~MainWindow()
 {
+    if (velocityDialog) {
+        velocityDialog->shutdown();
+        delete velocityDialog;
+        velocityDialog = nullptr;
+    }
     if (fkDialog) fkDialog->shutdown();
     if (frequencyDialog) frequencyDialog->shutdown();
     if (m_exportThread && m_exportThread->isRunning()) {
@@ -1868,6 +1873,8 @@ int MainWindow::xprintf(QPlainTextEdit *edit, const char *fmt, ...)
 
 void MainWindow::closeEvent(QCloseEvent *event)
 {
+    if (velocityDialog)
+        velocityDialog->close();
     if (fkDialog) fkDialog->close();
     if (frequencyDialog) frequencyDialog->close();
     MetricsDlg.shutdown();
@@ -2206,6 +2213,8 @@ int MainWindow::InitSeisView()
 
 void MainWindow::Clear()
 {
+    if (velocityDialog)
+        velocityDialog->setSource(nullptr);
     seisScrl->clearSelectionRectangle();
     if (fkDialog) fkDialog->setSource(nullptr);
     if (frequencyDialog) frequencyDialog->setSource(nullptr);
@@ -2320,7 +2329,7 @@ void MainWindow::fitAxesToViewport()
     timeRightView.setFixedHeight(axisHeight);
     hdrsView.setFixedWidth(axisWidth);
     hdrsBottomView.setFixedWidth(axisWidth);
-    syncFkSelectionRectangle();
+    syncSpectrumSelectionRectangle();
 }
 
 void MainWindow::resizeEvent(QResizeEvent *event)
@@ -3565,6 +3574,16 @@ void MainWindow::captureCurrentView(int requestedDpi)
         m_exportWorker = new ImageExportWorker(
             capturedImage, seismicSnapshot, outputPath, selectionRect,
             seisScrl->selectionColor());
+        if (velocityDialog && velocityDialog->hasCurves()) {
+            QPicture overlay;
+            QPainter painter(&overlay);
+            painter.scale(captureScaleX, captureScaleY);
+            painter.translate(seisView.mapTo(ui->seisFrame, QPoint()) -
+                              captureRect.topLeft());
+            paintVelocityOverlay(painter);
+            painter.end();
+            m_exportWorker->setOverlay(overlay);
+        }
         m_exportWorker->moveToThread(m_exportThread);
 
         connect(m_exportThread, SIGNAL(started()), m_exportWorker,
@@ -4637,6 +4656,58 @@ void MainWindow::dropEvent(QDropEvent *event)
 
 bool MainWindow::eventFilter(QObject *object, QEvent *event)
 {
+    if (velocityDialog && velocityDialog->isArmed()) {
+        QWidget *widget = qobject_cast<QWidget *>(object);
+        if (event->type() == QEvent::KeyPress && widget &&
+            (widget->window() == this || widget->window() == velocityDialog)) {
+            auto key = static_cast<QKeyEvent *>(event);
+            if (key->key() == Qt::Key_Escape) {
+                if (velocityDialog->hasFirstPoint())
+                    velocityDialog->cancel();
+                else
+                    velocityDialog->setArmed(false);
+                return true;
+            }
+            auto edit = qobject_cast<QLineEdit *>(widget);
+            if (key->matches(QKeySequence::Undo) &&
+                (!edit || edit->isReadOnly())) {
+                velocityDialog->undo();
+                return true;
+            }
+        }
+        if (object == &seisView || object == seisScrl->viewport() ||
+            object == seisScrl) {
+            if (event->type() == QEvent::Wheel)
+                return true;
+            if (event->type() == QEvent::MouseButtonRelease ||
+                event->type() == QEvent::MouseButtonDblClick)
+                return true;
+            if (event->type() == QEvent::MouseButtonPress ||
+                event->type() == QEvent::MouseMove) {
+                auto mouse = static_cast<QMouseEvent *>(event);
+                const QPoint p = seisView.mapFrom(widget, mouse->pos());
+                if (event->type() == QEvent::MouseButtonPress &&
+                    mouse->button() == Qt::RightButton) {
+                    if (velocityDialog->hasFirstPoint())
+                        velocityDialog->cancel();
+                    else
+                        velocityDialog->setArmed(false);
+                    return true;
+                }
+                if (seisView.rect().contains(p)) {
+                    const int trace = qRound(seisSrc.Tx(seisSct.pix2x(p.x())));
+                    const double time = seisSct.pix2y(p.y()) * 1000;
+                    const bool commit =
+                        event->type() == QEvent::MouseButtonPress &&
+                        mouse->button() == Qt::LeftButton;
+                    if (event->type() == QEvent::MouseMove || commit)
+                        velocityDialog->point(trace, time,
+                                              ui->ckDly->isChecked(), commit);
+                }
+                return true;
+            }
+        }
+    }
     if (event->type() == QEvent::KeyPress &&
         (object == &comparisonGrid || object == comparisonGrid.viewport()) &&
         (comparisonGrid.hasFocus() || comparisonGrid.viewport()->hasFocus())) {
@@ -4773,6 +4844,13 @@ void MainWindow::on_actionMetrics_triggered()
 
 void MainWindow::setupSpectrumTools()
 {
+    seisView.setMouseTracking(true);
+    connect(ui->actionVelocityPicking, &QAction::triggered, this,
+            &MainWindow::showVelocityPicking);
+    connect(ui->velocityBtn, &QPushButton::clicked, this,
+            &MainWindow::showVelocityPicking);
+    connect(&seisView, &GfxView::overlayPaint, this,
+            [this](QPainter *painter) { paintVelocityOverlay(*painter); });
     seisScrl->setObjectName("seismicScrollArea");
     connect(ui->actionFrequencySpectrum, &QAction::triggered, this, &MainWindow::showFrequencySpectrum);
     connect(ui->actionFkSpectrum, &QAction::triggered, this, &MainWindow::showFkSpectrum);
@@ -4805,14 +4883,13 @@ void MainWindow::showSpectrum(bool frequencyOnly)
         dialog = frequencyOnly ? static_cast<SpectrumDialog *>(new FrequencySpectrumDialog(file, curDir, this))
                                : static_cast<SpectrumDialog *>(new FkSpectrumDialog(file, curDir, this));
         SpectrumDialog *target = dialog;
-        if (!frequencyOnly)
-            connect(static_cast<FkSpectrumDialog *>(target),
-                    &FkSpectrumDialog::inputRangeChanged, this, [this, target]() {
-                        if (selectionOwner == target) {
-                            fkSelectionHasRange = true;
-                            syncFkSelectionRectangle();
-                        }
-                    });
+        connect(target, &SpectrumDialog::inputRangeChanged, this,
+                [this, target]() {
+                    if (selectionOwner == target) {
+                        spectrumSelectionHasRange = true;
+                        syncSpectrumSelectionRectangle();
+                    }
+                });
         if (frequencyOnly)
             connect(this, &MainWindow::traceSelectionChanged,
                     static_cast<FrequencySpectrumDialog *>(target), &FrequencySpectrumDialog::setMainTrace);
@@ -4869,6 +4946,8 @@ void MainWindow::captureSpectrumRange(SpectrumDialog *dialog,
 
 void MainWindow::setSpectrumSelection(SpectrumDialog *dialog, bool enabled)
 {
+    if (enabled && velocityDialog)
+        velocityDialog->setArmed(false);
     if (!enabled && selectionOwner != dialog)
         return;
     if (enabled && selectionOwner && selectionOwner != dialog) {
@@ -4877,50 +4956,20 @@ void MainWindow::setSpectrumSelection(SpectrumDialog *dialog, bool enabled)
             button->setChecked(false);
     }
     selectionOwner = enabled ? dialog : nullptr;
-    fkSelectionHasRange = false;
+    spectrumSelectionHasRange = false;
     seisScrl->setSelectionMode(enabled);
-    // Both axis scrollbars and the normal controls must honor selection mode.
-    const QList<QWidget *> navigation = {ui->zoomAllBtn,
-                                         ui->zoomVallBtn,
-                                         ui->zoomHallBtn,
-                                         ui->zoomInBtn,
-                                         ui->zoomOutBtn,
-                                         ui->zoomWinBtn,
-                                         ui->zoomPreBtn,
-                                         ui->edTr,
-                                         ui->edTm,
-                                         ui->TrSlider,
-                                         ui->TmSlider,
-                                         ui->rbDirRev,
-                                         ui->rbDirNorm,
-                                         horizontalAxisScrollBar,
-                                         verticalAxisScrollBar,
-                                         seisScrl->horizontalScrollBar(),
-                                         seisScrl->verticalScrollBar(),
-                                         hdrsScrl->horizontalScrollBar(),
-                                         hdrsBottomScrl->horizontalScrollBar(),
-                                         timeScrl->verticalScrollBar(),
-                                         timeRightScrl->verticalScrollBar()};
-    for (auto widget : navigation) {
-        if (enabled) {
-            if (!spectrumNavigationStates.contains(widget))
-                spectrumNavigationStates.insert(widget, widget->isEnabled());
-            widget->setEnabled(false);
-        } else if (spectrumNavigationStates.contains(widget)) {
-            widget->setEnabled(spectrumNavigationStates.take(widget));
-        }
-    }
+    setAnalysisNavigationLocked(enabled);
 }
 
-void MainWindow::syncFkSelectionRectangle()
+void MainWindow::syncSpectrumSelectionRectangle()
 {
-    if (!fkDialog || selectionOwner != fkDialog || !fkSelectionHasRange)
+    if (!selectionOwner || !spectrumSelectionHasRange)
         return;
     SeisFile *file = seisSrc.Sfile();
     if (!file || !file->Active() || file->Nt() < 1 || file->Ns() < 1 ||
         file->Si() <= 0)
         return;
-    const QRectF range = static_cast<FkSpectrumDialog *>(fkDialog)->inputRange();
+    const QRectF range = selectionOwner->inputRange();
     // Preserve the requested trace/time range across files. Only its visible
     // projection is clipped; a shorter file must not overwrite the inputs.
     const double first = qMax(1.0, range.left());
@@ -4940,11 +4989,117 @@ void MainWindow::syncFkSelectionRectangle()
         QRect(a, b).normalized().translated(seisView.pos()));
 }
 
+void MainWindow::setAnalysisNavigationLocked(bool enabled)
+{
+    // Both axis scrollbars and the normal controls must honor selection mode.
+    const QList<QWidget *> navigation = {ui->zoomAllBtn,
+                                         ui->zoomVallBtn,
+                                         ui->zoomHallBtn,
+                                         ui->zoomInBtn,
+                                         ui->zoomOutBtn,
+                                         ui->zoomWinBtn,
+                                         ui->zoomPreBtn,
+                                         ui->edTr,
+                                         ui->edTm,
+                                         ui->TrSlider,
+                                         ui->TmSlider,
+                                         ui->rbDirRev,
+                                         ui->rbDirNorm,
+                                         horizontalAxisScrollBar,
+                                         verticalAxisScrollBar,
+                                         ui->ckDly,
+                                         seisScrl->horizontalScrollBar(),
+                                         seisScrl->verticalScrollBar(),
+                                         hdrsScrl->horizontalScrollBar(),
+                                         hdrsBottomScrl->horizontalScrollBar(),
+                                         timeScrl->verticalScrollBar(),
+                                         timeRightScrl->verticalScrollBar()};
+    for (auto widget : navigation) {
+        if (enabled) {
+            if (!spectrumNavigationStates.contains(widget))
+                spectrumNavigationStates.insert(widget, widget->isEnabled());
+            widget->setEnabled(false);
+        } else if (spectrumNavigationStates.contains(widget)) {
+            widget->setEnabled(spectrumNavigationStates.take(widget));
+        }
+    }
+}
+
 void MainWindow::updateSpectrumSources()
 {
+    if (velocityDialog)
+        velocityDialog->setSource(seisSrc.Sfile());
     seisScrl->clearSelectionRectangle();
     if (fkDialog)
         fkDialog->setSource(seisSrc.Sfile());
     if (frequencyDialog)
         frequencyDialog->setSource(seisSrc.Sfile());
+}
+
+void MainWindow::showVelocityPicking()
+{
+    auto file = seisSrc.Sfile();
+    if (!file || !file->Active() || !ui->seisFrame->isVisible())
+        return;
+    if (!velocityDialog) {
+        velocityDialog = new VelocityDialog(this);
+        connect(velocityDialog, &VelocityDialog::armedChanged, this,
+                &MainWindow::setVelocityInteraction);
+        connect(velocityDialog, &VelocityDialog::overlayChanged, &seisView,
+                QOverload<>::of(&QWidget::update));
+    }
+    velocityDialog->setSource(file);
+    velocityDialog->show();
+    velocityDialog->raise();
+    velocityDialog->activateWindow();
+    velocityDialog->setArmed(true);
+}
+
+void MainWindow::setVelocityInteraction(bool enabled)
+{
+    if (enabled && selectionOwner) {
+        auto owner = selectionOwner;
+        if (auto button = owner->findChild<QPushButton *>("fkSelect"))
+            button->setChecked(false);
+        setSpectrumSelection(owner, false);
+    }
+    if (enabled)
+        seisScrl->setZoomW(0);
+    setAnalysisNavigationLocked(enabled);
+    if (enabled) {
+        const QCursor cursor(QPixmap(":/images/SelectionBlackCurs.xpm"), 8, 8);
+        seisView.setCursor(cursor);
+        seisScrl->viewport()->setCursor(cursor);
+    } else {
+        seisView.unsetCursor();
+        seisScrl->viewport()->unsetCursor();
+    }
+}
+
+void MainWindow::paintVelocityOverlay(QPainter &painter)
+{
+    if (!velocityDialog || !velocityDialog->hasCurves() || !seisSrc.Sfile())
+        return;
+    const QRect visible = seisScrl->viewport()
+                              ->rect()
+                              .translated(-seisView.pos())
+                              .intersected(seisView.rect());
+    if (visible.isEmpty())
+        return;
+    const int from = qMax(
+        0, int(std::floor(qMin(seisSrc.Tx(seisSct.pix2x(visible.left())),
+                               seisSrc.Tx(seisSct.pix2x(visible.right()))))) -
+               1);
+    const int to =
+        qMin(seisSrc.Nt() - 1,
+             int(std::ceil(qMax(seisSrc.Tx(seisSct.pix2x(visible.left())),
+                                seisSrc.Tx(seisSct.pix2x(visible.right()))))) +
+                 1);
+    velocityDialog->paintOverlay(
+        painter, visible, from, to,
+        [this](int trace, double ms) {
+            return QPointF(seisSct.x2fpix(seisSrc.Tp(trace)),
+                           seisSct.y2fpix(ms / 1000));
+        },
+        ui->ckDly->isChecked());
 }

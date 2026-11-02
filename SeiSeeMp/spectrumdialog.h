@@ -2,6 +2,7 @@
 #define SPECTRUMDIALOG_H
 
 #include <QDialog>
+#include <QRectF>
 
 class SeisFile;
 
@@ -17,6 +18,7 @@ public:
     virtual void setSource(SeisFile *file) = 0;
     virtual void setInitialRange(int firstTrace, int lastTrace, double startMs,
                                  double endMs) = 0;
+    virtual QRectF inputRange() const = 0;
     virtual void shutdown() = 0;
     virtual bool isCalculating() const = 0;
     virtual bool isSourceCurrent() const = 0;
@@ -29,6 +31,7 @@ public:
 signals:
     void currentViewRequested();
     void selectionRequested(bool enabled);
+    void inputRangeChanged();
     void spectrumUpdated();
 
 protected:

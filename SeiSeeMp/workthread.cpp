@@ -850,6 +850,15 @@ void ImageExportWorker::process()
                                     m_selectionColor);
         imagePainter.restore();
     }
+    // Overlay coordinates already include the export pixel scale. QPicture
+    // replay also scales by target DPI, so compensate for that implicit scale.
+    if (!m_overlay.isNull()) {
+        imagePainter.save();
+        imagePainter.scale(qreal(m_overlay.logicalDpiX()) / m_image.logicalDpiX(),
+                           qreal(m_overlay.logicalDpiY()) / m_image.logicalDpiY());
+        m_overlay.play(&imagePainter);
+        imagePainter.restore();
+    }
     imagePainter.end();
 
     emit exportProgress(tr("Encoding and saving PNG..."));

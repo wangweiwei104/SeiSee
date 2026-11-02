@@ -246,6 +246,7 @@ void GfxView::paintEvent(QPaintEvent *pe)
     }
 
     m_gfx.Paint();
+    emit overlayPaint(&painter);
 
     //   painter.drawRect(r);
     //   painter.drawLine(r.left(),r.top(),r.right(),r.bottom());

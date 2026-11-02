@@ -69,5 +69,6 @@
         <file>images/ZoomW.png</file>
         <file>images/ZoomWCurs.xpm</file>
         <file>images/Zv.png</file>
+        <file>images/Velocity.svg</file>
     </qresource>
 </RCC>
