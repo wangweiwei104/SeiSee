@@ -1946,7 +1946,7 @@
                    <property name="maximumSize"><size><width>24</width><height>24</height></size></property>
                    <property name="toolTip"><string>Velocity Picking</string></property>
                    <property name="text"><string/></property>
-                   <property name="icon"><iconset resource="myrc.qrc"><normaloff>:/images/Velocity.svg</normaloff>:/images/Velocity.svg</iconset></property>
+                   <property name="icon"><iconset resource="myrc.qrc"><normaloff>:/images/VeloPick.png</normaloff>:/images/VeloPick.png</iconset></property>
                    <property name="iconSize"><size><width>20</width><height>20</height></size></property>
                   </widget>
                  </item>
@@ -3743,7 +3743,7 @@
   </action>
   <action name="actionVelocityPicking">
    <property name="text"><string>Velocity Picking</string></property>
-   <property name="icon"><iconset resource="myrc.qrc"><normaloff>:/images/Velocity.svg</normaloff>:/images/Velocity.svg</iconset></property>
+   <property name="icon"><iconset resource="myrc.qrc"><normaloff>:/images/VeloPick.png</normaloff>:/images/VeloPick.png</iconset></property>
   </action>
   <action name="actionFkSpectrum">
    <property name="icon"><iconset resource="myrc.qrc"><normaloff>:/images/FK.png</normaloff>:/images/FK.png</iconset></property>
