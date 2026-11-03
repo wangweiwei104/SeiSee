@@ -135,6 +135,8 @@ VelocityDialog::VelocityDialog(QWidget *parent)
     connect(active, &QPushButton::toggled, this, &VelocityDialog::setArmed);
     connect(cancelButton, &QPushButton::clicked, this, &VelocityDialog::cancel);
     connect(undoButton, &QPushButton::clicked, this, &VelocityDialog::undo);
+    connect(ui->velocityManualAdd, &QPushButton::clicked, this,
+            &VelocityDialog::addManualPick);
     connect(deleteButton, &QPushButton::clicked, this, [this]() {
         if (!selected)
             return;
@@ -422,6 +424,72 @@ void VelocityDialog::undo()
     picks = history.takeLast();
     selected = 0;
     changed();
+}
+void VelocityDialog::addManualPick()
+{
+    if (key.isEmpty()) {
+        notice(tr("Open a source file first."));
+        return;
+    }
+    if (picks.size() >= 10000) {
+        notice(tr("Use at most 10000 velocity curves."));
+        return;
+    }
+
+    QDialog dialog(this);
+    dialog.setWindowTitle(tr("Add velocity"));
+    auto form = new QFormLayout(&dialog);
+    auto type = new QComboBox(&dialog);
+    type->addItems({tr("Line"), tr("Hyperbola")});
+    type->setCurrentIndex(hyperbola->isChecked() ? 1 : 0);
+
+    auto t0 = new QDoubleSpinBox(&dialog);
+    t0->setDecimals(1);
+    t0->setRange(-1e9, 1e9);
+    t0->setValue(0);
+
+    auto speed = new QDoubleSpinBox(&dialog);
+    speed->setDecimals(2);
+    speed->setRange(-1e9, 1e9);
+    speed->setValue(1500);
+
+    auto updateRanges = [type, t0, speed]() {
+        const bool isHyperbola = type->currentIndex() == 1;
+        t0->setMinimum(isHyperbola ? 0 : -1e9);
+        speed->setMinimum(isHyperbola ? 0.000001 : -1e9);
+    };
+    connect(type, QOverload<int>::of(&QComboBox::currentIndexChanged), &dialog,
+            [updateRanges]() { updateRanges(); });
+    updateRanges();
+
+    form->addRow(tr("Type"), type);
+    form->addRow(tr("t0 (ms)"), t0);
+    form->addRow(tr("Velocity (m/s)"), speed);
+    auto buttons = new QDialogButtonBox(
+        QDialogButtonBox::Ok | QDialogButtonBox::Cancel, &dialog);
+    form->addRow(buttons);
+    connect(buttons, &QDialogButtonBox::accepted, &dialog, &QDialog::accept);
+    connect(buttons, &QDialogButtonBox::rejected, &dialog, &QDialog::reject);
+    if (dialog.exec() != QDialog::Accepted)
+        return;
+    if (speed->value() == 0) {
+        notice(tr("Velocity must be nonzero."));
+        return;
+    }
+
+    VelocityPick pick = defaults();
+    pick.id = nextId++;
+    pick.hyperbola = type->currentIndex() == 1;
+    pick.t0 = t0->value();
+    pick.velocity = speed->value();
+    pick.origin = tr("Manual");
+    snapshot();
+    selected = pick.id;
+    picks.append(pick);
+    cancel();
+    changed();
+    selectRecord(selected);
+    status->setText(tr("Manually added velocity."));
 }
 void VelocityDialog::point(int trace, double displayMs, bool displayDelay,
                            bool commit)

@@ -109,6 +109,7 @@ private:
     void stopWorker();
     void refreshTable();
     void updateFields();
+    void addManualPick();
     void selectRecord(quint64 id);
     void snapshot();
     void changed();
