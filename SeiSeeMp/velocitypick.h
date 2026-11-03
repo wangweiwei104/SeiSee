@@ -2,8 +2,12 @@
 #define VELOCITYPICK_H
 
 #include <QColor>
+#include <QHash>
+#include <QList>
+#include <QMutex>
 #include <QThread>
 #include <QVector>
+#include <QWaitCondition>
 #include <limits>
 
 struct VelocityPoint {
@@ -13,8 +17,8 @@ struct VelocityPoint {
 struct VelocityPick {
     quint64 id = 0;
     bool hyperbola = true;
-    double t0 = 0, velocity = 0, width = 1.5, spacing = 25;
-    int distanceMode = 0, gatherMode = 0;
+    double t0 = 0, velocity = 0, width = 1.5;
+    int distanceMode = 0;
     QColor color = Qt::black;
     QString origin;
     VelocityPoint first, second;
@@ -22,17 +26,21 @@ struct VelocityPick {
 struct VelocityTrace {
     double distance = std::numeric_limits<double>::quiet_NaN();
     double offset = 0, delayMs = 0;
-    int record = 0, source = 0, channel = 0;
-    int firstRecord = 0, firstSource = 0, firstChannel = 0;
 };
 struct VelocityGeometry {
-    QVector<VelocityTrace> traces;
-    int autoGather = 4;
+    QHash<int, VelocityTrace> traces;
+    int traceCount = 0;
     bool assumedMetres = false;
-    int first(int trace, int mode) const;
+    bool contains(int trace) const;
     double distance(int trace, const VelocityPick &pick) const;
 };
 Q_DECLARE_METATYPE(VelocityGeometry)
+
+struct VelocityGeometrySamples {
+    QVector<int> indices;
+    QVector<VelocityTrace> traces;
+};
+Q_DECLARE_METATYPE(VelocityGeometrySamples)
 
 bool fitVelocity(const VelocityPoint &a, const VelocityPoint &b,
                  VelocityPick *pick, QString *error);
@@ -52,13 +60,21 @@ public:
     }
     QString path, key;
     int type = 1;
+    void requestSamples(const QVector<int> &indices);
+    void wake();
 signals:
-    void ready(VelocityGeometry geometry);
+    void opened(int traceCount, bool assumedMetres);
+    void samplesReady(VelocityGeometrySamples samples);
     void failed(QString message);
     void progress(int percent);
 
 protected:
     void run() override;
+
+private:
+    QMutex requestMutex;
+    QWaitCondition requestsAvailable;
+    QList<QVector<int>> requests;
 };
 
 #endif

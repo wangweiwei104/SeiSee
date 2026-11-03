@@ -5067,9 +5067,8 @@ void MainWindow::setVelocityInteraction(bool enabled)
         seisScrl->setZoomW(0);
     setAnalysisNavigationLocked(enabled);
     if (enabled) {
-        const QCursor cursor(QPixmap(":/images/SelectionBlackCurs.xpm"), 8, 8);
-        seisView.setCursor(cursor);
-        seisScrl->viewport()->setCursor(cursor);
+        seisView.setCursor(Qt::CrossCursor);
+        seisScrl->viewport()->setCursor(Qt::CrossCursor);
     } else {
         seisView.unsetCursor();
         seisScrl->viewport()->unsetCursor();
@@ -5095,6 +5094,7 @@ void MainWindow::paintVelocityOverlay(QPainter &painter)
              int(std::ceil(qMax(seisSrc.Tx(seisSct.pix2x(visible.left())),
                                 seisSrc.Tx(seisSct.pix2x(visible.right()))))) +
                  1);
+    velocityDialog->requestGeometry(from, to, qMax(1, visible.width()));
     velocityDialog->paintOverlay(
         painter, visible, from, to,
         [this](int trace, double ms) {

@@ -1,94 +1,46 @@
 #include "velocitydialog.h"
 #include "fktransform.h"
-#include "gfxstyle.h"
 #include "mystringtable.h"
 #include "seisfile.h"
 #include "Toast.h"
+#include "ui_velocitydialog.h"
 #include <QtWidgets>
 #include <algorithm>
 #include <cmath>
 
-namespace {
-    QGroupBox *group(const QString &name, QVBoxLayout *column)
-    {
-        auto box = new QGroupBox(name);
-        column->addWidget(box);
-        return box;
-    }
-    QLineEdit *readout(const char *name)
-    {
-        auto edit = new QLineEdit;
-        edit->setObjectName(name);
-        edit->setReadOnly(true);
-        edit->setAlignment(Qt::AlignRight);
-        edit->setMinimumWidth(70);
-        edit->setText("—");
-        return edit;
-    }
-} // namespace
 VelocityDialog::VelocityDialog(QWidget *parent)
     : QDialog(parent)
+    , ui(new Ui::VelocityDialog)
 {
-    setObjectName("VelocityDialog");
-    setWindowTitle(tr("Velocity Picking"));
-    setWindowIcon(QIcon(":/images/SeiSeeMp.png"));
-    setModal(false);
-    resize(1010, 440);
+    ui->setupUi(this);
     qRegisterMetaType<VelocityGeometry>("VelocityGeometry");
-    auto outer = new QVBoxLayout(this);
-    outer->setContentsMargins(8, 8, 8, 8);
-    outer->setSpacing(5);
-    auto columns = new QHBoxLayout;
-    columns->setSpacing(6);
-    outer->addLayout(columns, 1);
-    auto left = new QVBoxLayout, middle = new QVBoxLayout,
-         right = new QVBoxLayout;
-    columns->addLayout(left, 0);
-    columns->addLayout(middle, 0);
-    columns->addLayout(right, 1);
-    auto modeBox = group(tr("Mode"), left);
-    modeBox->setObjectName("velocityModeGroup");
-    auto mode = new QGridLayout(modeBox);
-    line = new QRadioButton(tr("Line"));
-    line->setObjectName("velocityLine");
-    line->setToolTip(
-        tr("t = t0 + x / v; velocity retains the line slope sign."));
-    hyperbola = new QRadioButton(tr("Hyperbola"));
-    hyperbola->setObjectName("velocityHyperbola");
-    hyperbola->setToolTip(
-        tr("t = sqrt(t0^2 + (x / v)^2); both points define t0 and v."));
-    hyperbola->setChecked(true);
-    mode->addWidget(line, 0, 0);
-    mode->addWidget(hyperbola, 0, 1);
-    distanceMode = new QComboBox;
-    distanceMode->setObjectName("velocityDistance");
-    distanceMode->addItems({tr("Coordinates (m)"), tr("Offset (signed m)"),
-                            tr("Trace spacing (m)")});
-    distanceMode->setToolTip(
-        tr("Coordinates: source/receiver distance, SEG-Y coordinate scalar and "
-           "metre/foot units. Angular coordinates require Offset or spacing."));
-    mode->addWidget(new QLabel(tr("Distance")), 1, 0);
-    mode->addWidget(distanceMode, 1, 1);
-    gatherMode = new QComboBox;
-    gatherMode->setObjectName("velocityGather");
-    gatherMode->addItems({tr("Auto"), tr("Field record (9)"),
-                          tr("Source point (17)"), tr("Channel reset (13)"),
-                          tr("Single gather")});
-    mode->addWidget(new QLabel(tr("Gather by")), 2, 0);
-    mode->addWidget(gatherMode, 2, 1);
-    spacing = new QDoubleSpinBox;
-    spacing->setObjectName("velocitySpacing");
-    spacing->setDecimals(4);
-    spacing->setRange(.0001, 1e8);
-    spacing->setValue(25);
-    spacing->setEnabled(false);
-    mode->addWidget(new QLabel(tr("Dx (m)")), 3, 0);
-    mode->addWidget(spacing, 3, 1);
-    auto displayBox = group(tr("Display"), left);
-    displayBox->setObjectName("velocityDisplayGroup");
-    auto display = new QGridLayout(displayBox);
-    color = new QComboBox;
-    color->setObjectName("velocityColor");
+    qRegisterMetaType<VelocityGeometrySamples>("VelocityGeometrySamples");
+    line = ui->velocityLine;
+    hyperbola = ui->velocityHyperbola;
+    distanceMode = ui->velocityDistance;
+    color = ui->velocityColor;
+    width = ui->velocityWidth;
+    visibleCurves = ui->velocityVisible;
+    active = ui->velocityActive;
+    pointFields[0] = ui->velocityP1Distance;
+    pointFields[1] = ui->velocityP1Time;
+    pointFields[2] = ui->velocityP2Distance;
+    pointFields[3] = ui->velocityP2Time;
+    traceInfo = ui->velocityTraceInfo;
+    cancelButton = ui->velocityCancel;
+    velocity = ui->velocityValue;
+    intercept = ui->velocityT0;
+    auto importButton = ui->velocityImport;
+    exportButton = ui->velocityExport;
+    csvType = ui->velocityCsvType;
+    table = ui->velocityTable;
+    undoButton = ui->velocityUndo;
+    deleteButton = ui->velocityDelete;
+    fileInfo = ui->fileInfo;
+    status = ui->velocityStatus;
+    progress = ui->velocityProgress;
+
+    color->clear();
     for (const QString &name :
          {QString("Black"), QString("Blue"), QString("Red"),
           QString("DarkGreen"), QString("Orange"), QString("Magenta")}) {
@@ -97,77 +49,10 @@ VelocityDialog::VelocityDialog(QWidget *parent)
         color->addItem(QIcon(swatch), name, QColor(name));
     }
     color->addItem(tr("Custom..."), QColor());
-    width = new QComboBox;
-    width->setObjectName("velocityWidth");
-    width->addItems({"0.5", "1", "1.5", "2", "3", "4"});
-    width->setCurrentText("1.5");
-    display->addWidget(new QLabel(tr("Color")), 0, 0);
-    display->addWidget(color, 0, 1);
-    display->addWidget(new QLabel(tr("Line Width")), 1, 0);
-    display->addWidget(width, 1, 1);
-    visibleCurves = new QCheckBox(tr("Show curves"));
-    visibleCurves->setObjectName("velocityVisible");
-    visibleCurves->setChecked(true);
-    display->addWidget(visibleCurves, 2, 0, 1, 2);
-    display->addWidget(new QLabel(tr("Scope: all gathers in current file")), 3,
-                       0, 1, 2);
-    active = new QPushButton(tr("Start picking"));
-    active->setObjectName("velocityActive");
-    active->setCheckable(true);
-    left->addWidget(active);
-    left->addStretch();
-
-    auto pointsBox = group(tr("Pick Points"), middle);
-    pointsBox->setObjectName("velocityPointsGroup");
-    auto points = new QGridLayout(pointsBox);
-    points->addWidget(new QLabel(tr("Distance (m)")), 0, 1);
-    points->addWidget(new QLabel(tr("Time (ms)")), 0, 2);
-    const char *names[] = {"velocityP1Distance", "velocityP1Time",
-                           "velocityP2Distance", "velocityP2Time"};
-    for (int i = 0; i < 4; ++i) {
-        pointFields[i] = readout(names[i]);
-        points->addWidget(pointFields[i], i / 2 + 1, i % 2 + 1);
-    }
-    points->addWidget(new QLabel("P1"), 1, 0);
-    points->addWidget(new QLabel("P2"), 2, 0);
-    traceInfo = new QLabel(tr("Trace: —"));
-    points->addWidget(traceInfo, 3, 0, 1, 3);
-    cancelButton = new QPushButton(tr("Cancel current"));
-    cancelButton->setObjectName("velocityCancel");
-    points->addWidget(cancelButton, 4, 1, 1, 2);
-    auto resultBox = group(tr("Result"), middle);
-    resultBox->setObjectName("velocityResultGroup");
-    auto result = new QGridLayout(resultBox);
-    result->addWidget(new QLabel(tr("Velocity (m/s)")), 0, 0);
-    result->addWidget(new QLabel(tr("t0 (ms)")), 0, 1);
-    velocity = readout("velocityValue");
-    intercept = readout("velocityT0");
     intercept->setToolTip(
         tr("Time origin is the raw trace sample origin. Displayed recording "
            "delay is removed while fitting and restored while drawing."));
-    result->addWidget(velocity, 1, 0);
-    result->addWidget(intercept, 1, 1);
-    auto csvBox = group(tr("CSV"), middle);
-    csvBox->setObjectName("velocityCsvGroup");
-    auto csv = new QGridLayout(csvBox);
-    auto importButton = new QPushButton(tr("Import CSV"));
-    importButton->setObjectName("velocityImport");
-    exportButton = new QPushButton(tr("Export CSV"));
-    exportButton->setObjectName("velocityExport");
-    csvType = new QComboBox;
-    csvType->setObjectName("velocityCsvType");
-    csvType->addItems({tr("Auto"), tr("Line"), tr("Hyperbola")});
-    csv->addWidget(importButton, 0, 0);
-    csv->addWidget(exportButton, 0, 1);
-    csv->addWidget(new QLabel(tr("CSV Type")), 1, 0);
-    csv->addWidget(csvType, 1, 1);
-    csv->addWidget(new QLabel("t0(ms), velocity(m/s)"), 2, 0, 1, 2);
-    middle->addStretch();
-    auto picksBox = group(tr("Picks"), right);
-    picksBox->setObjectName("velocityPicksGroup");
-    auto list = new QVBoxLayout(picksBox);
-    table = new MyStringTable;
-    table->setObjectName("velocityTable");
+
     table->setColCount(5);
     table->verticalHeader()->hide();
     const QStringList headers = {"ID", tr("Type"), "t0 (ms)",
@@ -181,50 +66,21 @@ VelocityDialog::VelocityDialog(QWidget *parent)
     table->setColWidthInCharacters(2, 10);
     table->setColWidthInCharacters(3, 13);
     table->setColWidthToStretch(4);
-    table->setMinimumSize(390, 240);
     table->horizontalHeader()->setSortIndicatorShown(true);
-    table->horizontalHeader()->setSortIndicator(2, Qt::AscendingOrder);
-    list->addWidget(table, 1);
-    auto actions = new QHBoxLayout;
-    undoButton = new QPushButton(tr("Undo"));
-    undoButton->setObjectName("velocityUndo");
-    deleteButton = new QPushButton(tr("Delete selected"));
-    deleteButton->setObjectName("velocityDelete");
-    actions->addStretch();
-    actions->addWidget(undoButton);
-    actions->addWidget(deleteButton);
-    list->addLayout(actions);
-    auto footer = new QHBoxLayout;
-    fileInfo = new QLabel;
-    status = new QLabel;
-    status->setObjectName("velocityStatus");
-    status->setWordWrap(true);
-    for (auto label : {fileInfo, status}) {
-        label->setFrameStyle(QFrame::Panel | QFrame::Sunken);
-        label->setMargin(3);
-    }
-    progress = new QProgressBar;
-    progress->setObjectName("velocityProgress");
-    progress->setFixedWidth(95);
-    progress->hide();
-    footer->addWidget(fileInfo);
-    footer->addWidget(status, 1);
-    footer->addWidget(progress);
-    outer->addLayout(footer);
     for (auto button : findChildren<QPushButton *>())
         button->setAutoDefault(false);
     QSettings settings("WW", "SeiSeeMp");
     settings.beginGroup("VelocityPicking");
     line->setChecked(settings.value("line", false).toBool());
     hyperbola->setChecked(!line->isChecked());
-    distanceMode->setCurrentIndex(
-        qBound(0, settings.value("distance", 0).toInt(), 2));
-    gatherMode->setCurrentIndex(
-        qBound(0, settings.value("gather", 0).toInt(), 4));
-    spacing->setValue(settings.value("spacing", 25).toDouble());
-    spacing->setEnabled(distanceMode->currentIndex() == 2);
+    const int savedDistance = settings.value("distance", 0).toInt();
+    distanceMode->setCurrentIndex(savedDistance == 1 ? 1 : 0);
     width->setCurrentText(settings.value("width", "1.5").toString());
+    sortColumn = qBound(0, settings.value("sortColumn", 2).toInt(), 4);
     descending = settings.value("descending", false).toBool();
+    table->horizontalHeader()->setSortIndicator(
+        sortColumn,
+        descending ? Qt::DescendingOrder : Qt::AscendingOrder);
     const QColor saved(settings.value("color", "black").toString());
     int ci = color->findData(saved);
     if (ci < 0 && saved.isValid()) {
@@ -237,16 +93,12 @@ VelocityDialog::VelocityDialog(QWidget *parent)
     auto modeChanged = [this]() {
         if (updating)
             return;
-        spacing->setEnabled(distanceMode->currentIndex() == 2);
         cancel();
         saveSettings();
     };
     connect(line, &QRadioButton::toggled, this, [=]() { modeChanged(); });
-    for (auto combo : {distanceMode, gatherMode})
-        connect(combo, QOverload<int>::of(&QComboBox::currentIndexChanged),
-                this, [=]() { modeChanged(); });
-    connect(spacing, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this,
-            [=]() { modeChanged(); });
+    connect(distanceMode, QOverload<int>::of(&QComboBox::currentIndexChanged),
+            this, [=]() { modeChanged(); });
     auto styleChanged = [this]() {
         if (updating)
             return;
@@ -299,13 +151,17 @@ VelocityDialog::VelocityDialog(QWidget *parent)
         if (!updating && row >= 0)
             selectRecord(quint64(table->Tag(row, 0)));
     });
-    connect(table, &MyStringTable::hHeaderEvent, this, [this](int column) {
-        if (column == 2) {
-            descending = !descending;
-            refreshTable();
-            saveSettings();
-        }
-    });
+    connect(table->horizontalHeader(), &QHeaderView::sectionClicked, this,
+            [this](int column) {
+                if (column == sortColumn)
+                    descending = !descending;
+                else {
+                    sortColumn = column;
+                    descending = false;
+                }
+                refreshTable();
+                saveSettings();
+            });
     connect(importButton, &QPushButton::clicked, this, [this]() {
         importFiles(QFileDialog::getOpenFileNames(
             this, tr("Import velocity CSV"), QFileInfo(path).absolutePath(),
@@ -327,14 +183,13 @@ VelocityDialog::VelocityDialog(QWidget *parent)
 VelocityDialog::~VelocityDialog()
 {
     shutdown();
+    delete ui;
 }
 VelocityPick VelocityDialog::defaults() const
 {
     VelocityPick p;
     p.hyperbola = hyperbola->isChecked();
     p.distanceMode = distanceMode->currentIndex();
-    p.gatherMode = gatherMode->currentIndex();
-    p.spacing = spacing->value();
     p.color = color->currentData().value<QColor>();
     p.width = width->currentText().toDouble();
     return p;
@@ -344,9 +199,51 @@ QVector<VelocityPick> VelocityDialog::ordered() const
     auto result = picks;
     std::stable_sort(result.begin(), result.end(),
                      [this](const VelocityPick &a, const VelocityPick &b) {
-                         return a.t0 == b.t0 ? a.id < b.id
-                                : descending ? a.t0 > b.t0
-                                             : a.t0 < b.t0;
+                         int comparison = 0;
+                         switch (sortColumn) {
+                         case 0:
+                             comparison =
+                                 a.id < b.id ? -1 : a.id > b.id ? 1 : 0;
+                             break;
+                         case 1: {
+                             const QString typeA =
+                                 a.hyperbola ? QStringLiteral("Hyperbola")
+                                             : QStringLiteral("Line");
+                             const QString typeB =
+                                 b.hyperbola ? QStringLiteral("Hyperbola")
+                                             : QStringLiteral("Line");
+                             comparison = QString::compare(
+                                 typeA, typeB, Qt::CaseInsensitive);
+                             break;
+                         }
+                         case 3:
+                             comparison = a.velocity < b.velocity
+                                              ? -1
+                                              : a.velocity > b.velocity ? 1 : 0;
+                             break;
+                         case 4: {
+                             const QString sourceA =
+                                 a.origin.isEmpty()
+                                     ? tr("Pick")
+                                     : QFileInfo(a.origin).fileName();
+                             const QString sourceB =
+                                 b.origin.isEmpty()
+                                     ? tr("Pick")
+                                     : QFileInfo(b.origin).fileName();
+                             comparison = QString::compare(
+                                 sourceA, sourceB, Qt::CaseInsensitive);
+                             break;
+                         }
+                         case 2:
+                         default:
+                             comparison =
+                                 a.t0 < b.t0 ? -1 : a.t0 > b.t0 ? 1 : 0;
+                             break;
+                         }
+                         if (comparison == 0)
+                             comparison =
+                                 a.id < b.id ? -1 : a.id > b.id ? 1 : 0;
+                         return descending ? comparison > 0 : comparison < 0;
                      });
     return result;
 }
@@ -358,6 +255,7 @@ void VelocityDialog::stopWorker()
         worker = nullptr;
         job->disconnect(this);
         job->requestInterruption();
+        job->wake();
         job->wait();
         delete job;
     }
@@ -369,13 +267,15 @@ void VelocityDialog::setSource(SeisFile *file)
                                 ? QString::fromLocal8Bit(file->Fname().c_str())
                                 : QString();
     const QString newKey = spectrumSourceKey(newPath);
-    if (newKey == key && (worker || !sourceGeometry.traces.isEmpty()))
+    if (newKey == key && (worker || sourceGeometry.traceCount > 0))
         return;
     if (!key.isEmpty())
         sessions[key] = picks;
     setArmed(false);
     stopWorker();
     sourceGeometry = VelocityGeometry();
+    geometryCacheOrder.clear();
+    pendingGeometry.clear();
     path = newPath;
     key = newKey;
     picks = sessions.value(key);
@@ -405,14 +305,48 @@ void VelocityDialog::setSource(SeisFile *file)
     status->setText(tr("Reading geometry headers..."));
     connect(job, &VelocityGeometryWorker::progress, this,
             [this, job, epoch](int n) {
-                if (worker == job && generation == epoch)
+                if (worker == job && generation == epoch) {
                     progress->setValue(n);
+                    progress->setVisible(n < 100);
+                }
             });
-    connect(job, &VelocityGeometryWorker::ready, this,
-            [this, job, epoch](const VelocityGeometry &g) {
+    connect(job, &VelocityGeometryWorker::opened, this,
+            [this, job, epoch](int traceCount, bool assumedMetres) {
                 if (worker != job || generation != epoch)
                     return;
-                sourceGeometry = g;
+                sourceGeometry.traceCount = traceCount;
+                sourceGeometry.assumedMetres = assumedMetres;
+                active->setEnabled(true);
+                progress->hide();
+                status->setText(
+                    assumedMetres
+                        ? tr("Ready; loading visible headers. Unspecified "
+                             "length units assumed metres.")
+                        : tr("Ready; loading visible headers as needed."));
+                emit geometryReady();
+                emit overlayChanged();
+                if (requestedPicking && isVisible())
+                    setArmed(true);
+            });
+    connect(job, &VelocityGeometryWorker::samplesReady, this,
+            [this, job, epoch](const VelocityGeometrySamples &samples) {
+                if (worker != job || generation != epoch)
+                    return;
+                for (int i = 0; i < samples.indices.size(); ++i) {
+                    const int trace = samples.indices[i];
+                    pendingGeometry.remove(trace);
+                    if (!sourceGeometry.traces.contains(trace)) {
+                        sourceGeometry.traces.insert(trace, samples.traces[i]);
+                        geometryCacheOrder.enqueue(trace);
+                    } else {
+                        sourceGeometry.traces[trace] = samples.traces[i];
+                    }
+                }
+                constexpr int geometryCacheLimit = 16384;
+                while (geometryCacheOrder.size() > geometryCacheLimit) {
+                    const int trace = geometryCacheOrder.dequeue();
+                    sourceGeometry.traces.remove(trace);
+                }
                 emit geometryReady();
                 emit overlayChanged();
             });
@@ -423,29 +357,12 @@ void VelocityDialog::setSource(SeisFile *file)
                     notice(s);
                 }
             });
-    connect(job, &QThread::finished, this, [this, job, epoch]() {
-        if (worker != job || generation != epoch)
-            return;
-        worker = nullptr;
-        job->deleteLater();
-        progress->hide();
-        active->setEnabled(!sourceGeometry.traces.isEmpty());
-        if (!sourceGeometry.traces.isEmpty()) {
-            status->setText(
-                sourceGeometry.assumedMetres
-                    ? tr("Headers ready; unspecified length units assumed "
-                         "metres.")
-                    : tr("Headers ready. Pick on the main seismic view."));
-            if (requestedPicking && isVisible())
-                setArmed(true);
-        }
-    });
     job->start();
 }
 void VelocityDialog::setArmed(bool enabled)
 {
     requestedPicking = enabled;
-    enabled = enabled && !sourceGeometry.traces.isEmpty() && !key.isEmpty();
+    enabled = enabled && sourceGeometry.traceCount > 0 && !key.isEmpty();
     const bool was = armed;
     armed = enabled;
     {
@@ -456,6 +373,32 @@ void VelocityDialog::setArmed(bool enabled)
     cancel();
     if (was != armed)
         emit armedChanged(armed);
+}
+void VelocityDialog::requestGeometry(int firstTrace, int lastTrace,
+                                     int sampleCount)
+{
+    if (!worker || sourceGeometry.traceCount < 1 || sampleCount < 1)
+        return;
+    firstTrace = qBound(0, firstTrace, sourceGeometry.traceCount - 1);
+    lastTrace = qBound(0, lastTrace, sourceGeometry.traceCount - 1);
+    if (firstTrace > lastTrace)
+        std::swap(firstTrace, lastTrace);
+    const qint64 span = qint64(lastTrace) - firstTrace;
+    const qint64 step = qMax<qint64>(1, (span + sampleCount - 1) / sampleCount);
+    QVector<int> needed;
+    for (qint64 trace = firstTrace; trace <= lastTrace; trace += step) {
+        const int index = int(trace);
+        if (!sourceGeometry.contains(index) && !pendingGeometry.contains(index)) {
+            needed.append(index);
+            pendingGeometry.insert(index);
+        }
+    }
+    if (!sourceGeometry.contains(lastTrace) && !pendingGeometry.contains(lastTrace)) {
+        needed.append(lastTrace);
+        pendingGeometry.insert(lastTrace);
+    }
+    if (!needed.isEmpty())
+        worker->requestSamples(needed);
 }
 void VelocityDialog::cancel()
 {
@@ -483,18 +426,23 @@ void VelocityDialog::undo()
 void VelocityDialog::point(int trace, double displayMs, bool displayDelay,
                            bool commit)
 {
-    if (!armed || trace < 0 || trace >= sourceGeometry.traces.size() ||
+    if (!armed || trace < 0 || trace >= sourceGeometry.traceCount ||
         !std::isfinite(displayMs))
         return;
+    if (!sourceGeometry.contains(trace)) {
+        requestGeometry(trace, trace, 1);
+        status->setText(tr("Loading geometry for the selected trace."));
+        return;
+    }
     VelocityPoint p;
     p.trace = trace;
     p.distance = sourceGeometry.distance(trace, defaults());
     p.displayTimeMs = displayMs;
-    p.timeMs =
-        displayMs - (displayDelay ? sourceGeometry.traces[trace].delayMs : 0);
+    p.timeMs = displayMs -
+               (displayDelay ? sourceGeometry.traces.value(trace).delayMs : 0);
     if (!std::isfinite(p.distance)) {
         status->setText(tr("Coordinate units are angular or unavailable; "
-                           "select Offset or spacing."));
+                           "select Offset."));
         return;
     }
     if (first.trace < 0) {
@@ -522,7 +470,7 @@ void VelocityDialog::point(int trace, double displayMs, bool displayDelay,
         return;
     }
     if (!commit) {
-        status->setText(tr("Preview across all gathers. Click to confirm."));
+        status->setText(tr("Preview curve. Click to confirm."));
         return;
     }
     if (picks.size() >= 10000) {
@@ -535,7 +483,7 @@ void VelocityDialog::point(int trace, double displayMs, bool displayDelay,
     picks.append(preview);
     cancel();
     changed();
-    status->setText(tr("Velocity saved across all gathers."));
+    status->setText(tr("Velocity saved."));
 }
 void VelocityDialog::refreshTable()
 {
@@ -560,7 +508,7 @@ void VelocityDialog::refreshTable()
             row = i;
     }
     table->horizontalHeader()->setSortIndicator(
-        2, descending ? Qt::DescendingOrder : Qt::AscendingOrder);
+        sortColumn, descending ? Qt::DescendingOrder : Qt::AscendingOrder);
     if (row >= 0)
         table->setCurCell(row);
     else
@@ -611,9 +559,6 @@ void VelocityDialog::selectRecord(quint64 id)
             line->setChecked(!p.hyperbola);
             hyperbola->setChecked(p.hyperbola);
             distanceMode->setCurrentIndex(p.distanceMode);
-            gatherMode->setCurrentIndex(p.gatherMode);
-            spacing->setValue(p.spacing);
-            spacing->setEnabled(p.distanceMode == 2);
             int c = color->findData(p.color);
             if (c < 0) {
                 color->insertItem(0, p.color.name(), p.color);
@@ -676,8 +621,7 @@ bool VelocityDialog::importFiles(const QStringList &filenames)
     cancel();
     changed();
     selectRecord(selected);
-    status->setText(
-        tr("Imported %1 velocities across all gathers.").arg(additions.size()));
+    status->setText(tr("Imported %1 velocities.").arg(additions.size()));
     return true;
 }
 bool VelocityDialog::exportCsv(const QString &filename)
@@ -700,7 +644,8 @@ bool VelocityDialog::exportCsv(const QString &filename)
 }
 bool VelocityDialog::hasCurves() const
 {
-    return isVisible() && visibleCurves->isChecked() && !sourceGeometry.traces.isEmpty() &&
+    return isVisible() && visibleCurves->isChecked() &&
+           sourceGeometry.traceCount > 0 &&
            (!picks.isEmpty() || first.trace >= 0);
 }
 void VelocityDialog::paintOverlay(
@@ -709,8 +654,8 @@ void VelocityDialog::paintOverlay(
 {
     if (!hasCurves())
         return;
-    from = qBound(0, from, sourceGeometry.traces.size() - 1);
-    to = qBound(0, to, sourceGeometry.traces.size() - 1);
+    from = qBound(0, from, sourceGeometry.traceCount - 1);
+    to = qBound(0, to, sourceGeometry.traceCount - 1);
     if (from > to)
         std::swap(from, to);
     painter.save();
@@ -719,31 +664,48 @@ void VelocityDialog::paintOverlay(
     auto draw = [&](const VelocityPick &p, bool draft) {
         QPainterPath path;
         bool started = false;
-        int previousGroup = -1;
         double previousX = -1e30;
-        for (int trace = from; trace <= to; ++trace) {
-            const int g = sourceGeometry.first(trace, p.gatherMode);
+        const int pixelSamples = qMax(1, qCeil(clip.width()));
+        const qint64 traceStep = qMax<qint64>(
+            1, (qint64(to) - from + pixelSamples - 1) / pixelSamples);
+        for (qint64 trace = from; trace <= to; trace += traceStep) {
+            const int traceIndex = int(trace);
+            if (!sourceGeometry.contains(traceIndex)) {
+                started = false;
+                continue;
+            }
             const double t =
-                velocityTime(p, sourceGeometry.distance(trace, p)) +
-                (displayDelay ? sourceGeometry.traces[trace].delayMs : 0);
-            const QPointF pos = map(trace, t);
+                velocityTime(p, sourceGeometry.distance(traceIndex, p)) +
+                (displayDelay
+                     ? sourceGeometry.traces.value(traceIndex).delayMs
+                     : 0);
+            const QPointF pos = map(traceIndex, t);
             if (!std::isfinite(pos.x()) || !std::isfinite(pos.y()) ||
                 std::abs(pos.x()) > 1e8 || std::abs(pos.y()) > 1e8) {
                 started = false;
-                previousGroup = g;
                 continue;
             }
-            const bool boundary = g != previousGroup;
-            previousGroup = g;
-            if (started && !boundary && std::abs(pos.x() - previousX) < .5 &&
-                trace != to)
+            if (started && std::abs(pos.x() - previousX) < .5 &&
+                traceIndex != to)
                 continue;
-            if (!started || boundary)
+            if (!started)
                 path.moveTo(pos);
             else
                 path.lineTo(pos);
             started = true;
             previousX = pos.x();
+        }
+        if (to != from && sourceGeometry.contains(to)) {
+            const double t =
+                velocityTime(p, sourceGeometry.distance(to, p)) +
+                (displayDelay ? sourceGeometry.traces.value(to).delayMs : 0);
+            const QPointF pos = map(to, t);
+            if (std::isfinite(pos.x()) && std::isfinite(pos.y())) {
+                if (!started)
+                    path.moveTo(pos);
+                else
+                    path.lineTo(pos);
+            }
         }
         const bool highlighted = !draft && p.id == selected;
         const double stroke = p.width + (highlighted ? 1.5 : 0);
@@ -772,9 +734,12 @@ void VelocityDialog::paintOverlay(
     auto marker = [&](const VelocityPoint &p, QColor color) {
         if (p.trace < from || p.trace > to)
             return;
-        const double t =
-            p.timeMs +
-            (displayDelay ? sourceGeometry.traces[p.trace].delayMs : 0);
+        if (!sourceGeometry.contains(p.trace))
+            return;
+        const double t = p.timeMs +
+                         (displayDelay
+                              ? sourceGeometry.traces.value(p.trace).delayMs
+                              : 0);
         painter.setPen(QPen(color, 1));
         painter.setBrush(Qt::white);
         painter.drawEllipse(map(p.trace, t), 3, 3);
@@ -807,8 +772,7 @@ void VelocityDialog::saveSettings()
     s.beginGroup("VelocityPicking");
     s.setValue("line", line->isChecked());
     s.setValue("distance", distanceMode->currentIndex());
-    s.setValue("gather", gatherMode->currentIndex());
-    s.setValue("spacing", spacing->value());
+    s.setValue("sortColumn", sortColumn);
     s.setValue("color", color->currentData().value<QColor>().name());
     s.setValue("width", width->currentText());
     s.setValue("descending", descending);

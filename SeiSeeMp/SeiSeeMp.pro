@@ -45,7 +45,8 @@ FORMS    += mainwindow.ui \
     axisdialog.ui \
     saveasdialog.ui \
     diffdialog.ui \
-    metricsdialog.ui
+    metricsdialog.ui \
+    velocitydialog.ui
 
 # ADD THIS LINE!
 win32: RC_FILE += app.rc

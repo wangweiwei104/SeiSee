@@ -9,26 +9,16 @@
 #include <memory>
 #include <stdexcept>
 
-int VelocityGeometry::first(int trace, int mode) const
+bool VelocityGeometry::contains(int trace) const
 {
-    if (trace < 0 || trace >= traces.size())
-        return 0;
-    if (!mode)
-        mode = autoGather;
-    const auto &t = traces[trace];
-    return mode == 1   ? t.firstRecord
-           : mode == 2 ? t.firstSource
-           : mode == 3 ? t.firstChannel
-                       : 0;
+    return traces.contains(trace);
 }
 double VelocityGeometry::distance(int trace, const VelocityPick &pick) const
 {
-    if (trace < 0 || trace >= traces.size())
+    const auto it = traces.constFind(trace);
+    if (it == traces.constEnd())
         return std::numeric_limits<double>::quiet_NaN();
-    return pick.distanceMode == 0 ? traces[trace].distance
-           : pick.distanceMode == 1
-               ? traces[trace].offset
-               : (trace - first(trace, pick.gatherMode)) * pick.spacing;
+    return pick.distanceMode == 0 ? it->distance : it->offset;
 }
 bool fitVelocity(const VelocityPoint &a, const VelocityPoint &b,
                  VelocityPick *pick, QString *error)
@@ -40,8 +30,8 @@ bool fitVelocity(const VelocityPoint &a, const VelocityPoint &b,
     };
     if (!std::isfinite(a.distance) || !std::isfinite(b.distance) ||
         !std::isfinite(a.timeMs) || !std::isfinite(b.timeMs))
-        return fail(QObject::tr("Distance/time is unavailable. Choose valid "
-                                "geometry or trace spacing."));
+        return fail(QObject::tr(
+            "Distance/time is unavailable. Choose valid geometry."));
     const long double x1 = a.distance, x2 = b.distance, t1 = a.timeMs / 1000.,
                       t2 = b.timeMs / 1000.;
     if (std::abs(x2 - x1) <=
@@ -147,8 +137,7 @@ bool readVelocityCsv(const QString &text, const QString &filename, int type,
     };
     const int ti = column({"t0(ms)", "t0ms", "t0", "t0(s)", "t0s"}),
               vi = column({"velocity(m/s)", "velocity", "v(m/s)", "v"}),
-              mi = column({"type", "mode"}), di = column({"distance_source"}),
-              si = column({"dx(m)"}), gi = column({"gather_by"});
+              mi = column({"type", "mode"}), di = column({"distance_source"});
     if (ti < 0 || vi < 0)
         return fail(
             QObject::tr("CSV requires t0(ms) and velocity(m/s) columns."));
@@ -192,26 +181,10 @@ bool readVelocityCsv(const QString &text, const QString &filename, int type,
                 QObject::tr("Row %1: invalid time or velocity.").arg(r + 2));
         if (di >= 0) {
             QString d = field(di).toLower();
-            p.distanceMode = d == "coordinates" ? 0
-                             : d == "offset"    ? 1
-                             : d == "spacing"   ? 2
-                                                : -1;
+            p.distanceMode = d == "coordinates" ? 0 : d == "offset" ? 1 : -1;
             if (p.distanceMode < 0)
                 return fail(
                     QObject::tr("Row %1: invalid distance_source.").arg(r + 2));
-        }
-        if (si >= 0) {
-            bool ok;
-            p.spacing = field(si).toDouble(&ok);
-            if (!ok || !std::isfinite(p.spacing) || p.spacing <= 0)
-                return fail(QObject::tr("Row %1: invalid dx.").arg(r + 2));
-        }
-        if (gi >= 0) {
-            bool ok;
-            p.gatherMode = field(gi).toInt(&ok);
-            if (!ok || p.gatherMode < 0 || p.gatherMode > 4)
-                return fail(
-                    QObject::tr("Row %1: invalid gather_by.").arg(r + 2));
         }
         p.origin = filename;
         result.append(p);
@@ -221,19 +194,28 @@ bool readVelocityCsv(const QString &text, const QString &filename, int type,
 }
 QString velocityCsv(const QVector<VelocityPick> &picks)
 {
-    QStringList lines = {
-        "type,t0(ms),velocity(m/s),distance_source,dx(m),gather_by"};
+    QStringList lines = {"type,t0(ms),velocity(m/s),distance_source"};
     for (const auto &p : picks)
-        lines.append(QString("%1,%2,%3,%4,%5,%6")
+        lines.append(QString("%1,%2,%3,%4")
                          .arg(p.hyperbola ? "hyperbola" : "line")
                          .arg(QString::number(p.t0, 'g', 17))
                          .arg(QString::number(p.velocity, 'g', 17))
-                         .arg(p.distanceMode == 0   ? "coordinates"
-                              : p.distanceMode == 1 ? "offset"
-                                                    : "spacing")
-                         .arg(QString::number(p.spacing, 'g', 17))
-                         .arg(p.gatherMode));
+                         .arg(p.distanceMode == 0 ? "coordinates" : "offset"));
     return lines.join("\r\n") + "\r\n";
+}
+
+void VelocityGeometryWorker::requestSamples(const QVector<int> &indices)
+{
+    if (indices.isEmpty())
+        return;
+    QMutexLocker lock(&requestMutex);
+    requests.append(indices);
+    requestsAvailable.wakeOne();
+}
+
+void VelocityGeometryWorker::wake()
+{
+    requestsAvailable.wakeAll();
 }
 
 void VelocityGeometryWorker::run()
@@ -247,76 +229,65 @@ void VelocityGeometryWorker::run()
             throw std::runtime_error("Source changed before reading headers.");
         file->setFname(path);
         file->setActive(true);
-        if (!file->Active() || file->Nt() < 1 || file->Nt() > 2000000)
-            throw std::runtime_error(
-                "Open a valid file with at most 2 million traces.");
+        if (!file->Active() || file->Nt() < 1)
+            throw std::runtime_error("Open a valid file.");
         const int measurement =
             int(iFmt(2, file->binHed()->buf(), 55, file->Swap()));
         const double unit = measurement == 2 ? .3048 : 1;
-        VelocityGeometry geometry;
-        geometry.assumedMetres = measurement != 1 && measurement != 2;
-        geometry.traces.resize(file->Nt());
-        bool records = false, sources = false, reset = false;
-        bool recordContinues = false, sourceContinues = false,
-             channelContinues = false;
-        for (int i = 0; i < file->Nt(); ++i) {
-            if (isInterruptionRequested())
-                return;
-            byte *raw = nullptr;
-            int count = file->ReadRawTrace(raw, i, true);
-            std::unique_ptr<byte[]> bytes(raw);
-            if (count < 240)
-                throw std::runtime_error("Could not read a trace header.");
-            auto number = [&](int pos, int size) {
-                return iFmt(size, raw, pos, file->Swap());
-            };
-            auto &t = geometry.traces[i];
-            t.record = int(number(9, 4));
-            t.source = int(number(17, 4));
-            t.channel = int(number(13, 4));
-            t.offset = number(37, 4) * unit;
-            t.delayMs = number(109, 2);
-            const double scalar = number(71, 2),
-                         multiplier = scalar > 0   ? scalar
-                                      : scalar < 0 ? -1. / scalar
-                                                   : 1.;
-            const int coords = int(number(89, 2));
-            if (coords == 0 || coords == 1)
-                t.distance = std::hypot(number(81, 4) - number(73, 4),
-                                        number(85, 4) - number(77, 4)) *
-                             multiplier * unit;
-            if (i) {
-                const auto &previous = geometry.traces[i - 1];
-                const bool rec = t.record != previous.record,
-                           src = t.source != previous.source,
-                           ch = t.channel > 0 && previous.channel > 0 &&
-                                t.channel <= previous.channel;
-                records = records || rec;
-                sources = sources || src;
-                reset = reset || ch;
-                recordContinues = recordContinues || !rec;
-                sourceContinues = sourceContinues || !src;
-                channelContinues = channelContinues || !ch;
-                t.firstRecord = rec ? i : previous.firstRecord;
-                t.firstSource = src ? i : previous.firstSource;
-                t.firstChannel = ch ? i : previous.firstChannel;
+        emit opened(file->Nt(), measurement != 1 && measurement != 2);
+        while (!isInterruptionRequested()) {
+            QVector<int> requested;
+            {
+                QMutexLocker lock(&requestMutex);
+                while (requests.isEmpty() && !isInterruptionRequested())
+                    requestsAvailable.wait(&requestMutex);
+                if (isInterruptionRequested())
+                    return;
+                requested = requests.takeFirst();
             }
-            if (i % 512 == 0)
-                emit progress(int(100LL * i / file->Nt()));
+            QSet<int> unique;
+            VelocityGeometrySamples samples;
+            samples.indices.reserve(requested.size());
+            samples.traces.reserve(requested.size());
+            for (int i : requested) {
+                if (i >= 0 && i < file->Nt())
+                    unique.insert(i);
+            }
+            int done = 0;
+            for (int i : unique) {
+                if (isInterruptionRequested())
+                    return;
+                byte *raw = nullptr;
+                int count = file->ReadRawTrace(raw, i, true);
+                std::unique_ptr<byte[]> bytes(raw);
+                if (count < 240)
+                    throw std::runtime_error("Could not read a trace header.");
+                auto number = [&](int pos, int size) {
+                    return iFmt(size, raw, pos, file->Swap());
+                };
+                VelocityTrace t;
+                t.offset = number(37, 4) * unit;
+                t.delayMs = number(109, 2);
+                const double scalar = number(71, 2),
+                             multiplier = scalar > 0   ? scalar
+                                          : scalar < 0 ? -1. / scalar
+                                                       : 1.;
+                const int coords = int(number(89, 2));
+                if (coords == 0 || coords == 1)
+                    t.distance =
+                        std::hypot(number(81, 4) - number(73, 4),
+                                   number(85, 4) - number(77, 4)) *
+                        multiplier * unit;
+                samples.indices.append(i);
+                samples.traces.append(t);
+                ++done;
+                if (done % 64 == 0)
+                    emit progress(int(100LL * done / unique.size()));
+            }
+            if (!samples.indices.isEmpty())
+                emit samplesReady(samples);
+            emit progress(100);
         }
-        // A per-trace sequence number or a constant positive channel can
-        // otherwise split the section into single-trace "gathers". Every
-        // curve would then contain only moveTo commands and never be drawn.
-        // Auto needs both a boundary and a multi-trace run; explicit gather
-        // choices retain their original header interpretation.
-        geometry.autoGather = records && recordContinues ? 1
-                              : sources && sourceContinues ? 2
-                              : reset && channelContinues ? 3
-                                                          : 4;
-        if (spectrumSourceKey(path) != key)
-            throw std::runtime_error("Source changed while reading headers.");
-        if (!isInterruptionRequested())
-            emit ready(geometry);
     } catch (const std::exception &e) {
         if (!isInterruptionRequested())
             emit failed(QString::fromUtf8(e.what()));

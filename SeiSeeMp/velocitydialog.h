@@ -5,18 +5,23 @@
 #include <QDialog>
 #include <QHash>
 #include <QPainter>
+#include <QQueue>
+#include <QSet>
 #include <functional>
 
 class SeisFile;
 class MyStringTable;
 class QComboBox;
-class QDoubleSpinBox;
 class QLineEdit;
 class QLabel;
 class QPushButton;
 class QProgressBar;
 class QCheckBox;
 class QRadioButton;
+
+namespace Ui {
+class VelocityDialog;
+}
 
 class VelocityDialog : public QDialog
 {
@@ -40,6 +45,7 @@ public:
     }
     bool hasCurves() const;
     void setArmed(bool enabled);
+    void requestGeometry(int firstTrace, int lastTrace, int sampleCount);
     void cancel();
     void undo();
     void point(int trace, double displayMs, bool displayDelay, bool commit);
@@ -71,9 +77,9 @@ protected:
     void keyPressEvent(QKeyEvent *event) override;
 
 private:
+    Ui::VelocityDialog *ui;
     QRadioButton *line, *hyperbola;
-    QComboBox *distanceMode, *gatherMode, *color, *width, *csvType;
-    QDoubleSpinBox *spacing;
+    QComboBox *distanceMode, *color, *width, *csvType;
     QLineEdit *pointFields[4], *velocity, *intercept;
     QLabel *traceInfo, *fileInfo, *status;
     QPushButton *active, *cancelButton, *undoButton, *deleteButton,
@@ -85,6 +91,7 @@ private:
     int fileType = 1;
     bool armed = false, requestedPicking = false, updating = false,
          descending = false;
+    int sortColumn = 2;
     quint64 nextId = 1, selected = 0, generation = 0;
     QVector<VelocityPick> picks;
     QVector<QVector<VelocityPick>> history;
@@ -94,6 +101,8 @@ private:
     QColor lastColor = Qt::black;
     bool previewValid = false;
     VelocityGeometry sourceGeometry;
+    QQueue<int> geometryCacheOrder;
+    QSet<int> pendingGeometry;
     VelocityGeometryWorker *worker = nullptr;
     VelocityPick defaults() const;
     QVector<VelocityPick> ordered() const;
