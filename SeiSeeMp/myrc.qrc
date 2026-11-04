@@ -37,6 +37,7 @@
         <file>images/Pause.png</file>
         <file>images/Procp.png</file>
         <file>images/Refresh.png</file>
+        <file>images/ReloadFile.png</file>
         <file>images/RemoveALL.png</file>
         <file>images/Reset.png</file>
         <file>images/Run.png</file>
@@ -61,6 +62,7 @@
         <file>images/ToRightAll.png</file>
         <file>images/ToUp.png</file>
         <file>images/Unknow.png</file>
+        <file>images/VeloPick.png</file>
         <file>images/Zh.png</file>
         <file>images/ZoomA.png</file>
         <file>images/ZoomI.png</file>
@@ -69,6 +71,5 @@
         <file>images/ZoomW.png</file>
         <file>images/ZoomWCurs.xpm</file>
         <file>images/Zv.png</file>
-        <file>images/VeloPick.png</file>
     </qresource>
 </RCC>

@@ -12,8 +12,6 @@ SaveAsDialog::SaveAsDialog(QWidget *parent)
     , ui(new Ui::SaveAsDialog)
 {
     ui->setupUi(this);
-    resize(GfxStyle::SaveAsDialogWidth, GfxStyle::SaveAsDialogHeight);
-
     QFont labelFont = QApplication::font();
     labelFont.setPointSizeF(GfxStyle::SaveAsLabelFontPointSize);
     ui->label_2->setFont(labelFont);

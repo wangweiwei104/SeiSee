@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>660</width>
-    <height>550</height>
+    <width>470</width>
+    <height>520</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -299,7 +299,6 @@
               <layout class="QHBoxLayout" name="horizontalLayout_15">
                <item>
                 <widget class="QPushButton" name="btnHexp">
-                 <property name="iconSize"><size><width>20</width><height>20</height></size></property>
                  <property name="sizePolicy">
                   <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                    <horstretch>0</horstretch>
@@ -325,11 +324,16 @@
                   <iconset resource="myrc.qrc">
                    <normaloff>:/images/Hexp.png</normaloff>:/images/Hexp.png</iconset>
                  </property>
+                 <property name="iconSize">
+                  <size>
+                   <width>20</width>
+                   <height>20</height>
+                  </size>
+                 </property>
                 </widget>
                </item>
                <item>
                 <widget class="QPushButton" name="btnNexp">
-                 <property name="iconSize"><size><width>20</width><height>20</height></size></property>
                  <property name="sizePolicy">
                   <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                    <horstretch>0</horstretch>
@@ -355,11 +359,16 @@
                   <iconset resource="myrc.qrc">
                    <normaloff>:/images/Nexp.png</normaloff>:/images/Nexp.png</iconset>
                  </property>
+                 <property name="iconSize">
+                  <size>
+                   <width>20</width>
+                   <height>20</height>
+                  </size>
+                 </property>
                 </widget>
                </item>
                <item>
                 <widget class="QPushButton" name="btnLexp">
-                 <property name="iconSize"><size><width>20</width><height>20</height></size></property>
                  <property name="sizePolicy">
                   <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                    <horstretch>0</horstretch>
@@ -385,6 +394,12 @@
                   <iconset resource="myrc.qrc">
                    <normaloff>:/images/Lexp.png</normaloff>:/images/Lexp.png</iconset>
                  </property>
+                 <property name="iconSize">
+                  <size>
+                   <width>20</width>
+                   <height>20</height>
+                  </size>
+                 </property>
                 </widget>
                </item>
                <item>
@@ -405,7 +420,6 @@
                </item>
                <item>
                 <widget class="QPushButton" name="btnClrExp">
-                 <property name="iconSize"><size><width>20</width><height>20</height></size></property>
                  <property name="sizePolicy">
                   <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                    <horstretch>0</horstretch>
@@ -430,6 +444,12 @@
                  <property name="icon">
                   <iconset resource="myrc.qrc">
                    <normaloff>:/images/DelItem.png</normaloff>:/images/DelItem.png</iconset>
+                 </property>
+                 <property name="iconSize">
+                  <size>
+                   <width>20</width>
+                   <height>20</height>
+                  </size>
                  </property>
                 </widget>
                </item>
@@ -706,20 +726,15 @@
    </item>
   </layout>
  </widget>
- <resources>
-  <include location="myrc.qrc"/>
- </resources>
- <connections/>
  <customwidgets>
   <customwidget>
    <class>CustomCheckBox</class>
    <extends>QCheckBox</extends>
    <header>customcontrols.h</header>
   </customwidget>
-  <customwidget>
-   <class>CustomRadioButton</class>
-   <extends>QRadioButton</extends>
-   <header>customcontrols.h</header>
-  </customwidget>
  </customwidgets>
+ <resources>
+  <include location="myrc.qrc"/>
+ </resources>
+ <connections/>
 </ui>

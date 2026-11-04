@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>246</width>
-    <height>219</height>
+    <width>312</width>
+    <height>215</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -91,7 +91,7 @@
    <item>
     <widget class="QLabel" name="label_sub_title">
      <property name="text">
-      <string>A MultiPlatform SEG-Y Viewer</string>
+      <string>A cross-platform seismic data viewer — and more.</string>
      </property>
      <property name="alignment">
       <set>Qt::AlignCenter</set>
@@ -111,14 +111,7 @@
    <item>
     <widget class="QLabel" name="label_author">
      <property name="text">
-      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;Auther: Segrey Pavlukhin &lt;span style=&quot; color:#0000ff;&quot;&gt;(psi@dmng.ru)&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-     </property>
-    </widget>
-   </item>
-   <item>
-    <widget class="QLabel" name="label_ww">
-     <property name="text">
-      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;Modify: Wang Wei &lt;span style=&quot; color:#0000ff;&quot;&gt;(ww_geophy@126.com)&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;Auther: WW WWX Segrey Pavlukhin&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
      </property>
     </widget>
    </item>
@@ -138,12 +131,9 @@
       </spacer>
      </item>
      <item>
-      <widget class="QDialogButtonBox" name="buttonBox">
-       <property name="orientation">
-        <enum>Qt::Horizontal</enum>
-       </property>
-       <property name="standardButtons">
-        <set>QDialogButtonBox::Ok</set>
+      <widget class="QPushButton" name="okButton">
+       <property name="text">
+        <string>OK</string>
        </property>
       </widget>
      </item>
@@ -169,8 +159,8 @@
  </resources>
  <connections>
   <connection>
-   <sender>buttonBox</sender>
-   <signal>accepted()</signal>
+   <sender>okButton</sender>
+   <signal>clicked()</signal>
    <receiver>AboutDialog</receiver>
    <slot>accept()</slot>
    <hints>
@@ -180,22 +170,6 @@
     </hint>
     <hint type="destinationlabel">
      <x>157</x>
-     <y>274</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>buttonBox</sender>
-   <signal>rejected()</signal>
-   <receiver>AboutDialog</receiver>
-   <slot>reject()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>316</x>
-     <y>260</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>286</x>
      <y>274</y>
     </hint>
    </hints>

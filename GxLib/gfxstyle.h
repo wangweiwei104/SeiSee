@@ -61,20 +61,6 @@ namespace GfxStyle {
     static const char TimeLabelText[] = "Time (ms)";
     static const char TimeAxisWidthSample[] = "0000";
 
-    // SeiSeeMp 初始窗口尺寸，单位为 Qt 逻辑像素。
-    constexpr int MainWindowWidth = 1282;
-    constexpr int MainWindowHeight = 702;
-    constexpr int AboutDialogWidth = 246;
-    constexpr int AboutDialogHeight = 219;
-    constexpr int AxisDialogWidth = 698;
-    constexpr int AxisDialogHeight = 478;
-    constexpr int EditHeaderDialogWidth = 726;
-    constexpr int EditHeaderDialogHeight = 618;
-    constexpr int ProcParmDialogWidth = 340;
-    constexpr int ProcParmDialogHeight = 414;
-    constexpr int SaveAsDialogWidth = 661;
-    constexpr int SaveAsDialogHeight = 550;
-
     // SeiSeeMp 表格列宽，单位为 96 DPI 下的逻辑像素。
     constexpr int HiddenTableColumnWidth = 0;
     constexpr int MyStringTableRowHeight = 18;

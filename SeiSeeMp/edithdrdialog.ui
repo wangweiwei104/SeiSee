@@ -2,6 +2,14 @@
 <ui version="4.0">
  <class>EditHdrDialog</class>
  <widget class="QDialog" name="EditHdrDialog">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>645</width>
+    <height>440</height>
+   </rect>
+  </property>
   <property name="windowTitle">
    <string>Header Editor</string>
   </property>
@@ -47,7 +55,6 @@
       </item>
       <item>
        <widget class="QPushButton" name="btnAddItem">
-        <property name="iconSize"><size><width>20</width><height>20</height></size></property>
         <property name="enabled">
          <bool>true</bool>
         </property>
@@ -79,6 +86,12 @@
          <iconset resource="myrc.qrc">
           <normaloff>:/images/AddItem.png</normaloff>:/images/AddItem.png</iconset>
         </property>
+        <property name="iconSize">
+         <size>
+          <width>20</width>
+          <height>20</height>
+         </size>
+        </property>
         <property name="autoDefault">
          <bool>false</bool>
         </property>
@@ -86,7 +99,6 @@
       </item>
       <item>
        <widget class="QPushButton" name="btnDelItem">
-        <property name="iconSize"><size><width>20</width><height>20</height></size></property>
         <property name="enabled">
          <bool>true</bool>
         </property>
@@ -114,6 +126,12 @@
         <property name="icon">
          <iconset resource="myrc.qrc">
           <normaloff>:/images/DelItem.png</normaloff>:/images/DelItem.png</iconset>
+        </property>
+        <property name="iconSize">
+         <size>
+          <width>20</width>
+          <height>20</height>
+         </size>
         </property>
         <property name="autoDefault">
          <bool>false</bool>
@@ -368,13 +386,17 @@
                 </property>
                 <item>
                  <widget class="QPushButton" name="insBtn">
-                  <property name="iconSize"><size><width>20</width><height>20</height></size></property>
-                  <property name="minimumSize"><size><width>24</width><height>24</height></size></property>
                   <property name="sizePolicy">
                    <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                     <horstretch>0</horstretch>
                     <verstretch>0</verstretch>
                    </sizepolicy>
+                  </property>
+                  <property name="minimumSize">
+                   <size>
+                    <width>24</width>
+                    <height>24</height>
+                   </size>
                   </property>
                   <property name="maximumSize">
                    <size>
@@ -388,6 +410,12 @@
                   <property name="icon">
                    <iconset resource="myrc.qrc">
                     <normaloff>:/images/ToLeft.png</normaloff>:/images/ToLeft.png</iconset>
+                  </property>
+                  <property name="iconSize">
+                   <size>
+                    <width>20</width>
+                    <height>20</height>
+                   </size>
                   </property>
                   <property name="autoDefault">
                    <bool>false</bool>

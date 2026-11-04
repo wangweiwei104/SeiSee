@@ -405,6 +405,7 @@ private:
     };
 
     Ui::MainWindow *ui;
+    bool colorMapMode;
 
     void captureCurrentView(int dpi);
     void finishHighResolutionExport();

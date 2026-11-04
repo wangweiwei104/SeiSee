@@ -32,8 +32,8 @@ public:
         , frequencyOnly(frequency)
     {
         setObjectName("fkPlot");
-        setMinimumSize(480, 260);
-        setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+        setMinimumSize(0, 0);
+        setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
         setFont(QFont(GfxStyle::LabelFontFamily,
                       int(GfxStyle::LabelFontPointSize)));
         rubberBand = new GfxSelectionBand(this);
@@ -41,15 +41,22 @@ public:
     QRectF dataRect() const
     {
         int fh = fontMetrics().height();
-        double left =
-            qMax(72, fontMetrics().horizontalAdvance("-0.00000") + 32);
-        double right =
-            frequencyOnly
-                ? 25
-                : qMax(135, fontMetrics().horizontalAdvance("-0.00000") + 70);
-        double top = qMax(30, fh + 12);
-        return QRectF(left, top, qMax(50.0, width() - left - right),
-                      qMax(50.0, height() - top - 3 * fh - 20));
+        const double availableWidth = qMax(1.0, double(width()));
+        double left = qMin(
+            double(qMax(45,
+                        fontMetrics().horizontalAdvance("-0.00000") + 32)),
+            availableWidth * .4);
+        double right = frequencyOnly
+                           ? 25
+                           : qMax(100, fontMetrics().horizontalAdvance(
+                                           "-0.00000") +
+                                           70);
+        right = qMin(right, qMax(0.0, availableWidth - left - 1));
+        const double top = qMin(qMax(24, fh + 12), qMax(1, height() / 3));
+        const double plotWidth = qMax(1.0, availableWidth - left - right);
+        const double plotHeight =
+            qMax(1.0, height() - top - 3 * fh - 20);
+        return QRectF(left, top, plotWidth, plotHeight);
     }
     QRectF view() const
     {
@@ -337,6 +344,7 @@ FkSpectrumDialog::FkSpectrumDialog(SeisFile *file, const QString &dir,
     , frequencyOnly(frequency)
 {
     ui->setupUi(this);
+    updateResponsiveGroups(ui->frame, {ui->advanceGroup, ui->displayGroup});
     for (auto layout : ui->frame->findChildren<QLayout *>()) {
         layout->setSpacing(4);
         layout->setContentsMargins(4, 4, 4, 4);
@@ -966,6 +974,12 @@ void FkSpectrumDialog::reject()
 {
     shutdown();
     QDialog::reject();
+}
+
+void FkSpectrumDialog::resizeEvent(QResizeEvent *event)
+{
+    SpectrumDialog::resizeEvent(event);
+    updateResponsiveGroups(ui->frame, {ui->advanceGroup, ui->displayGroup});
 }
 FkSpectrumDialog::~FkSpectrumDialog()
 {

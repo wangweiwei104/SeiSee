@@ -1,11 +1,67 @@
 #include "axisdialog.h"
 #include "gfxstyle.h"
 #include "hdrdef.h"
+#include "fkcolormaps.h"
 #include "sgyfile.h"
 #include "ui_axisdialog.h"
 
 #include <QDebug>
+#include <QPainter>
+#include <QPixmap>
 #include <QSignalBlocker>
+#include <algorithm>
+
+namespace {
+
+struct ColorStop
+{
+    int position;
+    QColor color;
+};
+
+QList<QRgb> makePalette(const QList<ColorStop> &stops)
+{
+    QList<QRgb> palette;
+    if (stops.isEmpty())
+        return palette;
+
+    for (int i = 0; i < 256; ++i) {
+        int nextStop = 1;
+        while (nextStop < stops.size() &&
+               i > stops[nextStop].position) {
+            ++nextStop;
+        }
+
+        if (nextStop == stops.size()) {
+            palette.append(stops.last().color.rgb());
+            continue;
+        }
+
+        const ColorStop &left = stops[qMax(0, nextStop - 1)];
+        const ColorStop &right = stops[nextStop];
+        const double range = right.position - left.position;
+        const double fraction =
+            range > 0 ? (i - left.position) / range : 0;
+        palette.append(QColor(
+            qRound(left.color.red() +
+                   (right.color.red() - left.color.red()) * fraction),
+            qRound(left.color.green() +
+                   (right.color.green() - left.color.green()) * fraction),
+            qRound(left.color.blue() +
+                   (right.color.blue() - left.color.blue()) * fraction))
+                           .rgb());
+    }
+
+    return palette;
+}
+
+QList<ColorStop> threeColorStops(const QColor &first, const QColor &middle,
+                                 const QColor &last)
+{
+    return {{0, first}, {128, middle}, {255, last}};
+}
+
+} // namespace
 
 AxisDialog::AxisDialog(QWidget *parent)
     : QDialog(parent)
@@ -17,12 +73,15 @@ AxisDialog::AxisDialog(QWidget *parent)
     , showTimeUnit(false)
     , tL(false)
     , fontSize(GfxStyle::LabelFontPointSize)
+    , colorMapIndex(0)
+    , colorMapReversed(false)
     , ui(new Ui::AxisDialog)
 {
     ui->setupUi(this);
-    ui->timeAxisOptionsLayout->setColumnStretch(2, 1);
-    resize(GfxStyle::AxisDialogWidth, GfxStyle::AxisDialogHeight);
-
+    ui->colorMapCbx->addItems(colorMapNames());
+    FillColorMapPreviews();
+    // ui->colorMapCbx->setMaxVisibleItems(ui->colorMapCbx->count());
+    // ui->timeAxisOptionsLayout->setColumnStretch(2, 1);
     selHdrGrid.setRowCount(0);
     selHdrGrid.setColCount(1);
     selHdrGrid.verticalHeader()->setVisible(false);
@@ -53,6 +112,133 @@ AxisDialog::AxisDialog(QWidget *parent)
     aviGridLayout->setSpacing(GfxStyle::CompactLayoutSpacing);
     aviGridLayout->addWidget(&aviHdrGrid);
     ui->aviHdrsBox->setLayout(aviGridLayout);
+}
+
+QStringList AxisDialog::colorMapNames()
+{
+    return QStringList() << "RWB"
+                         << "Grey"
+                         << "Single Gray"
+                         << "Inferno"
+                         << "Jet"
+                         << "Plasma"
+                         << "RdBu"
+                         << "Vik"
+                         << "Viridis"
+                         << "Black-White-Brown"
+                         << "Black-White-Red"
+                         << "Block"
+                         << "Blue-White-Yellow"
+                         << "Red-White-Black (SU)";
+}
+
+QList<QRgb> AxisDialog::colorMapPalette(int index, bool reversed)
+{
+    QList<QRgb> palette;
+    switch (index) {
+    case 0:
+        palette = makePalette(threeColorStops(Qt::red, Qt::white, Qt::blue));
+        break;
+    case 1:
+        palette = makePalette({{0, Qt::white}, {255, Qt::black}});
+        break;
+    case 2:
+        palette = positiveGrayPalette();
+        break;
+    case 3:
+        for (int i = 0; i < 256; ++i)
+            palette.append(fkColorMaps[2][i]);
+        break;
+    case 4:
+        for (int i = 0; i < 256; ++i)
+            palette.append(fkColorMaps[0][i]);
+        break;
+    case 5:
+        palette = makePalette({{0, QColor(13, 8, 135)},
+                               {64, QColor(126, 3, 168)},
+                               {128, QColor(204, 71, 120)},
+                               {192, QColor(248, 149, 64)},
+                               {255, QColor(240, 249, 33)}});
+        break;
+    case 6:
+        for (int i = 0; i < 256; ++i)
+            palette.append(fkColorMaps[4][i]);
+        break;
+    case 7:
+        palette = makePalette({{0, QColor(0, 18, 75)},
+                               {43, QColor(45, 80, 120)},
+                               {85, QColor(130, 155, 168)},
+                               {127, QColor(242, 241, 238)},
+                               {170, QColor(218, 157, 137)},
+                               {212, QColor(166, 72, 66)},
+                               {255, QColor(83, 20, 27)}});
+        break;
+    case 8:
+        for (int i = 0; i < 256; ++i)
+            palette.append(fkColorMaps[1][i]);
+        break;
+    case 9:
+        palette = makePalette(
+            threeColorStops(Qt::black, Qt::white, QColor(150, 75, 0)));
+        break;
+    case 10:
+        palette = makePalette(threeColorStops(Qt::black, Qt::white, Qt::red));
+        break;
+    case 11: {
+        QList<ColorStop> stops;
+        const QColor colors[] = {
+            Qt::black, Qt::blue, Qt::cyan, Qt::green,
+            Qt::yellow, Qt::red, Qt::white
+        };
+        for (int i = 0; i < 7; ++i)
+            stops.append({i * 255 / 6, colors[i]});
+        palette = makePalette(stops);
+        break;
+    }
+    case 12:
+        palette = makePalette(threeColorStops(Qt::blue, Qt::white, Qt::yellow));
+        break;
+    case 13:
+        palette = makePalette({{0, QColor(204, 13, 13)},
+                               {115, QColor(230, 217, 166)},
+                               {128, QColor(191, 230, 179)},
+                               {140, QColor(166, 230, 242)},
+                               {255, Qt::black}});
+        break;
+    default:
+        palette = makePalette(threeColorStops(Qt::red, Qt::white, Qt::blue));
+        break;
+    }
+
+    if (reversed)
+        std::reverse(palette.begin(), palette.end());
+    return palette;
+}
+
+QList<QRgb> AxisDialog::positiveGrayPalette()
+{
+    return makePalette({{0, Qt::white},
+                        {128, Qt::white},
+                        {255, Qt::black}});
+}
+
+void AxisDialog::FillColorMapPreviews()
+{
+    const int iconWidth = 120;
+    const int iconHeight = 14;
+    for (int i = 0; i < ui->colorMapCbx->count(); ++i) {
+        QPixmap preview(iconWidth, iconHeight);
+        QPainter painter(&preview);
+        const QList<QRgb> palette =
+            colorMapPalette(i, colorMapReversed);
+        for (int x = 0; x < iconWidth; ++x) {
+            const int paletteIndex =
+                x * (palette.size() - 1) / (iconWidth - 1);
+            painter.setPen(QColor::fromRgb(palette[paletteIndex]));
+            painter.drawLine(x, 0, x, iconHeight);
+        }
+        ui->colorMapCbx->setItemIcon(i, QIcon(preview));
+    }
 }
 
 AxisDialog::~AxisDialog()
@@ -114,6 +300,12 @@ void AxisDialog::FillForm()
     ui->timeUnitCbx->setCurrentIndex(timeUnit);
     FillTimeStepChoices();
 
+    {
+        const QSignalBlocker blocker(ui->colorMapCbx);
+        ui->colorMapCbx->setCurrentIndex(
+            qBound(0, colorMapIndex, ui->colorMapCbx->count() - 1));
+    }
+    ui->colorMapReverseCk->setChecked(colorMapReversed);
     ui->showTimeUnitCk->setChecked(showTimeUnit);
     ui->ckTimLines->setChecked(tL);
     ui->fontSizeSpinBox->setValue(fontSize);
@@ -266,6 +458,25 @@ void AxisDialog::on_fontSizeSpinBox_valueChanged(int value)
         return;
 
     fontSize = value;
+    changed = true;
+}
+
+void AxisDialog::on_colorMapCbx_currentIndexChanged(int index)
+{
+    if (colorMapIndex == index)
+        return;
+
+    colorMapIndex = index;
+    changed = true;
+}
+
+void AxisDialog::on_colorMapReverseCk_toggled(bool checked)
+{
+    if (colorMapReversed == checked)
+        return;
+
+    colorMapReversed = checked;
+    FillColorMapPreviews();
     changed = true;
 }
 

@@ -2,6 +2,14 @@
 <ui version="4.0">
  <class>SaveAsDialog</class>
  <widget class="QDialog" name="SaveAsDialog">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>661</width>
+    <height>550</height>
+   </rect>
+  </property>
   <property name="windowTitle">
    <string>Save File As</string>
   </property>

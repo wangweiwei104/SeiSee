@@ -20,7 +20,6 @@ ProcParmDialog::ProcParmDialog(QWidget *parent)
         new QSvgWidget(QStringLiteral(":/images/Filt.svg"), ui->groupBox);
     diagram->renderer()->setAspectRatioMode(Qt::KeepAspectRatio);
     ui->horizontalLayout_14->insertWidget(diagramIndex, diagram);
-    resize(GfxStyle::ProcParmDialogWidth, GfxStyle::ProcParmDialogHeight);
 }
 
 ProcParmDialog::~ProcParmDialog()

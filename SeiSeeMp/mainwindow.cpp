@@ -87,6 +87,7 @@ void showScreenshotToast(QWidget *parent, const QString &title,
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
+    , colorMapMode(false)
 {
 
 #if QT_VERSION < 0x050000
@@ -140,11 +141,9 @@ MainWindow::MainWindow(QWidget *parent)
     ui->dirGroup->setMinimumWidth(130);
     ui->dirGroup->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Preferred);
 
-    ui->HdrBox->setMinimumWidth(
-        ui->InfoTab->tabBar()->sizeHint().width() +
-        ui->HdrBox->layout()->contentsMargins().left() +
-        ui->HdrBox->layout()->contentsMargins().right());
+    ui->HdrBox->setMinimumWidth(130);
     ui->HdrBox->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Preferred);
+    ui->splitter->setSizes({240, 220, 740});
     ui->SeisTab->setMinimumWidth(0);
     ui->SeisTab->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Preferred);
 
@@ -234,7 +233,6 @@ MainWindow::MainWindow(QWidget *parent)
                 });
             });
 
-    resize(GfxStyle::MainWindowWidth, GfxStyle::MainWindowHeight);
     QTimer::singleShot(0, this,
                        [this]() { updateCompactSeismicControls(); });
     QFont directoryGridFont = QApplication::font();
@@ -1433,13 +1431,47 @@ void MainWindow::viewMouseEvent(QMouseEvent *event)
 {
     if (event->type() == QEvent::MouseMove) {
         int x = event->x() - seisView.x();
-        ;
         int y = event->y() - seisView.y();
-
-        double t = round(seisSct.pix2y(y) * 1000);
         double it = round(seisSct.pix2x(x));
+        // 设置时间随鼠标显示
+        const double sampleInterval = seisSrc.Si();
+        const double samplePosition =
+            sampleInterval > 0
+                ? (seisSct.pix2y(y) - seisSrc.To()) / sampleInterval
+                : -1;
+        int sample = -1;
+        if (samplePosition >= 0 && samplePosition < seisSrc.Ns()) {
+            sample = qBound(0, qRound(samplePosition), seisSrc.Ns() - 1);
+            const double sampleTime =
+                (seisSrc.To() + sample * sampleInterval) * 1000;
+            m_statTime->setText(Tprintf("Time= %.12g", sampleTime));
+        } else {
+            m_statTime->setText("Time=");
+        }
 
-        m_statTime->setText(Tprintf("Time= %g", t));
+        // 设置振幅随鼠标显示
+        m_statAmp->setText("Amp=");
+        if (sample >= 0 && it >= 0 && it < seisSrc.Nt()) {
+            Ttr trace = seisSrc.Tt(static_cast<int>(it));
+            if (trace._buf && trace._smp) {
+                m_statAmp->setText(
+                    Tprintf("Amp= %g", static_cast<double>(trace[sample])));
+            }
+        }
+
+        // 设置数据表格随鼠标显示
+        if (ui->InfoTab->currentWidget() == ui->TrcTab &&
+            ui->TracePg->currentWidget() == ui->TrcDatTab &&
+            seisSct.selTr() >= 0 && sampleInterval > 0 &&
+            sample >= 0 && sample < trcDatGrid.RowCount()) {
+            if (trcDatGrid.curRow() != sample) {
+                trcDatGrid.setCurCell(sample);
+                trcDatGrid.selectRow(sample);
+            }
+            trcDatGrid.scrollTo(
+                trcDatGrid.model()->index(sample, 0),
+                QAbstractItemView::PositionAtCenter);
+        }
 
         if (it >= 0 && it < seisSrc.Nt()) {
             int trcn = seisSrc.Th(it, 0);
@@ -1639,6 +1671,24 @@ void MainWindow::dirGridEvent(int row, int mode)
 
     m_statTime->setText("Time=");
     // m_statAmp ->setText("Amp="  );
+
+    const bool openingDirectory =
+        mode == 2 && tag == 0 && name != "." && name != "..";
+    const bool openingFile = mode == 1 && tag == 1;
+    if (openingDirectory || openingFile) {
+        const QString path = QDir(curDir).filePath(name);
+        const QFileInfo info(path);
+        if (!info.exists() ||
+            (openingDirectory && !info.isDir()) ||
+            (openingFile && !info.isFile())) {
+            ChangeDataDir(curDir);
+            showScreenshotToast(
+                this, tr("Data no longer available"),
+                tr("The selected data no longer exists:\n%1").arg(path),
+                ToastPreset::WARNING);
+            return;
+        }
+    }
 
     if (mode == 2) {
         // m_statFfid ->setText("FFID="  );
@@ -2494,6 +2544,7 @@ void MainWindow::updateDisplayMode()
     const bool showGray = ui->ckGray->isChecked();
     const bool showColor = ui->ckColor->isChecked();
 
+    colorMapMode = showColor;
     seisSct.setDispWig(showWiggle);
     ui->groupBox_2->setVisible(showWiggle);
     ui->groupBox_15->setVisible(showWiggle);
@@ -2502,15 +2553,10 @@ void MainWindow::updateDisplayMode()
     seisSct.setDispCol(showGray || showColor);
 
     if (showColor) {
-        double v[3] = {-1, 0, 1};
-        QRgb c[3] = {
-            QColor(255, 0, 0).rgb(),
-            QColor(255, 255, 255).rgb(),
-            QColor(0, 0, 255).rgb()
-        };
-        seisSct.setPal(CreatePalette24(c, v, -1, 1, 3));
+        seisSct.setPal(AxisDialog::colorMapPalette(
+            AxisDlg.colorMapIndex, AxisDlg.colorMapReversed));
     } else {
-        seisSct.setPal(QList<QRgb>());
+        seisSct.setPal(AxisDialog::positiveGrayPalette());
     }
 }
 
@@ -2555,7 +2601,7 @@ void MainWindow::FillControls()
     ui->ckColor->setChecked(seisSct.DispCol());
 
     if (seisSct.DispCol()) {
-        if (seisSct.Pal()) {
+        if (colorMapMode) {
             ui->ckGray->setChecked(false);
             ui->ckColor->setChecked(true);
         } else {
@@ -2598,21 +2644,67 @@ void MainWindow::GetRegInfo()
     savDir = settings.value("SaveDir").toString();
 
     int color_mode = settings.value("DispCol", 1).toInt();
+    AxisDlg.colorMapIndex = 0;
+    QString savedColorMapName = settings.value("ColorMapName").toString();
+    bool reverseSavedColorMap = false;
+    if (savedColorMapName == "Red-White-Blue")
+        savedColorMapName = "RWB";
+    else if (savedColorMapName == "Gray" ||
+             savedColorMapName == "Positive Gray")
+        savedColorMapName = "Grey";
+    else if (savedColorMapName == "Blue-White-Red") {
+        savedColorMapName = "RWB";
+        reverseSavedColorMap = true;
+    } else if (savedColorMapName == "Red-White-Black") {
+        savedColorMapName = "Black-White-Red";
+        reverseSavedColorMap = true;
+    } else if (savedColorMapName == "blkwhitrd")
+        savedColorMapName = "Red-White-Black (SU)";
+    else if (savedColorMapName == "Black-White-Red (SU)")
+        savedColorMapName = "Red-White-Black (SU)";
+    const int savedColorMapIndex =
+        AxisDialog::colorMapNames().indexOf(savedColorMapName);
+    if (savedColorMapIndex >= 0) {
+        AxisDlg.colorMapIndex = savedColorMapIndex;
+    } else if (!settings.contains("ColorMapName")) {
+        const int oldColorMapIndex = settings.value("ColorMap", 0).toInt();
+        if (oldColorMapIndex == 0)
+            AxisDlg.colorMapIndex = 0;
+        else if (oldColorMapIndex == 1)
+            AxisDlg.colorMapIndex = 1;
+        else {
+            const int oldToNewColorMap[] = {
+                0, 1, 1, 9, 10, 10, 11, 0, 12
+            };
+            if (oldColorMapIndex >= 0 &&
+                oldColorMapIndex <
+                    static_cast<int>(sizeof(oldToNewColorMap) /
+                                     sizeof(oldToNewColorMap[0]))) {
+                AxisDlg.colorMapIndex = oldToNewColorMap[oldColorMapIndex];
+                reverseSavedColorMap =
+                    oldColorMapIndex == 5 || oldColorMapIndex == 7;
+            }
+        }
+    }
+    AxisDlg.colorMapReversed =
+        settings.value("ColorMapReversed", false).toBool() ^
+        reverseSavedColorMap;
+    colorMapMode = color_mode == 2;
     bool wigle_mode = settings.value("DispWig", false).toBool();
-
-    QList<QRgb> grpal;
 
     if (color_mode) {
         seisSct.setDispCol(true);
 
         if (color_mode == 1)
-            seisSct.setPal(grpal);
+            seisSct.setPal(AxisDialog::positiveGrayPalette());
         else
-            seisSct.setPal(rgb);
+            seisSct.setPal(
+                AxisDialog::colorMapPalette(AxisDlg.colorMapIndex,
+                                            AxisDlg.colorMapReversed));
     } else {
         if (!wigle_mode) {
             seisSct.setDispCol(true);
-            seisSct.setPal(grpal);
+            seisSct.setPal(AxisDialog::positiveGrayPalette());
         } else {
             seisSct.setDispCol(false);
         }
@@ -2762,13 +2854,18 @@ void MainWindow::SaveRegInfo()
     settings.setValue("mainWindowGeometry", saveGeometry());
     settings.setValue("mainWindowState", saveState());
     settings.setValue("AxisFontSize", AxisDlg.fontSize);
+    settings.setValue("ColorMap", AxisDlg.colorMapIndex);
+    settings.setValue("ColorMapName",
+                      AxisDialog::colorMapNames().value(
+                          AxisDlg.colorMapIndex));
+    settings.setValue("ColorMapReversed", AxisDlg.colorMapReversed);
 
     settings.setValue("DataDir", curDir);
     settings.setValue("SaveDir", savDir);
     settings.setValue("TxtHdrDir", txtHdrDir);
 
     if (seisSct.DispCol()) {
-        if (seisSct.Pal())
+        if (colorMapMode)
             settings.setValue("DispCol", 2);
         else
             settings.setValue("DispCol", 1);
@@ -3672,6 +3769,17 @@ void MainWindow::on_actionAxes_Setup_triggered()
 
 void MainWindow::axesDlgEvent()
 {
+    QSettings settings("WW", "SeiSeeMp");
+    settings.setValue("ColorMap", AxisDlg.colorMapIndex);
+    settings.setValue("ColorMapName",
+                      AxisDialog::colorMapNames().value(
+                          AxisDlg.colorMapIndex));
+    settings.setValue("ColorMapReversed", AxisDlg.colorMapReversed);
+
+    if (colorMapMode)
+        seisSct.setPal(AxisDialog::colorMapPalette(
+            AxisDlg.colorMapIndex, AxisDlg.colorMapReversed));
+
     applyAxisFontSize(AxisDlg.fontSize);
 
     hdrsAxis.setHdrList(hdrAxisCk.List());

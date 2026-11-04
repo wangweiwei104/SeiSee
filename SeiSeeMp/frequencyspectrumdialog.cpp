@@ -78,8 +78,8 @@ public:
         : QWidget(parent)
     {
         setObjectName("frequencyPlot");
-        setMinimumSize(480, 260);
-        setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+        setMinimumSize(0, 0);
+        setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
         setFont(QFont(GfxStyle::LabelFontFamily,
                       int(GfxStyle::LabelFontPointSize)));
         band = new GfxSelectionBand(this);
@@ -89,15 +89,19 @@ public:
         const auto metrics = fontMetrics();
         const int bottom = 3 * metrics.height() + 18;
         const double plotHeight =
-            qMax(50, height() - metrics.height() - 16 - bottom);
+            qMax(1, height() - metrics.height() - 16 - bottom);
         const auto ticks = spectrumTicks(
             alo, ahi, qBound(2, int(plotHeight / (metrics.height() * 3)), 6));
         int labelWidth = 0;
         for (const auto &label : ticks.labels)
             labelWidth = qMax(labelWidth, metrics.horizontalAdvance(label));
-        double left = qMin(width() / 3.0, double(qMax(72, labelWidth + 32)));
+        const double availableWidth = qMax(1, width());
+        const double left = qMin(
+            qMin(availableWidth / 3.0,
+                 double(qMax(50, labelWidth + 24))),
+            qMax(0.0, availableWidth - 1));
         return QRectF(left, metrics.height() + 16,
-                      qMax(50.0, width() - left - 25), plotHeight);
+                      qMax(1.0, availableWidth - left - 25), plotHeight);
     }
     QRectF view() const
     {
@@ -360,6 +364,8 @@ FrequencySpectrumDialog::FrequencySpectrumDialog(SeisFile *file,
     , directory(dir)
 {
     ui->setupUi(this);
+    updateResponsiveGroups(
+        ui->frame, {ui->modeGroup, ui->advanceGroup, ui->displayGroup});
     for (auto layout : ui->frame->findChildren<QLayout *>()) {
         layout->setSpacing(4);
         layout->setContentsMargins(4, 4, 4, 4);
@@ -858,6 +864,13 @@ void FrequencySpectrumDialog::showEvent(QShowEvent *event)
 {
     QDialog::showEvent(event);
     requestAutomatic();
+}
+
+void FrequencySpectrumDialog::resizeEvent(QResizeEvent *event)
+{
+    SpectrumDialog::resizeEvent(event);
+    updateResponsiveGroups(
+        ui->frame, {ui->modeGroup, ui->advanceGroup, ui->displayGroup});
 }
 
 void FrequencySpectrumDialog::begin()

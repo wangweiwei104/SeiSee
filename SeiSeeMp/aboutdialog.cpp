@@ -27,7 +27,6 @@ AboutDialog::AboutDialog(QWidget *parent)
     detailsFont.setPointSizeF(GfxStyle::AboutDetailsFontPointSize);
     ui->label_rev->setFont(detailsFont);
     ui->label_author->setFont(detailsFont);
-    ui->label_ww->setFont(detailsFont);
 
     QString txt =
         Tprintf("<html><head/><body><p align=\"center\">Rev: %s (build: %s) "

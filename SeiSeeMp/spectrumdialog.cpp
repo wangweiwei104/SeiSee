@@ -4,6 +4,10 @@
 #include <QDir>
 #include <QFileInfo>
 #include <QFile>
+#include <QFrame>
+#include <QGroupBox>
+#include <QHBoxLayout>
+#include <QLayout>
 #include <QPushButton>
 #include "Toast.h"
 
@@ -23,6 +27,46 @@ void SpectrumDialog::setCaptureRange(const QString &source, int first, int last,
     captureStart = startSeconds;
     captureEnd = endSeconds;
 }
+
+void SpectrumDialog::updateResponsiveGroups(
+    QFrame *frame, const QList<QGroupBox *> &hideOrder)
+{
+    auto layout = qobject_cast<QHBoxLayout *>(frame->layout());
+    if (!layout)
+        return;
+
+    for (QGroupBox *group : hideOrder)
+        group->show();
+
+    const QMargins margins = layout->contentsMargins();
+    const int availableWidth =
+        frame->contentsRect().width() - margins.left() - margins.right();
+    const auto minimumWidth = [layout]() {
+        int width = 0;
+        int visibleGroups = 0;
+        for (int i = 0; i < layout->count(); ++i) {
+            QWidget *widget = layout->itemAt(i)->widget();
+            if (!widget || widget->isHidden())
+                continue;
+            width += qMax(widget->minimumWidth(),
+                          widget->minimumSizeHint().width());
+            ++visibleGroups;
+        }
+        if (visibleGroups > 1)
+            width += layout->spacing() * (visibleGroups - 1);
+        return width;
+    };
+
+    for (QGroupBox *group : hideOrder) {
+        if (minimumWidth() <= availableWidth)
+            break;
+        group->hide();
+    }
+
+    layout->invalidate();
+    layout->activate();
+}
+
 QString SpectrumDialog::nextImagePath(const QString &details, int dpi) const
 {
     const QFileInfo source(captureSource);

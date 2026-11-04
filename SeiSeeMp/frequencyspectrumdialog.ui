@@ -1,4 +1,4 @@
-<?xml version='1.0' encoding='UTF-8'?>
+<?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
  <class>frequencydialog</class>
  <widget class="QDialog" name="frequencydialog">
@@ -6,14 +6,17 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>899</width>
-    <height>562</height>
+    <width>890</width>
+    <height>500</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Frequency Spectrum</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout_6">
+   <property name="sizeConstraint">
+    <enum>QLayout::SetNoConstraint</enum>
+   </property>
    <item>
     <widget class="QFrame" name="frame">
      <property name="frameShape">
@@ -106,13 +109,10 @@
             </widget>
            </item>
            <item>
-            <widget class="QSpinBox" name="fkLast" />
+            <widget class="QSpinBox" name="fkLast"/>
            </item>
            <item>
             <widget class="QPushButton" name="fkAllTraces">
-             <property name="text">
-              <string>ALL</string>
-             </property>
              <property name="minimumSize">
               <size>
                <width>24</width>
@@ -124,6 +124,9 @@
                <width>24</width>
                <height>24</height>
               </size>
+             </property>
+             <property name="text">
+              <string>ALL</string>
              </property>
              <property name="iconSize">
               <size>
@@ -148,7 +151,7 @@
             </widget>
            </item>
            <item>
-            <widget class="SpectrumSpinBox" name="fkStart" />
+            <widget class="SpectrumSpinBox" name="fkStart"/>
            </item>
            <item>
             <widget class="QLabel" name="label_4">
@@ -164,13 +167,10 @@
             </widget>
            </item>
            <item>
-            <widget class="SpectrumSpinBox" name="fkEnd" />
+            <widget class="SpectrumSpinBox" name="fkEnd"/>
            </item>
            <item>
             <widget class="QPushButton" name="fkAllTime">
-             <property name="text">
-              <string>ALL</string>
-             </property>
              <property name="minimumSize">
               <size>
                <width>24</width>
@@ -182,6 +182,9 @@
                <width>24</width>
                <height>24</height>
               </size>
+             </property>
+             <property name="text">
+              <string>ALL</string>
              </property>
              <property name="iconSize">
               <size>
@@ -202,13 +205,6 @@
             <layout class="QHBoxLayout" name="horizontalLayout_3">
              <item>
               <widget class="QPushButton" name="fkCurrentView">
-               <property name="text">
-                <string />
-               </property>
-               <property name="icon">
-                <iconset resource="myrc.qrc">
-                 <normaloff>:/images/CurView.png</normaloff>:/images/CurView.png</iconset>
-               </property>
                <property name="minimumSize">
                 <size>
                  <width>24</width>
@@ -220,6 +216,13 @@
                  <width>24</width>
                  <height>24</height>
                 </size>
+               </property>
+               <property name="text">
+                <string/>
+               </property>
+               <property name="icon">
+                <iconset resource="myrc.qrc">
+                 <normaloff>:/images/CurView.png</normaloff>:/images/CurView.png</iconset>
                </property>
                <property name="iconSize">
                 <size>
@@ -234,13 +237,6 @@
              </item>
              <item>
               <widget class="QPushButton" name="fkSelect">
-               <property name="text">
-                <string />
-               </property>
-               <property name="icon">
-                <iconset resource="myrc.qrc">
-                 <normaloff>:/images/MqSel.png</normaloff>:/images/MqSel.png</iconset>
-               </property>
                <property name="minimumSize">
                 <size>
                  <width>24</width>
@@ -252,6 +248,13 @@
                  <width>24</width>
                  <height>24</height>
                 </size>
+               </property>
+               <property name="text">
+                <string/>
+               </property>
+               <property name="icon">
+                <iconset resource="myrc.qrc">
+                 <normaloff>:/images/MqSel.png</normaloff>:/images/MqSel.png</iconset>
                </property>
                <property name="iconSize">
                 <size>
@@ -266,13 +269,6 @@
              </item>
              <item>
               <widget class="QPushButton" name="fkClearSelection">
-               <property name="text">
-                <string />
-               </property>
-               <property name="icon">
-                <iconset resource="myrc.qrc">
-                 <normaloff>:/images/ClrSel.png</normaloff>:/images/ClrSel.png</iconset>
-               </property>
                <property name="minimumSize">
                 <size>
                  <width>24</width>
@@ -284,6 +280,13 @@
                  <width>24</width>
                  <height>24</height>
                 </size>
+               </property>
+               <property name="text">
+                <string/>
+               </property>
+               <property name="icon">
+                <iconset resource="myrc.qrc">
+                 <normaloff>:/images/ClrSel.png</normaloff>:/images/ClrSel.png</iconset>
                </property>
                <property name="iconSize">
                 <size>
@@ -298,13 +301,6 @@
              </item>
              <item>
               <widget class="QPushButton" name="fkCalculate">
-               <property name="text">
-                <string />
-               </property>
-               <property name="icon">
-                <iconset resource="myrc.qrc">
-                 <normaloff>:/images/Run.png</normaloff>:/images/Run.png</iconset>
-               </property>
                <property name="minimumSize">
                 <size>
                  <width>24</width>
@@ -316,6 +312,13 @@
                  <width>24</width>
                  <height>24</height>
                 </size>
+               </property>
+               <property name="text">
+                <string/>
+               </property>
+               <property name="icon">
+                <iconset resource="myrc.qrc">
+                 <normaloff>:/images/Run.png</normaloff>:/images/Run.png</iconset>
                </property>
                <property name="iconSize">
                 <size>
@@ -357,7 +360,7 @@
             </widget>
            </item>
            <item>
-            <widget class="SpectrumSpinBox" name="fkFmin" />
+            <widget class="SpectrumSpinBox" name="fkFmin"/>
            </item>
            <item>
             <widget class="QLabel" name="label_8">
@@ -382,17 +385,10 @@
             </widget>
            </item>
            <item>
-            <widget class="SpectrumSpinBox" name="fkFmax" />
+            <widget class="SpectrumSpinBox" name="fkFmax"/>
            </item>
            <item>
             <widget class="QPushButton" name="frequencyFullRange">
-             <property name="text">
-              <string />
-             </property>
-             <property name="icon">
-              <iconset resource="myrc.qrc">
-               <normaloff>:/images/Zh.png</normaloff>:/images/Zh.png</iconset>
-             </property>
              <property name="minimumSize">
               <size>
                <width>24</width>
@@ -404,6 +400,13 @@
                <width>24</width>
                <height>24</height>
               </size>
+             </property>
+             <property name="text">
+              <string/>
+             </property>
+             <property name="icon">
+              <iconset resource="myrc.qrc">
+               <normaloff>:/images/Zh.png</normaloff>:/images/Zh.png</iconset>
              </property>
              <property name="iconSize">
               <size>
@@ -428,7 +431,7 @@
             </widget>
            </item>
            <item>
-            <widget class="QDoubleSpinBox" name="fkCmin" />
+            <widget class="QDoubleSpinBox" name="fkCmin"/>
            </item>
            <item>
             <widget class="QLabel" name="label_9">
@@ -453,17 +456,10 @@
             </widget>
            </item>
            <item>
-            <widget class="QDoubleSpinBox" name="fkCmax" />
+            <widget class="QDoubleSpinBox" name="fkCmax"/>
            </item>
            <item>
             <widget class="QPushButton" name="frequencyAutoAmplitude">
-             <property name="text">
-              <string />
-             </property>
-             <property name="icon">
-              <iconset resource="myrc.qrc">
-               <normaloff>:/images/Zv.png</normaloff>:/images/Zv.png</iconset>
-             </property>
              <property name="minimumSize">
               <size>
                <width>24</width>
@@ -475,6 +471,13 @@
                <width>24</width>
                <height>24</height>
               </size>
+             </property>
+             <property name="text">
+              <string/>
+             </property>
+             <property name="icon">
+              <iconset resource="myrc.qrc">
+               <normaloff>:/images/Zv.png</normaloff>:/images/Zv.png</iconset>
              </property>
              <property name="iconSize">
               <size>
@@ -678,13 +681,6 @@
            </item>
            <item>
             <widget class="QPushButton" name="comparisonAdd">
-             <property name="text">
-              <string />
-             </property>
-             <property name="icon">
-              <iconset resource="myrc.qrc">
-               <normaloff>:/images/OpenFile.png</normaloff>:/images/OpenFile.png</iconset>
-             </property>
              <property name="minimumSize">
               <size>
                <width>24</width>
@@ -696,6 +692,13 @@
                <width>24</width>
                <height>24</height>
               </size>
+             </property>
+             <property name="text">
+              <string/>
+             </property>
+             <property name="icon">
+              <iconset resource="myrc.qrc">
+               <normaloff>:/images/OpenFile.png</normaloff>:/images/OpenFile.png</iconset>
              </property>
              <property name="iconSize">
               <size>
@@ -713,13 +716,6 @@
              <property name="enabled">
               <bool>false</bool>
              </property>
-             <property name="text">
-              <string />
-             </property>
-             <property name="icon">
-              <iconset resource="myrc.qrc">
-               <normaloff>:/images/RemoveALL.png</normaloff>:/images/RemoveALL.png</iconset>
-             </property>
              <property name="minimumSize">
               <size>
                <width>24</width>
@@ -731,6 +727,13 @@
                <width>24</width>
                <height>24</height>
               </size>
+             </property>
+             <property name="text">
+              <string/>
+             </property>
+             <property name="icon">
+              <iconset resource="myrc.qrc">
+               <normaloff>:/images/RemoveALL.png</normaloff>:/images/RemoveALL.png</iconset>
              </property>
              <property name="iconSize">
               <size>
@@ -776,13 +779,6 @@
        <layout class="QVBoxLayout" name="verticalLayout_2">
         <item>
          <widget class="QPushButton" name="fkZoomAll">
-          <property name="text">
-           <string />
-          </property>
-          <property name="icon">
-           <iconset resource="myrc.qrc">
-            <normaloff>:/images/ZoomA.png</normaloff>:/images/ZoomA.png</iconset>
-          </property>
           <property name="minimumSize">
            <size>
             <width>24</width>
@@ -794,6 +790,13 @@
             <width>24</width>
             <height>24</height>
            </size>
+          </property>
+          <property name="text">
+           <string/>
+          </property>
+          <property name="icon">
+           <iconset resource="myrc.qrc">
+            <normaloff>:/images/ZoomA.png</normaloff>:/images/ZoomA.png</iconset>
           </property>
           <property name="iconSize">
            <size>
@@ -808,13 +811,6 @@
         </item>
         <item>
          <widget class="QPushButton" name="fkZoomIn">
-          <property name="text">
-           <string />
-          </property>
-          <property name="icon">
-           <iconset resource="myrc.qrc">
-            <normaloff>:/images/ZoomI.png</normaloff>:/images/ZoomI.png</iconset>
-          </property>
           <property name="minimumSize">
            <size>
             <width>24</width>
@@ -826,6 +822,13 @@
             <width>24</width>
             <height>24</height>
            </size>
+          </property>
+          <property name="text">
+           <string/>
+          </property>
+          <property name="icon">
+           <iconset resource="myrc.qrc">
+            <normaloff>:/images/ZoomI.png</normaloff>:/images/ZoomI.png</iconset>
           </property>
           <property name="iconSize">
            <size>
@@ -840,13 +843,6 @@
         </item>
         <item>
          <widget class="QPushButton" name="fkZoomOut">
-          <property name="text">
-           <string />
-          </property>
-          <property name="icon">
-           <iconset resource="myrc.qrc">
-            <normaloff>:/images/ZoomO.png</normaloff>:/images/ZoomO.png</iconset>
-          </property>
           <property name="minimumSize">
            <size>
             <width>24</width>
@@ -858,6 +854,13 @@
             <width>24</width>
             <height>24</height>
            </size>
+          </property>
+          <property name="text">
+           <string/>
+          </property>
+          <property name="icon">
+           <iconset resource="myrc.qrc">
+            <normaloff>:/images/ZoomO.png</normaloff>:/images/ZoomO.png</iconset>
           </property>
           <property name="iconSize">
            <size>
@@ -872,13 +875,6 @@
         </item>
         <item>
          <widget class="QPushButton" name="fkZoomWindow">
-          <property name="text">
-           <string />
-          </property>
-          <property name="icon">
-           <iconset resource="myrc.qrc">
-            <normaloff>:/images/ZoomW.png</normaloff>:/images/ZoomW.png</iconset>
-          </property>
           <property name="minimumSize">
            <size>
             <width>24</width>
@@ -890,6 +886,13 @@
             <width>24</width>
             <height>24</height>
            </size>
+          </property>
+          <property name="text">
+           <string/>
+          </property>
+          <property name="icon">
+           <iconset resource="myrc.qrc">
+            <normaloff>:/images/ZoomW.png</normaloff>:/images/ZoomW.png</iconset>
           </property>
           <property name="iconSize">
            <size>
@@ -904,13 +907,6 @@
         </item>
         <item>
          <widget class="QPushButton" name="fkZoomPrevious">
-          <property name="text">
-           <string />
-          </property>
-          <property name="icon">
-           <iconset resource="myrc.qrc">
-            <normaloff>:/images/ZoomP.png</normaloff>:/images/ZoomP.png</iconset>
-          </property>
           <property name="minimumSize">
            <size>
             <width>24</width>
@@ -922,6 +918,13 @@
             <width>24</width>
             <height>24</height>
            </size>
+          </property>
+          <property name="text">
+           <string/>
+          </property>
+          <property name="icon">
+           <iconset resource="myrc.qrc">
+            <normaloff>:/images/ZoomP.png</normaloff>:/images/ZoomP.png</iconset>
           </property>
           <property name="iconSize">
            <size>
@@ -949,13 +952,6 @@
         </item>
         <item>
          <widget class="QPushButton" name="fkCapture">
-          <property name="text">
-           <string />
-          </property>
-          <property name="icon">
-           <iconset resource="myrc.qrc">
-            <normaloff>:/images/Capture.png</normaloff>:/images/Capture.png</iconset>
-          </property>
           <property name="minimumSize">
            <size>
             <width>24</width>
@@ -967,6 +963,13 @@
             <width>24</width>
             <height>24</height>
            </size>
+          </property>
+          <property name="text">
+           <string/>
+          </property>
+          <property name="icon">
+           <iconset resource="myrc.qrc">
+            <normaloff>:/images/Capture.png</normaloff>:/images/Capture.png</iconset>
           </property>
           <property name="iconSize">
            <size>
@@ -981,13 +984,6 @@
         </item>
         <item>
          <widget class="QPushButton" name="fkExport">
-          <property name="text">
-           <string />
-          </property>
-          <property name="icon">
-           <iconset resource="myrc.qrc">
-            <normaloff>:/images/ExpImg.png</normaloff>:/images/ExpImg.png</iconset>
-          </property>
           <property name="minimumSize">
            <size>
             <width>24</width>
@@ -999,6 +995,13 @@
             <width>24</width>
             <height>24</height>
            </size>
+          </property>
+          <property name="text">
+           <string/>
+          </property>
+          <property name="icon">
+           <iconset resource="myrc.qrc">
+            <normaloff>:/images/ExpImg.png</normaloff>:/images/ExpImg.png</iconset>
           </property>
           <property name="iconSize">
            <size>
@@ -1031,9 +1034,15 @@
       <widget class="QFrame" name="plotFrame">
        <property name="minimumSize">
         <size>
-         <width>500</width>
+         <width>0</width>
          <height>0</height>
         </size>
+       </property>
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Ignored" vsizetype="Expanding">
+         <horstretch>1</horstretch>
+         <verstretch>1</verstretch>
+        </sizepolicy>
        </property>
        <property name="styleSheet">
         <string notr="true">background-color: white;</string>
@@ -1049,7 +1058,7 @@
     </layout>
    </item>
    <item>
-    <widget class="QStatusBar" name="frequencyStatusBar" />
+    <widget class="QStatusBar" name="frequencyStatusBar"/>
    </item>
   </layout>
  </widget>
@@ -1061,7 +1070,7 @@
   </customwidget>
  </customwidgets>
  <resources>
-  <include location="myrc.qrc" />
+  <include location="myrc.qrc"/>
  </resources>
- <connections />
+ <connections/>
 </ui>

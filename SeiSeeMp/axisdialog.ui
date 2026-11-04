@@ -5,287 +5,41 @@
   <property name="windowModality">
    <enum>Qt::ApplicationModal</enum>
   </property>
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>500</width>
+    <height>450</height>
+   </rect>
+  </property>
   <property name="windowTitle">
    <string>Axes Setup</string>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout">
+  <layout class="QVBoxLayout" name="verticalLayout_2">
    <item>
     <widget class="QTabWidget" name="tabWidget">
      <property name="currentIndex">
       <number>0</number>
      </property>
-     <widget class="QWidget" name="tab">
-      <property name="autoFillBackground">
-       <bool>true</bool>
-      </property>
-      <attribute name="title">
-       <string>Header Axis</string>
-      </attribute>
-      <layout class="QVBoxLayout" name="verticalLayout_5">
-       <item>
-        <widget class="QGroupBox" name="groupBox_2">
-         <property name="title">
-          <string>Trace Header Axis</string>
-         </property>
-         <layout class="QHBoxLayout" name="horizontalLayout">
-          <item>
-           <widget class="QGroupBox" name="selHdrsBox">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Fixed" vsizetype="Expanding">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="maximumSize">
-             <size>
-              <width>120</width>
-              <height>16777215</height>
-             </size>
-            </property>
-            <property name="title">
-             <string>Selected Headers</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QGroupBox" name="groupBox_4">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Fixed" vsizetype="Expanding">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="minimumSize">
-             <size>
-              <width>45</width>
-              <height>0</height>
-             </size>
-            </property>
-            <property name="title">
-             <string/>
-            </property>
-             <layout class="QVBoxLayout" name="headerActionsLayout">
-              <property name="spacing">
-               <number>6</number>
-              </property>
-              <property name="leftMargin">
-               <number>10</number>
-              </property>
-              <property name="topMargin">
-               <number>30</number>
-              </property>
-              <property name="rightMargin">
-               <number>10</number>
-              </property>
-              <item>
-               <widget class="QPushButton" name="addBtn">
-                <property name="iconSize"><size><width>20</width><height>20</height></size></property>
-                <property name="minimumSize">
-                 <size>
-                  <width>24</width>
-                  <height>24</height>
-                 </size>
-                </property>
-                <property name="maximumSize">
-                 <size>
-                  <width>24</width>
-                  <height>24</height>
-                 </size>
-                </property>
-                <property name="text">
-                 <string/>
-                </property>
-                <property name="icon">
-                 <iconset resource="myrc.qrc">
-                  <normaloff>:/images/ToLeft.png</normaloff>:/images/ToLeft.png</iconset>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QPushButton" name="delBtn">
-                <property name="iconSize"><size><width>20</width><height>20</height></size></property>
-                <property name="minimumSize">
-                 <size>
-                  <width>24</width>
-                  <height>24</height>
-                 </size>
-                </property>
-                <property name="maximumSize">
-                 <size>
-                  <width>24</width>
-                  <height>24</height>
-                 </size>
-                </property>
-                <property name="text">
-                 <string/>
-                </property>
-                <property name="icon">
-                 <iconset resource="myrc.qrc">
-                  <normaloff>:/images/ToRight.png</normaloff>:/images/ToRight.png</iconset>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QPushButton" name="dellAllBtn">
-                <property name="iconSize"><size><width>20</width><height>20</height></size></property>
-                <property name="minimumSize">
-                 <size>
-                  <width>24</width>
-                  <height>24</height>
-                 </size>
-                </property>
-                <property name="maximumSize">
-                 <size>
-                  <width>24</width>
-                  <height>24</height>
-                 </size>
-                </property>
-                <property name="text">
-                 <string/>
-                </property>
-                <property name="icon">
-                 <iconset resource="myrc.qrc">
-                  <normaloff>:/images/ToRightAll.png</normaloff>:/images/ToRightAll.png</iconset>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <spacer name="headerActionSpacer">
-                <property name="orientation">
-                 <enum>Qt::Vertical</enum>
-                </property>
-                <property name="sizeType">
-                 <enum>QSizePolicy::Fixed</enum>
-                </property>
-                <property name="sizeHint" stdset="0">
-                 <size>
-                  <width>20</width>
-                  <height>10</height>
-                 </size>
-                </property>
-               </spacer>
-              </item>
-              <item>
-               <widget class="QPushButton" name="upBtn">
-                <property name="iconSize"><size><width>20</width><height>20</height></size></property>
-                <property name="minimumSize">
-                 <size>
-                  <width>24</width>
-                  <height>24</height>
-                 </size>
-                </property>
-                <property name="maximumSize">
-                 <size>
-                  <width>24</width>
-                  <height>24</height>
-                 </size>
-                </property>
-                <property name="text">
-                 <string/>
-                </property>
-                <property name="icon">
-                 <iconset resource="myrc.qrc">
-                  <normaloff>:/images/ToUp.png</normaloff>:/images/ToUp.png</iconset>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QPushButton" name="downBtn">
-                <property name="iconSize"><size><width>20</width><height>20</height></size></property>
-                <property name="minimumSize">
-                 <size>
-                  <width>24</width>
-                  <height>24</height>
-                 </size>
-                </property>
-                <property name="maximumSize">
-                 <size>
-                  <width>24</width>
-                  <height>24</height>
-                 </size>
-                </property>
-                <property name="text">
-                 <string/>
-                </property>
-                <property name="icon">
-                 <iconset resource="myrc.qrc">
-                  <normaloff>:/images/ToDn.png</normaloff>:/images/ToDn.png</iconset>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <spacer name="headerActionsBottomSpacer">
-                <property name="orientation">
-                 <enum>Qt::Vertical</enum>
-                </property>
-                <property name="sizeHint" stdset="0">
-                 <size>
-                  <width>20</width>
-                  <height>40</height>
-                 </size>
-                </property>
-               </spacer>
-              </item>
-             </layout>
-           </widget>
-          </item>
-          <item>
-           <widget class="QGroupBox" name="aviHdrsBox">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="title">
-             <string>Available Headers</string>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </widget>
-       </item>
-      </layout>
-     </widget>
      <widget class="QWidget" name="tab_2">
       <property name="autoFillBackground">
        <bool>true</bool>
       </property>
       <attribute name="title">
-       <string>Time Axis</string>
+       <string>Plot Style</string>
       </attribute>
-      <layout class="QVBoxLayout" name="verticalLayout_2">
+      <layout class="QVBoxLayout" name="verticalLayout">
        <item>
-        <widget class="QGroupBox" name="groupBox">
+        <widget class="QGroupBox" name="appearanceGroupBox">
          <property name="title">
-          <string>Time Axis</string>
+          <string>Axis Appearance</string>
          </property>
-         <layout class="QVBoxLayout" name="timeAxisLayout">
-          <property name="spacing">
-           <number>6</number>
-          </property>
-          <property name="leftMargin">
-           <number>10</number>
-          </property>
-          <property name="topMargin">
-           <number>10</number>
-          </property>
-          <property name="rightMargin">
-           <number>10</number>
-          </property>
-          <property name="bottomMargin">
-           <number>10</number>
-          </property>
+         <layout class="QHBoxLayout" name="horizontalLayout_7">
           <item>
-           <layout class="QGridLayout" name="timeAxisOptionsLayout">
-            <property name="horizontalSpacing">
-             <number>6</number>
-            </property>
-            <property name="verticalSpacing">
-             <number>6</number>
-            </property>
-            <item row="0" column="0">
-             <widget class="QLabel" name="timeUnitLabel">
+           <layout class="QHBoxLayout" name="horizontalLayout_5">
+            <item>
+             <widget class="QLabel" name="fontSizeLabel">
               <property name="minimumSize">
                <size>
                 <width>100</width>
@@ -298,13 +52,16 @@
                 <height>16777215</height>
                </size>
               </property>
+              <property name="toolTip">
+               <string>Default: 8</string>
+              </property>
               <property name="text">
-               <string>Unit</string>
+               <string>Font size (pt)</string>
               </property>
              </widget>
             </item>
-            <item row="0" column="1">
-             <widget class="QComboBox" name="timeUnitCbx">
+            <item>
+             <widget class="QSpinBox" name="fontSizeSpinBox">
               <property name="minimumSize">
                <size>
                 <width>70</width>
@@ -317,69 +74,28 @@
                 <height>16777215</height>
                </size>
               </property>
-              <item>
-               <property name="text">
-                <string>ms</string>
-               </property>
-              </item>
-              <item>
-               <property name="text">
-                <string>s</string>
-               </property>
-              </item>
-             </widget>
-            </item>
-            <item row="1" column="0">
-             <widget class="QLabel" name="axisStepLabel">
-              <property name="minimumSize">
-               <size>
-                <width>100</width>
-                <height>0</height>
-               </size>
+              <property name="minimum">
+               <number>1</number>
               </property>
-              <property name="maximumSize">
-               <size>
-                <width>100</width>
-                <height>16777215</height>
-               </size>
+              <property name="maximum">
+               <number>72</number>
               </property>
-              <property name="text">
-               <string>Axis Step</string>
-              </property>
-             </widget>
-            </item>
-            <item row="1" column="1">
-             <widget class="QComboBox" name="dTCbx">
-              <property name="editable">
-               <bool>true</bool>
-              </property>
-             </widget>
-            </item>
-            <item row="2" column="0" colspan="2">
-             <widget class="CustomCheckBox" name="showTimeUnitCk">
-              <property name="text">
-               <string>Show unit</string>
-              </property>
-             </widget>
-            </item>
-            <item row="3" column="0" colspan="2">
-             <widget class="CustomCheckBox" name="ckTimLines">
-              <property name="text">
-               <string>Show time lines</string>
+              <property name="value">
+               <number>8</number>
               </property>
              </widget>
             </item>
            </layout>
           </item>
           <item>
-           <spacer name="timeAxisBottomSpacer">
+           <spacer name="horizontalSpacer_3">
             <property name="orientation">
-             <enum>Qt::Vertical</enum>
+             <enum>Qt::Horizontal</enum>
             </property>
             <property name="sizeHint" stdset="0">
              <size>
-              <width>20</width>
-              <height>40</height>
+              <width>325</width>
+              <height>20</height>
              </size>
             </property>
            </spacer>
@@ -387,119 +103,452 @@
          </layout>
         </widget>
        </item>
+       <item>
+        <widget class="QGroupBox" name="groupBox">
+         <property name="title">
+          <string>Time Axis</string>
+         </property>
+         <layout class="QHBoxLayout" name="horizontalLayout_8">
+          <item>
+           <layout class="QHBoxLayout" name="horizontalLayout_4">
+            <item>
+             <layout class="QGridLayout" name="timeAxisOptionsLayout">
+              <property name="spacing">
+               <number>6</number>
+              </property>
+              <item row="0" column="0">
+               <widget class="QLabel" name="timeUnitLabel">
+                <property name="minimumSize">
+                 <size>
+                  <width>100</width>
+                  <height>0</height>
+                 </size>
+                </property>
+                <property name="maximumSize">
+                 <size>
+                  <width>100</width>
+                  <height>16777215</height>
+                 </size>
+                </property>
+                <property name="text">
+                 <string>Unit</string>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="1">
+               <widget class="QComboBox" name="timeUnitCbx">
+                <property name="minimumSize">
+                 <size>
+                  <width>70</width>
+                  <height>0</height>
+                 </size>
+                </property>
+                <property name="maximumSize">
+                 <size>
+                  <width>70</width>
+                  <height>16777215</height>
+                 </size>
+                </property>
+                <item>
+                 <property name="text">
+                  <string>ms</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>s</string>
+                 </property>
+                </item>
+               </widget>
+              </item>
+              <item row="1" column="0">
+               <widget class="QLabel" name="axisStepLabel">
+                <property name="minimumSize">
+                 <size>
+                  <width>100</width>
+                  <height>0</height>
+                 </size>
+                </property>
+                <property name="maximumSize">
+                 <size>
+                  <width>100</width>
+                  <height>16777215</height>
+                 </size>
+                </property>
+                <property name="text">
+                 <string>Axis Step</string>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="1">
+               <widget class="QComboBox" name="dTCbx">
+                <property name="editable">
+                 <bool>true</bool>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="0" colspan="2">
+               <widget class="CustomCheckBox" name="showTimeUnitCk">
+                <property name="text">
+                 <string>Show unit</string>
+                </property>
+               </widget>
+              </item>
+              <item row="3" column="0" colspan="2">
+               <widget class="CustomCheckBox" name="ckTimLines">
+                <property name="text">
+                 <string>Show time lines</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <spacer name="horizontalSpacer_4">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>323</width>
+              <height>20</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="colorMapGroupBox">
+         <property name="title">
+          <string>Seismic Color Map</string>
+         </property>
+         <layout class="QHBoxLayout" name="horizontalLayout_6">
+          <item>
+           <layout class="QHBoxLayout" name="horizontalLayout_3">
+            <item>
+             <layout class="QGridLayout" name="gridLayout">
+              <item row="0" column="0">
+               <widget class="QLabel" name="colorMapLabel">
+                <property name="text">
+                 <string>Color Map</string>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="1">
+               <widget class="QComboBox" name="colorMapCbx">
+                <property name="minimumSize">
+                 <size>
+                  <width>300</width>
+                  <height>0</height>
+                 </size>
+                </property>
+                <property name="iconSize">
+                 <size>
+                  <width>120</width>
+                  <height>14</height>
+                 </size>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="1">
+               <widget class="CustomCheckBox" name="colorMapReverseCk">
+                <property name="text">
+                 <string>Reverse Color Map</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <spacer name="horizontalSpacer_5">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>139</width>
+              <height>20</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <spacer name="verticalSpacer">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>136</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
       </layout>
      </widget>
-    <widget class="QWidget" name="appearanceTab">
-     <property name="autoFillBackground">
-      <bool>true</bool>
-     </property>
-     <attribute name="title">
-      <string>Axis Appearance</string>
-     </attribute>
-     <layout class="QVBoxLayout" name="appearanceTabLayout">
-      <item>
-       <widget class="QGroupBox" name="appearanceGroupBox">
-        <property name="title">
-         <string>Axis Appearance</string>
-        </property>
-        <layout class="QVBoxLayout" name="appearanceGroupLayout">
-         <property name="spacing">
-          <number>6</number>
-         </property>
-         <property name="leftMargin">
-          <number>10</number>
-         </property>
-         <property name="topMargin">
-          <number>10</number>
-         </property>
-         <property name="rightMargin">
-          <number>10</number>
-         </property>
+     <widget class="QWidget" name="tab">
+      <property name="autoFillBackground">
+       <bool>true</bool>
+      </property>
+      <attribute name="title">
+       <string>Header Label</string>
+      </attribute>
+      <layout class="QVBoxLayout" name="verticalLayout_5">
+       <item>
+        <layout class="QHBoxLayout" name="horizontalLayout">
          <item>
-          <layout class="QHBoxLayout" name="axisFontSizeLayout">
-           <property name="spacing">
-            <number>6</number>
+          <widget class="QGroupBox" name="selHdrsBox">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Fixed" vsizetype="Expanding">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
            </property>
-           <item>
-            <widget class="QLabel" name="fontSizeLabel">
-             <property name="minimumSize">
-              <size>
-               <width>100</width>
-               <height>0</height>
-              </size>
-             </property>
-             <property name="maximumSize">
-              <size>
-               <width>100</width>
-               <height>16777215</height>
-              </size>
-             </property>
-             <property name="toolTip">
-              <string>Default: 8</string>
-             </property>
-             <property name="text">
-              <string>Font size (pt)</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QSpinBox" name="fontSizeSpinBox">
-             <property name="minimumSize">
-              <size>
-               <width>70</width>
-               <height>0</height>
-              </size>
-             </property>
-             <property name="maximumSize">
-              <size>
-               <width>70</width>
-               <height>16777215</height>
-              </size>
-             </property>
-             <property name="minimum">
-              <number>1</number>
-             </property>
-             <property name="maximum">
-              <number>72</number>
-             </property>
-             <property name="value">
-              <number>8</number>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <spacer name="fontSizeSpacer">
-             <property name="orientation">
-              <enum>Qt::Horizontal</enum>
-             </property>
-             <property name="sizeHint" stdset="0">
-              <size>
-               <width>40</width>
-               <height>20</height>
-              </size>
-             </property>
-            </spacer>
-           </item>
-          </layout>
-         </item>
-         <item>
-          <spacer name="appearanceBottomSpacer">
-           <property name="orientation">
-            <enum>Qt::Vertical</enum>
-           </property>
-           <property name="sizeHint" stdset="0">
+           <property name="maximumSize">
             <size>
-             <width>20</width>
-             <height>40</height>
+             <width>120</width>
+             <height>16777215</height>
             </size>
            </property>
-          </spacer>
+           <property name="title">
+            <string>Selected Headers</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QGroupBox" name="groupBox_4">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Fixed" vsizetype="Expanding">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="minimumSize">
+            <size>
+             <width>45</width>
+             <height>0</height>
+            </size>
+           </property>
+           <property name="title">
+            <string/>
+           </property>
+           <layout class="QVBoxLayout" name="headerActionsLayout">
+            <property name="spacing">
+             <number>6</number>
+            </property>
+            <property name="leftMargin">
+             <number>10</number>
+            </property>
+            <property name="topMargin">
+             <number>30</number>
+            </property>
+            <property name="rightMargin">
+             <number>10</number>
+            </property>
+            <item>
+             <widget class="QPushButton" name="addBtn">
+              <property name="minimumSize">
+               <size>
+                <width>24</width>
+                <height>24</height>
+               </size>
+              </property>
+              <property name="maximumSize">
+               <size>
+                <width>24</width>
+                <height>24</height>
+               </size>
+              </property>
+              <property name="text">
+               <string/>
+              </property>
+              <property name="icon">
+               <iconset resource="myrc.qrc">
+                <normaloff>:/images/ToLeft.png</normaloff>:/images/ToLeft.png</iconset>
+              </property>
+              <property name="iconSize">
+               <size>
+                <width>20</width>
+                <height>20</height>
+               </size>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="delBtn">
+              <property name="minimumSize">
+               <size>
+                <width>24</width>
+                <height>24</height>
+               </size>
+              </property>
+              <property name="maximumSize">
+               <size>
+                <width>24</width>
+                <height>24</height>
+               </size>
+              </property>
+              <property name="text">
+               <string/>
+              </property>
+              <property name="icon">
+               <iconset resource="myrc.qrc">
+                <normaloff>:/images/ToRight.png</normaloff>:/images/ToRight.png</iconset>
+              </property>
+              <property name="iconSize">
+               <size>
+                <width>20</width>
+                <height>20</height>
+               </size>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="dellAllBtn">
+              <property name="minimumSize">
+               <size>
+                <width>24</width>
+                <height>24</height>
+               </size>
+              </property>
+              <property name="maximumSize">
+               <size>
+                <width>24</width>
+                <height>24</height>
+               </size>
+              </property>
+              <property name="text">
+               <string/>
+              </property>
+              <property name="icon">
+               <iconset resource="myrc.qrc">
+                <normaloff>:/images/ToRightAll.png</normaloff>:/images/ToRightAll.png</iconset>
+              </property>
+              <property name="iconSize">
+               <size>
+                <width>20</width>
+                <height>20</height>
+               </size>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <spacer name="headerActionSpacer">
+              <property name="orientation">
+               <enum>Qt::Vertical</enum>
+              </property>
+              <property name="sizeType">
+               <enum>QSizePolicy::Fixed</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>20</width>
+                <height>10</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+            <item>
+             <widget class="QPushButton" name="upBtn">
+              <property name="minimumSize">
+               <size>
+                <width>24</width>
+                <height>24</height>
+               </size>
+              </property>
+              <property name="maximumSize">
+               <size>
+                <width>24</width>
+                <height>24</height>
+               </size>
+              </property>
+              <property name="text">
+               <string/>
+              </property>
+              <property name="icon">
+               <iconset resource="myrc.qrc">
+                <normaloff>:/images/ToUp.png</normaloff>:/images/ToUp.png</iconset>
+              </property>
+              <property name="iconSize">
+               <size>
+                <width>20</width>
+                <height>20</height>
+               </size>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="downBtn">
+              <property name="minimumSize">
+               <size>
+                <width>24</width>
+                <height>24</height>
+               </size>
+              </property>
+              <property name="maximumSize">
+               <size>
+                <width>24</width>
+                <height>24</height>
+               </size>
+              </property>
+              <property name="text">
+               <string/>
+              </property>
+              <property name="icon">
+               <iconset resource="myrc.qrc">
+                <normaloff>:/images/ToDn.png</normaloff>:/images/ToDn.png</iconset>
+              </property>
+              <property name="iconSize">
+               <size>
+                <width>20</width>
+                <height>20</height>
+               </size>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <spacer name="headerActionsBottomSpacer">
+              <property name="orientation">
+               <enum>Qt::Vertical</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>20</width>
+                <height>40</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+           </layout>
+          </widget>
+         </item>
+         <item>
+          <widget class="QGroupBox" name="aviHdrsBox">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="title">
+            <string>Available Headers</string>
+           </property>
+          </widget>
          </item>
         </layout>
-       </widget>
-      </item>
-     </layout>
-    </widget>
+       </item>
+      </layout>
+     </widget>
     </widget>
    </item>
    <item>
@@ -566,20 +615,15 @@
    </item>
   </layout>
  </widget>
- <resources>
-  <include location="myrc.qrc"/>
- </resources>
- <connections/>
  <customwidgets>
   <customwidget>
    <class>CustomCheckBox</class>
    <extends>QCheckBox</extends>
    <header>customcontrols.h</header>
   </customwidget>
-  <customwidget>
-   <class>CustomRadioButton</class>
-   <extends>QRadioButton</extends>
-   <header>customcontrols.h</header>
-  </customwidget>
  </customwidgets>
+ <resources>
+  <include location="myrc.qrc"/>
+ </resources>
+ <connections/>
 </ui>

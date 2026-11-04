@@ -2,9 +2,12 @@
 #define SPECTRUMDIALOG_H
 
 #include <QDialog>
+#include <QList>
 #include <QRectF>
 
 class SeisFile;
+class QFrame;
+class QGroupBox;
 
 // Shared main-window contract for FK and trace/region frequency analysis.
 class SpectrumDialog : public QDialog
@@ -40,6 +43,8 @@ protected:
     double captureStart = 0, captureEnd = 0;
     void setCaptureRange(const QString &source, int first, int last,
                          double startSeconds, double endSeconds);
+    void updateResponsiveGroups(QFrame *frame,
+                                const QList<QGroupBox *> &hideOrder);
     QString nextImagePath(const QString &details, int dpi) const;
     void imageExportNotice(bool success, const QString &filename);
     static bool savePlotImage(QWidget *plot, const QString &filename, int dpi);

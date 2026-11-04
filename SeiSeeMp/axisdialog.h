@@ -4,6 +4,8 @@
 #include "hdrdef.h"
 #include "mystringtable.h"
 #include <QDialog>
+#include <QList>
+#include <QRgb>
 
 namespace Ui {
     class AxisDialog;
@@ -32,8 +34,13 @@ public:
     bool showTimeUnit;
     bool tL;
     int fontSize;
+    int colorMapIndex;
+    bool colorMapReversed;
 
     void show();
+    static QStringList colorMapNames();
+    static QList<QRgb> colorMapPalette(int index, bool reversed = false);
+    static QList<QRgb> positiveGrayPalette();
 
 private slots:
     void on_closeButton_pressed();
@@ -58,6 +65,8 @@ private slots:
     void on_showTimeUnitCk_toggled(bool checked);
     void on_ckTimLines_toggled(bool checked);
     void on_fontSizeSpinBox_valueChanged(int value);
+    void on_colorMapCbx_currentIndexChanged(int index);
+    void on_colorMapReverseCk_toggled(bool checked);
 
 private:
     Ui::AxisDialog *ui;
@@ -65,6 +74,7 @@ private:
     void FillAviGrid();
     void FillForm();
     void FillTimeStepChoices();
+    void FillColorMapPreviews();
 
 signals:
     void changedEvent();

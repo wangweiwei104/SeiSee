@@ -7,8 +7,6 @@ EditHdrDialog::EditHdrDialog(QWidget *parent)
     , ui(new Ui::EditHdrDialog)
 {
     ui->setupUi(this);
-    resize(GfxStyle::EditHeaderDialogWidth, GfxStyle::EditHeaderDialogHeight);
-
     int n;
 
     curtype = 1;

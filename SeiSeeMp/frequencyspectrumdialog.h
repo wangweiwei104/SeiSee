@@ -55,6 +55,7 @@ protected:
     void closeEvent(QCloseEvent *event) override;
     void reject() override;
     void showEvent(QShowEvent *event) override;
+    void resizeEvent(QResizeEvent *event) override;
 
 private:
     struct Request {
