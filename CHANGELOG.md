@@ -2,6 +2,19 @@
 
 本文件记录 SeiSee 独立维护版本的用户可见变更。版本号与 `SeiSeeMp/mainwindow.h` 中的 `VERSION` 保持一致。
 
+## [4.0.0-beta.2] - 2026-11-4
+
+### 新增
+
+- 新增数据表格随鼠标动态显示
+- 新增底部振幅实时显示
+- 新增地震显示colormap选项，地震数据可以按照不同的colormap进行显示
+
+### 改进
+
+- 优化FK、Freq窗口显示
+- 为file header增加relaodfile 的图标
+
 ## [4.0.0-beta.1] - 2026-11-2
 
 ### 说明
