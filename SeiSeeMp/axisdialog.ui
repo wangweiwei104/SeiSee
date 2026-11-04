@@ -43,7 +43,7 @@
               <property name="minimumSize">
                <size>
                 <width>100</width>
-                <height>0</height>
+                <height>20</height>
                </size>
               </property>
               <property name="maximumSize">
@@ -65,7 +65,7 @@
               <property name="minimumSize">
                <size>
                 <width>70</width>
-                <height>0</height>
+                <height>20</height>
                </size>
               </property>
               <property name="maximumSize">
@@ -140,7 +140,7 @@
                 <property name="minimumSize">
                  <size>
                   <width>70</width>
-                  <height>0</height>
+                  <height>20</height>
                  </size>
                 </property>
                 <property name="maximumSize">
@@ -182,6 +182,18 @@
               </item>
               <item row="1" column="1">
                <widget class="QComboBox" name="dTCbx">
+                <property name="minimumSize">
+                 <size>
+                  <width>70</width>
+                  <height>20</height>
+                 </size>
+                </property>
+                <property name="maximumSize">
+                 <size>
+                  <width>70</width>
+                  <height>16777215</height>
+                 </size>
+                </property>
                 <property name="editable">
                  <bool>true</bool>
                 </property>
@@ -189,6 +201,12 @@
               </item>
               <item row="2" column="0" colspan="2">
                <widget class="CustomCheckBox" name="showTimeUnitCk">
+                <property name="minimumSize">
+                 <size>
+                  <width>0</width>
+                  <height>20</height>
+                 </size>
+                </property>
                 <property name="text">
                  <string>Show unit</string>
                 </property>
@@ -196,6 +214,12 @@
               </item>
               <item row="3" column="0" colspan="2">
                <widget class="CustomCheckBox" name="ckTimLines">
+                <property name="minimumSize">
+                 <size>
+                  <width>0</width>
+                  <height>20</height>
+                 </size>
+                </property>
                 <property name="text">
                  <string>Show time lines</string>
                 </property>
@@ -233,6 +257,12 @@
              <layout class="QGridLayout" name="gridLayout">
               <item row="0" column="0">
                <widget class="QLabel" name="colorMapLabel">
+                <property name="minimumSize">
+                 <size>
+                  <width>0</width>
+                  <height>20</height>
+                 </size>
+                </property>
                 <property name="text">
                  <string>Color Map</string>
                 </property>
@@ -243,7 +273,7 @@
                 <property name="minimumSize">
                  <size>
                   <width>300</width>
-                  <height>0</height>
+                  <height>20</height>
                  </size>
                 </property>
                 <property name="iconSize">
@@ -256,6 +286,12 @@
               </item>
               <item row="1" column="1">
                <widget class="CustomCheckBox" name="colorMapReverseCk">
+                <property name="minimumSize">
+                 <size>
+                  <width>0</width>
+                  <height>20</height>
+                 </size>
+                </property>
                 <property name="text">
                  <string>Reverse Color Map</string>
                 </property>

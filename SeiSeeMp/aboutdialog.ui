@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>312</width>
-    <height>215</height>
+    <width>340</width>
+    <height>200</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -77,8 +77,13 @@
    </item>
    <item>
     <widget class="QLabel" name="label_title">
-     <property name="layoutDirection">
-      <enum>Qt::LeftToRight</enum>
+     <property name="font">
+      <font>
+       <pointsize>16</pointsize>
+      </font>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">color: #294f91</string>
      </property>
      <property name="text">
       <string>SeiSee</string>
@@ -90,6 +95,11 @@
    </item>
    <item>
     <widget class="QLabel" name="label_sub_title">
+     <property name="font">
+      <font>
+       <pointsize>10</pointsize>
+      </font>
+     </property>
      <property name="text">
       <string>A cross-platform seismic data viewer — and more.</string>
      </property>
@@ -101,17 +111,20 @@
    <item>
     <widget class="QLabel" name="label_rev">
      <property name="text">
-      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;Rev: &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+      <string>Rev:</string>
      </property>
-     <property name="scaledContents">
-      <bool>true</bool>
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
      </property>
     </widget>
    </item>
    <item>
     <widget class="QLabel" name="label_author">
      <property name="text">
-      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;Auther: WW WWX Segrey Pavlukhin&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+      <string>Auther: WW WWX Segrey Pavlukhin</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
      </property>
     </widget>
    </item>

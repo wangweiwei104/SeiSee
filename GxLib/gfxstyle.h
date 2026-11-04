@@ -40,11 +40,11 @@ namespace GfxStyle {
     static const char UiFontFamily[] = "Roboto";
     constexpr double UiFontPointSize = 9;
     constexpr double DirectoryGridFontPointSize = 8.0;
-    constexpr double AboutTitleFontPointSize = 22.0;
-    constexpr double AboutSubtitleFontPointSize = 10.0;
-    constexpr double AboutProductFontPointSize = 12.0;
-    constexpr double AboutDetailsFontPointSize = 10.0;
-    constexpr int AboutIconSize = 64;
+    // constexpr double AboutTitleFontPointSize = 22.0;
+    // constexpr double AboutSubtitleFontPointSize = 10.0;
+    // constexpr double AboutProductFontPointSize = 12.0;
+    // constexpr double AboutDetailsFontPointSize = 10.0;
+    // constexpr int AboutIconSize = 64;
     constexpr double SaveAsLabelFontPointSize = 8.0;
 
     // InfoTxt 和 TxtHdrEdit 使用 Courier New 等宽字体。
