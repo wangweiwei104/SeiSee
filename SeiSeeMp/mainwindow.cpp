@@ -185,9 +185,6 @@ MainWindow::MainWindow(QWidget *parent)
                     0, this, [this]() { updateCompactSeismicControls(); });
             });
 
-    ui->autoGainBtn->setIcon(QIcon(":/images/Autogain.png"));
-    ui->autoGainBtn->setText(QString());
-
     QBoxLayout *zoomLayout =
         qobject_cast<QBoxLayout *>(ui->zoomAllBtn->parentWidget()->layout());
     if (zoomLayout) {
@@ -2643,7 +2640,7 @@ void MainWindow::GetRegInfo()
     txtHdrDir = settings.value("TxtHdrDir").toString();
     savDir = settings.value("SaveDir").toString();
 
-    int color_mode = settings.value("DispCol", 1).toInt();
+    int color_mode = settings.value("DispCol", 2).toInt(); //默认是彩色模式
     AxisDlg.colorMapIndex = 0;
     QString savedColorMapName = settings.value("ColorMapName").toString();
     bool reverseSavedColorMap = false;

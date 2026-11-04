@@ -1285,8 +1285,9 @@
                         <height>24</height>
                        </size>
                       </property>
-                      <property name="text">
-                       <string>A</string>
+                      <property name="icon">
+                       <iconset resource="myrc.qrc">
+                        <normaloff>:/images/Autogain.png</normaloff>:/images/Autogain.png</iconset>
                       </property>
                       <property name="iconSize">
                        <size>

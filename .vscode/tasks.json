@@ -175,6 +175,27 @@
 			"problemMatcher": []
 		},
 		{
+			"label": "Clear SeiSeeMp settings",
+			"type": "process",
+			"command": "bash",
+			"args": [
+				"-lc",
+				"settings_file=\"${XDG_CONFIG_HOME:-$HOME/.config}/WW/SeiSeeMp.conf\"; if [ -f \"$settings_file\" ]; then rm -- \"$settings_file\" && echo \"Cleared $settings_file\"; else echo \"No SeiSeeMp settings file found at $settings_file\"; fi"
+			],
+			"options": {
+				"cwd": "${workspaceFolder}"
+			},
+			"windows": {
+				"command": "powershell.exe",
+				"args": [
+					"-NoProfile",
+					"-Command",
+					"$settingsKey = 'HKCU:\\Software\\WW\\SeiSeeMp'; if (Test-Path $settingsKey) { Remove-Item -Path $settingsKey -Recurse -Force -ErrorAction Stop; Write-Output 'Cleared SeiSeeMp settings from the current user registry.' } else { Write-Output 'No SeiSeeMp settings were found in the current user registry.' }"
+				]
+			},
+			"problemMatcher": []
+		},
+		{
 			"label": "Run SegDSeeMp",
 			"type": "process",
 			"command": "${workspaceFolder}/SegDSeeMp/SegDSeeMp",
