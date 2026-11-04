@@ -138,17 +138,16 @@ MainWindow::MainWindow(QWidget *parent)
 
             // 3. 新增：QTabWidget 样式 (严格按指定版本)
             "QTabBar { qproperty-drawBase: 0; } "
-            "QTabWidget::pane { border: 1px solid #dcdcdc; "
-            "background-color: #ffffff; top: -1px; border-radius: 6px;} "
+            "QTabWidget::pane { border: none; "
+            "background-color: #ffffff;} "
             "QTabBar::tab { background-color: transparent; "
             "color: #777777; border: 1px solid transparent; "
-            "border-top-left-radius: 6px; border-top-right-radius: 6px; "
-            "padding: 4px 4px; margin-right: 2px; } "
+            "border-radius: 6px;"
+            "padding: 2px 2px; margin-right: 2px; } "
             "QTabBar::tab:hover:!selected { color: #333333; "
-            "border: 1px solid #e5e5e5; background-color: #f5f5f5; } "
-            "QTabBar::tab:selected { background-color: #ffffff; "
-            "color: #000000; border: 1px solid #dcdcdc; "
-            "border-bottom: 1px solid #ffffff; margin-bottom: -1px; } "
+            "border: 1px solid #1c6dd1; background-color: #f5f5f5; } "
+            "QTabBar::tab:selected { background-color: transparent; "
+            "color: #1c6dd1; border: 1px solid transparent; font-weight: bold; } " 
         )
         .arg(GfxStyle::ButtonCornerRadius)
         .arg(QString::fromLatin1(GfxStyle::ButtonHoverBackground))
