@@ -3930,13 +3930,8 @@ void MainWindow::checkTxtHdrChange()
             changed = true;
     }
 
-    if (changed) {
-        ui->btnTxtRst->show();
-        ui->btnTxtUpd->show();
-    } else {
-        ui->btnTxtRst->hide();
-        ui->btnTxtUpd->hide();
-    }
+    ui->btnTxtRst->setEnabled(changed);
+    ui->btnTxtUpd->setEnabled(changed);
 }
 
 void MainWindow::loadTxtHdr()
