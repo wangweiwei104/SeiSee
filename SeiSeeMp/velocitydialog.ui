@@ -728,7 +728,7 @@ QPushButton#velocityActive:checked:disabled {
      <item>
       <widget class="QLabel" name="fileInfo">
        <property name="frameShape">
-        <enum>QFrame::Panel</enum>
+        <enum>QFrame::NoFrame</enum>
        </property>
        <property name="frameShadow">
         <enum>QFrame::Sunken</enum>
@@ -741,7 +741,7 @@ QPushButton#velocityActive:checked:disabled {
      <item>
       <widget class="QLabel" name="velocityStatus">
        <property name="frameShape">
-        <enum>QFrame::Panel</enum>
+        <enum>QFrame::NoFrame</enum>
        </property>
        <property name="frameShadow">
         <enum>QFrame::Sunken</enum>

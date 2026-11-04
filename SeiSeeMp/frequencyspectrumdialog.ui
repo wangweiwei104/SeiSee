@@ -20,7 +20,7 @@
    <item>
     <widget class="QFrame" name="frame">
      <property name="frameShape">
-      <enum>QFrame::StyledPanel</enum>
+      <enum>QFrame::NoFrame</enum>
      </property>
      <property name="frameShadow">
       <enum>QFrame::Raised</enum>
@@ -39,7 +39,7 @@
         </property>
         <layout class="QVBoxLayout" name="verticalLayout_4">
          <item>
-          <widget class="QCheckBox" name="frequencySingle">
+          <widget class="CustomCheckBox" name="frequencySingle">
            <property name="layoutDirection">
             <enum>Qt::LeftToRight</enum>
            </property>
@@ -52,7 +52,7 @@
           </widget>
          </item>
          <item>
-          <widget class="QCheckBox" name="frequencySelection">
+          <widget class="CustomCheckBox" name="frequencySelection">
            <property name="layoutDirection">
             <enum>Qt::LeftToRight</enum>
            </property>
@@ -516,7 +516,7 @@
             </layout>
            </item>
            <item>
-            <widget class="QCheckBox" name="frequencyGrid">
+            <widget class="CustomCheckBox" name="frequencyGrid">
              <property name="layoutDirection">
               <enum>Qt::LeftToRight</enum>
              </property>
@@ -771,7 +771,7 @@
         </size>
        </property>
        <property name="frameShape">
-        <enum>QFrame::StyledPanel</enum>
+        <enum>QFrame::NoFrame</enum>
        </property>
        <property name="frameShadow">
         <enum>QFrame::Raised</enum>
@@ -1048,7 +1048,7 @@
         <string notr="true">background-color: white;</string>
        </property>
        <property name="frameShape">
-        <enum>QFrame::StyledPanel</enum>
+        <enum>QFrame::NoFrame</enum>
        </property>
        <property name="frameShadow">
         <enum>QFrame::Raised</enum>
@@ -1063,6 +1063,11 @@
   </layout>
  </widget>
  <customwidgets>
+  <customwidget>
+   <class>CustomCheckBox</class>
+   <extends>QCheckBox</extends>
+   <header>customcontrols.h</header>
+  </customwidget>
   <customwidget>
    <class>SpectrumSpinBox</class>
    <extends>QDoubleSpinBox</extends>

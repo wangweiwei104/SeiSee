@@ -117,15 +117,43 @@ MainWindow::MainWindow(QWidget *parent)
     ui->actionExportDpi600->setData(600);
     qApp->setStyleSheet(
         QStringLiteral(
+            // 1. 原有按钮样式
             "QPushButton, QToolButton { border: 2px solid transparent; "
             "border-radius: %1px; } "
             "QPushButton:hover, QToolButton:hover { "
             "background-color: %2; } "
             "QPushButton:pressed, QToolButton:pressed { "
-            "background-color: %3; }")
-            .arg(GfxStyle::ButtonCornerRadius)
-            .arg(QString::fromLatin1(GfxStyle::ButtonHoverBackground))
-            .arg(QString::fromLatin1(GfxStyle::ButtonPressedBackground)));
+            "background-color: %3; } "
+            
+            // 2. 原有 GroupBox 和 CustomFrame 样式
+            "QGroupBox { border: 1px solid palette(mid); "
+            "border-radius: 6px; padding-top: 18px; "
+            "padding-left: 2px; padding-right: 2px; "
+            "padding-bottom: 2px; } "
+            "CustomFrame { border: 1px solid palette(mid); "
+            "border-radius: 6px; padding: 2px; } "
+            "QGroupBox::title { subcontrol-origin: border; "
+            "subcontrol-position: top left; left: 8px; top: 5px; } "
+            "QMenuBar { background-color: palette(window); } "
+
+            // 3. 新增：QTabWidget 样式 (严格按指定版本)
+            "QTabBar { qproperty-drawBase: 0; } "
+            "QTabWidget::pane { border: 1px solid #dcdcdc; "
+            "background-color: #ffffff; top: -1px; border-radius: 6px;} "
+            "QTabBar::tab { background-color: transparent; "
+            "color: #777777; border: 1px solid transparent; "
+            "border-top-left-radius: 6px; border-top-right-radius: 6px; "
+            "padding: 4px 4px; margin-right: 2px; } "
+            "QTabBar::tab:hover:!selected { color: #333333; "
+            "border: 1px solid #e5e5e5; background-color: #f5f5f5; } "
+            "QTabBar::tab:selected { background-color: #ffffff; "
+            "color: #000000; border: 1px solid #dcdcdc; "
+            "border-bottom: 1px solid #ffffff; margin-bottom: -1px; } "
+        )
+        .arg(GfxStyle::ButtonCornerRadius)
+        .arg(QString::fromLatin1(GfxStyle::ButtonHoverBackground))
+        .arg(QString::fromLatin1(GfxStyle::ButtonPressedBackground))
+    );
 
     QSettings settings("WW", "SeiSeeMp");
     m_recentDirectories = settings.value("RecentDirectories").toStringList();
@@ -149,7 +177,7 @@ MainWindow::MainWindow(QWidget *parent)
 
     ui->frame_2->setMinimumWidth(0);
     ui->HeBox->setMinimumWidth(0);
-    ui->groupBox_6->setMinimumWidth(0);
+    ui->frame_6->setMinimumWidth(0);
 
     QGridLayout *scaleLayout =
         qobject_cast<QGridLayout *>(ui->groupBox_3->layout());
@@ -377,23 +405,20 @@ MainWindow::MainWindow(QWidget *parent)
         refreshComparisonGrid();
     });
     comparisonGroup->setMinimumHeight(105);
+    comparisonGroup->setMinimumWidth(130);
+    comparisonGroup->setSizePolicy(QSizePolicy::Ignored,
+                                   QSizePolicy::Preferred);
     comparisonGroup->hide();
-
-    ui->dirGroup->layout()->removeWidget(ui->dirFrame);
-    comparisonSplitter = new QSplitter(Qt::Vertical, ui->dirGroup);
-    comparisonSplitter->setObjectName(QStringLiteral("directoryCompareSplitter"));
+    comparisonSplitter = new QSplitter(Qt::Vertical);
+    comparisonSplitter->setObjectName(
+        QStringLiteral("directoryCompareSplitter"));
     comparisonSplitter->setHandleWidth(5);
     comparisonSplitter->setChildrenCollapsible(false);
-    comparisonSplitter->addWidget(ui->dirFrame);
+    comparisonSplitter->addWidget(ui->dirGroup);
     comparisonSplitter->addWidget(comparisonGroup);
     comparisonSplitter->setStretchFactor(0, 1);
     comparisonSplitter->setStretchFactor(1, 0);
-    ui->dirGroup->layout()->addWidget(comparisonSplitter);
-    QBoxLayout *directoryLayout =
-        qobject_cast<QBoxLayout *>(ui->dirGroup->layout());
-    if (directoryLayout) {
-        directoryLayout->setStretchFactor(comparisonSplitter, 1);
-    }
+    ui->splitter->insertWidget(0, comparisonSplitter);
 
     //----------------------------------------------------------
     binHdrGrid.setRowCount(0);

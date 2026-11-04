@@ -72,6 +72,15 @@ void drawLabel(const QStyleOptionButton &option, const QRect &indicator,
 
 } // namespace
 
+CustomFrame::CustomFrame(QWidget *parent)
+    : QFrame(parent)
+{
+    setFrameShape(QFrame::NoFrame);
+    // setStyleSheet(
+    //     QStringLiteral("CustomFrame { border: 1px solid palette(mid); "
+    //                    "border-radius: 6px; }"));
+}
+
 CustomCheckBox::CustomCheckBox(QWidget *parent)
     : QCheckBox(parent)
 {

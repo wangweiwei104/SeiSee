@@ -2,9 +2,19 @@
 #define CUSTOMCONTROLS_H
 
 #include <QCheckBox>
+#include <QFrame>
 #include <QRadioButton>
 
 class QPainter;
+
+// 与 QGroupBox 样式一致的圆角边框容器，但没有标题。
+class CustomFrame : public QFrame
+{
+    Q_OBJECT
+
+public:
+    explicit CustomFrame(QWidget *parent = nullptr);
+};
 
 class CustomCheckBox : public QCheckBox
 {
