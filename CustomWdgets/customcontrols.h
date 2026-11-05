@@ -4,6 +4,9 @@
 #include <QCheckBox>
 #include <QFrame>
 #include <QRadioButton>
+#include <QScrollBar>
+#include <QStyleOptionSlider>
+#include <QStylePainter>
 
 class QPainter;
 
@@ -42,6 +45,34 @@ public:
 
 protected:
     void paintEvent(QPaintEvent *event) override;
+};
+
+class AxisScrollBar : public QScrollBar
+{
+public:
+    explicit AxisScrollBar(Qt::Orientation orientation, QWidget *parent = nullptr)
+        : QScrollBar(orientation, parent)
+    {
+    }
+
+protected:
+    void paintEvent(QPaintEvent *) override
+    {
+        QStyleOptionSlider option;
+        initStyleOption(&option);
+        option.subControls = QStyle::SC_All;
+        QStylePainter painter(this);
+        if (minimum() == maximum()) {
+            option.subControls &= ~QStyle::SC_ScrollBarSlider;
+            // Some styles leave the slider's former area unpainted.
+            QStyleOptionSlider grooveOption(option);
+            grooveOption.rect = style()->subControlRect(
+                QStyle::CC_ScrollBar, &option, QStyle::SC_ScrollBarGroove, this);
+            painter.drawControl(QStyle::CE_ScrollBarAddPage, grooveOption);
+        }
+
+        painter.drawComplexControl(QStyle::CC_ScrollBar, option);
+    }
 };
 
 #endif // CUSTOMCONTROLS_H

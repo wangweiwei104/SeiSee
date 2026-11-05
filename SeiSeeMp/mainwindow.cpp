@@ -43,6 +43,7 @@
 #include <functional>
 #include <limits>
 #include "Toast.h"
+#include "customcontrols.h"
 #include "exportdpimenustyle.h"
 
 #include <fcntl.h>
@@ -136,11 +137,11 @@ MainWindow::MainWindow(QWidget *parent)
             "background-color: %3; } "
             
             // 2. 原有 GroupBox 和 CustomFrame 样式
-            "QGroupBox { border: 1px solid palette(mid); "
+            "QGroupBox { border: 1px solid #D3D3D3; "
             "border-radius: 6px; padding-top: 18px; "
             "padding-left: 2px; padding-right: 2px; "
             "padding-bottom: 2px; } "
-            "CustomFrame { border: 1px solid palette(mid); "
+            "CustomFrame { border: 1px solid #D3D3D3; "
             "border-radius: 6px; padding: 2px; } "
             "QGroupBox::title { subcontrol-origin: border; "
             "subcontrol-position: top left; left: 8px; top: 5px; } "
@@ -295,21 +296,33 @@ MainWindow::MainWindow(QWidget *parent)
     m_statusRight->setFrameStyle(QFrame::Panel | QFrame::Sunken);
     m_exportStatus = new QLabel("", this);
     m_exportStatus->setFrameStyle(QFrame::Panel | QFrame::Sunken);
+    const auto setStatusWidgetSizing = [](QWidget *widget) {
+        widget->setMinimumWidth(0);
+        widget->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Preferred);
+    };
+    setStatusWidgetSizing(m_statMess);
+    setStatusWidgetSizing(m_statTrcn);
+    setStatusWidgetSizing(m_statTime);
+    setStatusWidgetSizing(m_statAmp);
+    setStatusWidgetSizing(m_statFfid);
+    setStatusWidgetSizing(m_statSp);
+    setStatusWidgetSizing(m_statusRight);
+    setStatusWidgetSizing(m_exportStatus);
     statusBar()->addPermanentWidget(m_statMess, 1);
     statusBar()->addPermanentWidget(m_statTrcn, 1);
     statusBar()->addPermanentWidget(m_statTime, 1);
     statusBar()->addPermanentWidget(m_statAmp, 1);
     statusBar()->addPermanentWidget(m_statFfid, 1);
     statusBar()->addPermanentWidget(m_statSp, 1);
-    statusBar()->addPermanentWidget(m_statusRight, 2);
-    statusBar()->addPermanentWidget(m_exportStatus, 2);
+    statusBar()->addPermanentWidget(m_statusRight, 1);
+    statusBar()->addPermanentWidget(m_exportStatus, 1);
 
     progressBar = new QProgressBar;
     progressBar->setAlignment(Qt::AlignCenter);
     progressBar->setTextVisible(true);
     progressBar->setFormat("xxxx%p%");
     progressBar->setTextVisible(false);
-    progressBar->setMinimumWidth(120);
+    setStatusWidgetSizing(progressBar);
     statusBar()->addPermanentWidget(progressBar, 1);
 
     progressBar->setValue(0);
@@ -420,8 +433,8 @@ MainWindow::MainWindow(QWidget *parent)
     comparisonSplitter->setChildrenCollapsible(false);
     comparisonSplitter->addWidget(ui->dirGroup);
     comparisonSplitter->addWidget(comparisonGroup);
-    comparisonSplitter->setStretchFactor(0, 1);
-    comparisonSplitter->setStretchFactor(1, 0);
+    comparisonSplitter->setStretchFactor(0, 2);
+    comparisonSplitter->setStretchFactor(1, 1);
     ui->splitter->insertWidget(0, comparisonSplitter);
 
     //----------------------------------------------------------
@@ -624,12 +637,12 @@ MainWindow::MainWindow(QWidget *parent)
     seisScrl = new MyScrollArea(&seisView, 3);
     timeScrl = new MyScrollArea(&timeView, 1);
     timeRightScrl = new MyScrollArea(&timeRightView, 1);
-    horizontalAxisScrollBar = new QScrollBar(Qt::Horizontal, this);
-    verticalAxisScrollBar = new QScrollBar(Qt::Vertical, this);
+    horizontalAxisScrollBar = new AxisScrollBar(Qt::Horizontal, this);
+    verticalAxisScrollBar = new AxisScrollBar(Qt::Vertical, this);
     horizontalAxisScrollBar->setObjectName("seismicHorizontalScrollBar");
     verticalAxisScrollBar->setObjectName("seismicVerticalScrollBar");
 
-    // 给滚动条区域和角落区域设置背景色，用在其隐藏时保留占位区域，确保视觉上保持一致
+    // 滚动条交汇处没有控件，使用系统窗口背景填充。
     const QColor axisScrollBarTrackColor =
         horizontalAxisScrollBar->palette().color(QPalette::Window);
 
@@ -641,44 +654,11 @@ MainWindow::MainWindow(QWidget *parent)
         widget->setPalette(palette);
     };
 
-    QWidget *horizontalAxisScrollBarArea = new QWidget(ui->seisFrame);
-    applySystemPaletteBackground(horizontalAxisScrollBarArea,
-                                 axisScrollBarTrackColor);
-    QHBoxLayout *horizontalAxisScrollBarAreaLayout =
-        new QHBoxLayout(horizontalAxisScrollBarArea);
-    horizontalAxisScrollBarAreaLayout->setContentsMargins(
-        GfxStyle::ScrollBarAreaMargin, GfxStyle::ScrollBarAreaMargin,
-        GfxStyle::ScrollBarAreaMargin, GfxStyle::ScrollBarAreaMargin);
-    horizontalAxisScrollBarAreaLayout->setSpacing(GfxStyle::ZeroLayoutSpacing);
-    horizontalAxisScrollBarAreaLayout->addWidget(horizontalAxisScrollBar);
-
-    QWidget *verticalAxisScrollBarArea = new QWidget(ui->seisFrame);
-    applySystemPaletteBackground(verticalAxisScrollBarArea,
-                                 axisScrollBarTrackColor);
-    QVBoxLayout *verticalAxisScrollBarAreaLayout =
-        new QVBoxLayout(verticalAxisScrollBarArea);
-    verticalAxisScrollBarAreaLayout->setContentsMargins(
-        GfxStyle::ScrollBarAreaMargin, GfxStyle::ScrollBarAreaMargin,
-        GfxStyle::ScrollBarAreaMargin, GfxStyle::ScrollBarAreaMargin);
-    verticalAxisScrollBarAreaLayout->setSpacing(GfxStyle::ZeroLayoutSpacing);
-    verticalAxisScrollBarAreaLayout->addWidget(verticalAxisScrollBar);
-
     QWidget *axisScrollBarCorner = new QWidget(ui->seisFrame);
     applySystemPaletteBackground(axisScrollBarCorner, axisScrollBarTrackColor);
 
     // 超出地震数据显示部分显示白色
     seisScrl->viewport()->setStyleSheet("background-color: white;");
-
-    // 隐藏滚动条时保留其布局空间，由外层容器继续绘制灰色背景。
-    // 目的是避免zoomALLBtn、zoomHallBtn、zoomVallBtn三个按钮执行时发生bug,在底部和右侧产生白条
-    QSizePolicy horizontalScrollBarPolicy =
-        horizontalAxisScrollBar->sizePolicy();
-    horizontalScrollBarPolicy.setRetainSizeWhenHidden(true);
-    horizontalAxisScrollBar->setSizePolicy(horizontalScrollBarPolicy);
-
-    QSizePolicy verticalScrollBarPolicy = verticalAxisScrollBar->sizePolicy();
-    verticalScrollBarPolicy.setRetainSizeWhenHidden(true);
-    verticalAxisScrollBar->setSizePolicy(verticalScrollBarPolicy);
 
     connect(seisScrl->horizontalScrollBar(), SIGNAL(rangeChanged(int, int)),
             this, SLOT(syncHorizontalAxisScrollBar(int, int)));
@@ -838,8 +818,8 @@ MainWindow::MainWindow(QWidget *parent)
     seisLayout->addWidget(seisScrl, 1, 1);
     seisLayout->addWidget(hdrsBottomScrl, 2, 1);
     seisLayout->addWidget(timeRightScrl, 1, 2);
-    seisLayout->addWidget(horizontalAxisScrollBarArea, 3, 0, 1, 3);
-    seisLayout->addWidget(verticalAxisScrollBarArea, 0, 3, 3, 1);
+    seisLayout->addWidget(horizontalAxisScrollBar, 3, 0, 1, 3);
+    seisLayout->addWidget(verticalAxisScrollBar, 0, 3, 3, 1);
     seisLayout->addWidget(axisScrollBarCorner, 3, 3);
     seisLayout->setColumnStretch(1, 1);
     seisLayout->setRowStretch(1, 1);
@@ -1717,7 +1697,6 @@ void MainWindow::dirGridEvent(int row, int mode)
     }
 
     if (mode == 2) {
-        // m_statFfid ->setText("FFID="  );
         // m_statSp   ->setText("SP="  );
 
         curFn = "";
@@ -1758,7 +1737,6 @@ void MainWindow::dirGridEvent(int row, int mode)
         setWindowTitle("");
         // ReadSegdInLtod(row);
     } else if (mode == 1) {
-        // m_statFfid ->setText("FFID="  );
         // m_statSp   ->setText("SP="  );
 
         curFn = "";
@@ -1911,8 +1889,20 @@ void MainWindow::refreshComparisonGrid()
 
     const bool wasHidden = comparisonGroup->isHidden();
     comparisonGroup->setVisible(!comparisonFiles.isEmpty());
-    if (wasHidden && !comparisonFiles.isEmpty())
-        comparisonSplitter->setSizes(QList<int>() << 2 << 1);
+    if (wasHidden && !comparisonFiles.isEmpty()) {
+        QTimer::singleShot(0, this, [this]() {
+            const int availableHeight =
+                comparisonSplitter->contentsRect().height() -
+                comparisonSplitter->handleWidth();
+            if (availableHeight <= 0)
+                return;
+
+            const int directoryHeight = availableHeight * 2 / 3;
+            comparisonSplitter->setSizes(
+                QList<int>() << directoryHeight
+                             << availableHeight - directoryHeight);
+        });
+    }
 }
 
 void MainWindow::openComparisonFile(int row)
@@ -2313,10 +2303,6 @@ int MainWindow::allSectWidth()
 
 void MainWindow::ArrangeSections()
 {
-    // Hidden scrollbars can retain size hints cached before the native style
-    // is ready.
-    horizontalAxisScrollBar->updateGeometry();
-    verticalAxisScrollBar->updateGeometry();
     ui->seisFrame->setVisible(true);
 
     double xs = seisView.Xs();
@@ -2502,34 +2488,20 @@ void MainWindow::syncHorizontalAxisScrollBar(int minimum, int maximum)
 {
     QScrollBar *source = seisScrl->horizontalScrollBar();
     QSignalBlocker blocker(horizontalAxisScrollBar);
-    bool shouldShow = maximum > minimum;
-    bool visibilityChanged = horizontalAxisScrollBar->isHidden() == shouldShow;
-
     horizontalAxisScrollBar->setRange(minimum, maximum);
     horizontalAxisScrollBar->setPageStep(source->pageStep());
     horizontalAxisScrollBar->setSingleStep(source->singleStep());
     horizontalAxisScrollBar->setValue(source->value());
-    horizontalAxisScrollBar->setVisible(shouldShow);
-
-    if (visibilityChanged)
-        QTimer::singleShot(0, this, SLOT(fitAxesToViewport()));
 }
 
 void MainWindow::syncVerticalAxisScrollBar(int minimum, int maximum)
 {
     QScrollBar *source = seisScrl->verticalScrollBar();
     QSignalBlocker blocker(verticalAxisScrollBar);
-    bool shouldShow = maximum > minimum;
-    bool visibilityChanged = verticalAxisScrollBar->isHidden() == shouldShow;
-
     verticalAxisScrollBar->setRange(minimum, maximum);
     verticalAxisScrollBar->setPageStep(source->pageStep());
     verticalAxisScrollBar->setSingleStep(source->singleStep());
     verticalAxisScrollBar->setValue(source->value());
-    verticalAxisScrollBar->setVisible(shouldShow);
-
-    if (visibilityChanged)
-        QTimer::singleShot(0, this, SLOT(fitAxesToViewport()));
 }
 
 void MainWindow::ResetSrc()

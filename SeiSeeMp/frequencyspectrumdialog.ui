@@ -134,7 +134,7 @@
          </size>
         </property>
         <property name="styleSheet">
-         <string notr="true">background-color: palette(mid);</string>
+         <string notr="true">background-color: #D3D3D3;</string>
         </property>
         <property name="frameShape">
          <enum>QFrame::NoFrame</enum>
@@ -475,7 +475,7 @@
          </size>
         </property>
         <property name="styleSheet">
-         <string notr="true">background-color: palette(mid);</string>
+         <string notr="true">background-color: #D3D3D3;</string>
         </property>
         <property name="frameShape">
          <enum>QFrame::NoFrame</enum>
@@ -734,7 +734,7 @@
          </size>
         </property>
         <property name="styleSheet">
-         <string notr="true">background-color: palette(mid);</string>
+         <string notr="true">background-color: #D3D3D3;</string>
         </property>
         <property name="frameShape">
          <enum>QFrame::NoFrame</enum>
@@ -877,7 +877,7 @@
          </size>
         </property>
         <property name="styleSheet">
-         <string notr="true">background-color: palette(mid);</string>
+         <string notr="true">background-color: #D3D3D3;</string>
         </property>
         <property name="frameShape">
          <enum>QFrame::NoFrame</enum>

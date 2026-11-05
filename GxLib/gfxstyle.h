@@ -86,7 +86,6 @@ namespace GfxStyle {
     constexpr int CompactLayoutSpacing = 1;
     constexpr int ZeroLayoutMargin = 0;
     constexpr int ZeroLayoutSpacing = 0;
-    constexpr int ScrollBarAreaMargin = 0;
 
     // 以下距离以 ReferenceDpi (96 DPI) 下的像素为单位，
     // 绘制时经 ScaleX/ScaleY 换算为当前 DPI 下的像素；不是字体字号。

@@ -83,6 +83,9 @@ debug/
 release/
 Makefile*
 
+# AI测试文件
+tests/
+
 # 日志文件
 *.log
 logs/
