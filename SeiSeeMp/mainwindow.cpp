@@ -180,6 +180,8 @@ MainWindow::MainWindow(QWidget *parent)
     ui->HdrBox->setMinimumWidth(130);
     ui->HdrBox->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Preferred);
     ui->splitter->setSizes({240, 220, 740});
+    ui->splitter_2->setSizes({230, 564});
+    ui->splitter_3->setSizes({230, 564});
     ui->SeisTab->setMinimumWidth(0);
     ui->SeisTab->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Preferred);
 

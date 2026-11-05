@@ -321,7 +321,11 @@ MyStringTable::MyStringTable(QWidget *parent)
     , m_interfaceScale(1.0)
     , m_columnWidthUpdatePending(false)
 {
-    setStyleSheet("QHeaderView::section { background-color:lightgrey }");
+    setStyleSheet(
+        "QTableView { border: 1px solid #C0C0C0; gridline-color: #DCDCDC; }"
+        "QHeaderView::section { background-color: #F5F5F5; padding: 4px;"
+        "border: none; border-right: 1px solid #C0C0C0;"
+        "border-bottom: 1px solid #C0C0C0; }");
 
     _changed = false;
 
@@ -335,7 +339,7 @@ MyStringTable::MyStringTable(QWidget *parent)
     verticalHeader()->setDefaultSectionSize(
         qRound(GfxStyle::MyStringTableRowHeight * m_interfaceScale));
 
-    horizontalHeader()->setDefaultAlignment(Qt::AlignLeft);
+    horizontalHeader()->setDefaultAlignment(Qt::AlignLeft | Qt::AlignVCenter);
     horizontalHeader()->setHighlightSections(false);
     horizontalHeader()->setMinimumSectionSize(1);
     setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
