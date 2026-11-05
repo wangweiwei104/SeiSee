@@ -30,14 +30,24 @@
 截图功能</br>
 <img src="screenshots/capture.png" alt="截图功能" width="800">
 
-difference</br>
+作差</br>
 <img src="screenshots/difference.png" alt="difference" width="400">
 
-axis setup</br>
+绘图区设置</br>
 <img src="screenshots/axissetup.png" alt="axissetup" width="400">
+<img src="screenshots/axissetup1.png" alt="axissetup" width="400">
 
-process</br>
+处理参数</br>
 <img src="screenshots/process.png" alt="process" width="400">
+
+频谱</br>
+<img src="screenshots\freq.png" alt="frequency spectrum" width="400">
+
+FK谱</br>
+<img src="screenshots\FK.png" alt="fk spectrum" width="400">
+
+速度拾取/测量/验证</br>
+<img src="screenshots\VeloPick.png" alt="Velocity picking / measurement / verification" width="400">
 
 截图与图片导出的不同
 
