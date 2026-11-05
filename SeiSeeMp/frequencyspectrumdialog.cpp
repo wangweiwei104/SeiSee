@@ -366,10 +366,6 @@ FrequencySpectrumDialog::FrequencySpectrumDialog(SeisFile *file,
     ui->setupUi(this);
     updateResponsiveGroups(
         ui->frame, {ui->modeGroup, ui->advanceGroup, ui->displayGroup});
-    for (auto layout : ui->frame->findChildren<QLayout *>()) {
-        layout->setSpacing(4);
-        layout->setContentsMargins(4, 4, 4, 4);
-    }
     setObjectName("FrequencySpectrumDialog");
     setWindowTitle(tr("Frequency Spectrum"));
     setWindowModality(Qt::NonModal);

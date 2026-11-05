@@ -18,7 +18,13 @@
     <enum>QLayout::SetNoConstraint</enum>
    </property>
    <item>
-    <widget class="QFrame" name="frame">
+    <widget class="CustomFrame" name="frame">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
      <property name="frameShape">
       <enum>QFrame::NoFrame</enum>
      </property>
@@ -26,18 +32,61 @@
       <enum>QFrame::Raised</enum>
      </property>
      <layout class="QHBoxLayout" name="horizontalLayout_9">
-      <item>
-       <widget class="QGroupBox" name="modeGroup">
+      <property name="spacing">
+       <number>2</number>
+      </property>
+      <property name="leftMargin">
+       <number>2</number>
+      </property>
+      <property name="topMargin">
+       <number>2</number>
+      </property>
+      <property name="rightMargin">
+       <number>2</number>
+      </property>
+      <property name="bottomMargin">
+       <number>2</number>
+      </property>
+      <item alignment="Qt::AlignTop">
+       <widget class="QFrame" name="modeGroup">
         <property name="maximumSize">
          <size>
           <width>110</width>
           <height>16777215</height>
          </size>
         </property>
-        <property name="title">
-         <string>Mode</string>
+        <property name="frameShape">
+         <enum>QFrame::NoFrame</enum>
+        </property>
+        <property name="frameShadow">
+         <enum>QFrame::Plain</enum>
         </property>
         <layout class="QVBoxLayout" name="verticalLayout_4">
+         <property name="spacing">
+          <number>2</number>
+         </property>
+         <property name="leftMargin">
+          <number>2</number>
+         </property>
+         <property name="topMargin">
+          <number>2</number>
+         </property>
+         <property name="rightMargin">
+          <number>2</number>
+         </property>
+         <property name="bottomMargin">
+          <number>2</number>
+         </property>
+         <item>
+          <widget class="QLabel" name="modeGroupTitle">
+           <property name="text">
+            <string>Mode</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+           </property>
+          </widget>
+         </item>
          <item>
           <widget class="CustomCheckBox" name="frequencySingle">
            <property name="layoutDirection">
@@ -65,11 +114,70 @@
        </widget>
       </item>
       <item>
-       <widget class="QGroupBox" name="inputGroup">
-        <property name="title">
-         <string>Input Range</string>
+       <widget class="QFrame" name="modeInputSeparator">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Fixed" vsizetype="Expanding">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="minimumSize">
+         <size>
+          <width>1</width>
+          <height>0</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>1</width>
+          <height>16777215</height>
+         </size>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">background-color: palette(mid);</string>
+        </property>
+        <property name="frameShape">
+         <enum>QFrame::NoFrame</enum>
+        </property>
+        <property name="frameShadow">
+         <enum>QFrame::Plain</enum>
+        </property>
+       </widget>
+      </item>
+      <item alignment="Qt::AlignTop">
+       <widget class="QFrame" name="inputGroup">
+        <property name="frameShape">
+         <enum>QFrame::NoFrame</enum>
+        </property>
+        <property name="frameShadow">
+         <enum>QFrame::Plain</enum>
         </property>
         <layout class="QVBoxLayout" name="verticalLayout">
+         <property name="spacing">
+          <number>2</number>
+         </property>
+         <property name="leftMargin">
+          <number>2</number>
+         </property>
+         <property name="topMargin">
+          <number>2</number>
+         </property>
+         <property name="rightMargin">
+          <number>2</number>
+         </property>
+         <property name="bottomMargin">
+          <number>2</number>
+         </property>
+         <item>
+          <widget class="QLabel" name="inputGroupTitle">
+           <property name="text">
+            <string>Input Range</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+           </property>
+          </widget>
+         </item>
          <item>
           <layout class="QHBoxLayout" name="horizontalLayout">
            <item>
@@ -151,7 +259,11 @@
             </widget>
            </item>
            <item>
-            <widget class="SpectrumSpinBox" name="fkStart"/>
+            <widget class="SpectrumSpinBox" name="fkStart">
+             <property name="decimals">
+              <number>0</number>
+             </property>
+            </widget>
            </item>
            <item>
             <widget class="QLabel" name="label_4">
@@ -167,7 +279,11 @@
             </widget>
            </item>
            <item>
-            <widget class="SpectrumSpinBox" name="fkEnd"/>
+            <widget class="SpectrumSpinBox" name="fkEnd">
+             <property name="decimals">
+              <number>0</number>
+             </property>
+            </widget>
            </item>
            <item>
             <widget class="QPushButton" name="fkAllTime">
@@ -339,17 +455,76 @@
        </widget>
       </item>
       <item>
-       <widget class="QGroupBox" name="displayGroup">
+       <widget class="QFrame" name="inputDisplaySeparator">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Fixed" vsizetype="Expanding">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="minimumSize">
+         <size>
+          <width>1</width>
+          <height>0</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>1</width>
+          <height>16777215</height>
+         </size>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">background-color: palette(mid);</string>
+        </property>
+        <property name="frameShape">
+         <enum>QFrame::NoFrame</enum>
+        </property>
+        <property name="frameShadow">
+         <enum>QFrame::Plain</enum>
+        </property>
+       </widget>
+      </item>
+      <item alignment="Qt::AlignTop">
+       <widget class="QFrame" name="displayGroup">
         <property name="maximumSize">
          <size>
           <width>260</width>
           <height>16777215</height>
          </size>
         </property>
-        <property name="title">
-         <string>Display</string>
+        <property name="frameShape">
+         <enum>QFrame::NoFrame</enum>
+        </property>
+        <property name="frameShadow">
+         <enum>QFrame::Plain</enum>
         </property>
         <layout class="QVBoxLayout" name="verticalLayout_5">
+         <property name="spacing">
+          <number>2</number>
+         </property>
+         <property name="leftMargin">
+          <number>2</number>
+         </property>
+         <property name="topMargin">
+          <number>2</number>
+         </property>
+         <property name="rightMargin">
+          <number>2</number>
+         </property>
+         <property name="bottomMargin">
+          <number>2</number>
+         </property>
+         <item>
+          <widget class="QLabel" name="displayGroupTitle">
+           <property name="text">
+            <string>Display</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+           </property>
+          </widget>
+         </item>
          <item>
           <layout class="QHBoxLayout" name="horizontalLayout_4">
            <item>
@@ -360,7 +535,11 @@
             </widget>
            </item>
            <item>
-            <widget class="SpectrumSpinBox" name="fkFmin"/>
+            <widget class="SpectrumSpinBox" name="fkFmin">
+             <property name="decimals">
+              <number>1</number>
+             </property>
+            </widget>
            </item>
            <item>
             <widget class="QLabel" name="label_8">
@@ -385,7 +564,11 @@
             </widget>
            </item>
            <item>
-            <widget class="SpectrumSpinBox" name="fkFmax"/>
+            <widget class="SpectrumSpinBox" name="fkFmax">
+             <property name="decimals">
+              <number>1</number>
+             </property>
+            </widget>
            </item>
            <item>
             <widget class="QPushButton" name="frequencyFullRange">
@@ -531,11 +714,70 @@
        </widget>
       </item>
       <item>
-       <widget class="QGroupBox" name="advanceGroup">
-        <property name="title">
-         <string>Advance</string>
+       <widget class="QFrame" name="displayAdvanceSeparator">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Fixed" vsizetype="Expanding">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="minimumSize">
+         <size>
+          <width>1</width>
+          <height>0</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>1</width>
+          <height>16777215</height>
+         </size>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">background-color: palette(mid);</string>
+        </property>
+        <property name="frameShape">
+         <enum>QFrame::NoFrame</enum>
+        </property>
+        <property name="frameShadow">
+         <enum>QFrame::Plain</enum>
+        </property>
+       </widget>
+      </item>
+      <item alignment="Qt::AlignTop">
+       <widget class="QFrame" name="advanceGroup">
+        <property name="frameShape">
+         <enum>QFrame::NoFrame</enum>
+        </property>
+        <property name="frameShadow">
+         <enum>QFrame::Plain</enum>
         </property>
         <layout class="QVBoxLayout" name="verticalLayout_3">
+         <property name="spacing">
+          <number>2</number>
+         </property>
+         <property name="leftMargin">
+          <number>2</number>
+         </property>
+         <property name="topMargin">
+          <number>2</number>
+         </property>
+         <property name="rightMargin">
+          <number>2</number>
+         </property>
+         <property name="bottomMargin">
+          <number>2</number>
+         </property>
+         <item>
+          <widget class="QLabel" name="advanceGroupTitle">
+           <property name="text">
+            <string>Advance</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+           </property>
+          </widget>
+         </item>
          <item>
           <layout class="QHBoxLayout" name="horizontalLayout_12">
            <item>
@@ -615,11 +857,70 @@
        </widget>
       </item>
       <item>
-       <widget class="QGroupBox" name="comparisonGroup">
-        <property name="title">
-         <string>Comparison</string>
+       <widget class="QFrame" name="advanceComparisonSeparator">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Fixed" vsizetype="Expanding">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="minimumSize">
+         <size>
+          <width>1</width>
+          <height>0</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>1</width>
+          <height>16777215</height>
+         </size>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">background-color: palette(mid);</string>
+        </property>
+        <property name="frameShape">
+         <enum>QFrame::NoFrame</enum>
+        </property>
+        <property name="frameShadow">
+         <enum>QFrame::Plain</enum>
+        </property>
+       </widget>
+      </item>
+      <item alignment="Qt::AlignTop">
+       <widget class="QFrame" name="comparisonGroup">
+        <property name="frameShape">
+         <enum>QFrame::NoFrame</enum>
+        </property>
+        <property name="frameShadow">
+         <enum>QFrame::Plain</enum>
         </property>
         <layout class="QVBoxLayout" name="verticalLayout_7">
+         <property name="spacing">
+          <number>2</number>
+         </property>
+         <property name="leftMargin">
+          <number>2</number>
+         </property>
+         <property name="topMargin">
+          <number>2</number>
+         </property>
+         <property name="rightMargin">
+          <number>2</number>
+         </property>
+         <property name="bottomMargin">
+          <number>2</number>
+         </property>
+         <item>
+          <widget class="QLabel" name="comparisonGroupTitle">
+           <property name="text">
+            <string>Comparison</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+           </property>
+          </widget>
+         </item>
          <item>
           <layout class="QHBoxLayout" name="horizontalLayout_18">
            <item>
@@ -1032,17 +1333,17 @@
      </item>
      <item>
       <widget class="QFrame" name="plotFrame">
-       <property name="minimumSize">
-        <size>
-         <width>0</width>
-         <height>0</height>
-        </size>
-       </property>
        <property name="sizePolicy">
         <sizepolicy hsizetype="Ignored" vsizetype="Expanding">
          <horstretch>1</horstretch>
          <verstretch>1</verstretch>
         </sizepolicy>
+       </property>
+       <property name="minimumSize">
+        <size>
+         <width>0</width>
+         <height>0</height>
+        </size>
        </property>
        <property name="styleSheet">
         <string notr="true">background-color: white;</string>
@@ -1064,14 +1365,20 @@
  </widget>
  <customwidgets>
   <customwidget>
-   <class>CustomCheckBox</class>
-   <extends>QCheckBox</extends>
-   <header>customcontrols.h</header>
-  </customwidget>
-  <customwidget>
    <class>SpectrumSpinBox</class>
    <extends>QDoubleSpinBox</extends>
    <header>spectrumspinbox.h</header>
+  </customwidget>
+  <customwidget>
+   <class>CustomFrame</class>
+   <extends>QFrame</extends>
+   <header>customcontrols.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>CustomCheckBox</class>
+   <extends>QCheckBox</extends>
+   <header>customcontrols.h</header>
   </customwidget>
  </customwidgets>
  <resources>

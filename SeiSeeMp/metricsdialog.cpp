@@ -30,13 +30,13 @@ MetricsDialog::MetricsDialog(QWidget *parent) :
     setWindowModality(Qt::NonModal);
     setModal(false);
     setSizeGripEnabled(true);
-    ui->bodyLayout->setStretch(0, 5);
-    ui->bodyLayout->setStretch(1, 4);
-    for (QLayout* layout : findChildren<QLayout*>()) layout->setSpacing(6);
-    ui->verticalLayout_main->setSpacing(8);
+    // ui->bodyLayout->setStretch(0, 5);
+    // ui->bodyLayout->setStretch(1, 4);
+    // for (QLayout* layout : findChildren<QLayout*>()) layout->setSpacing(6);
+    // ui->verticalLayout_main->setSpacing(8);
     ui->pathFile1->setToolTip(tr("Signal file is fixed to the file captured from the main window."));
     ui->btnSaveResults->setEnabled(false);
-    ui->txtResults->setFont(QFontDatabase::systemFont(QFontDatabase::FixedFont));
+    // ui->txtResults->setFont(QFontDatabase::systemFont(QFontDatabase::FixedFont));
     ui->ckSNR->setToolTip(tr("Estimation: 10*log10(TPRS/(1-TPRS)); TPRS is computed automatically. Calculation: reference signal energy / error energy."));
     ui->txtResults->setPlaceholderText(tr("The full calculation report will appear here."));
     ui->metricTable->setColCount(3);
@@ -182,9 +182,9 @@ void MetricsDialog::UpdateUIMode()
     ui->pathFile2->setVisible(isCalculation);
     ui->btnOpenFile2->setVisible(isCalculation);
     ui->label_file2->setVisible(isCalculation);
-    ui->modeHint->setText(isCalculation
-        ? tr("Signal file is fixed to the main-window file. Choose or paste the noisy file path.")
-        : tr("Choose or paste a noisy file path. Classic metrics use the mean trace as a reference, not ground truth."));
+    // ui->modeHint->setText(isCalculation
+    //     ? tr("Signal file is fixed to the main-window file. Choose or paste the noisy file path.")
+    //     : tr("Choose or paste a noisy file path. Classic metrics use the mean trace as a reference, not ground truth."));
     updateAvailableMetrics();
     resetResults();
     FillLimits();

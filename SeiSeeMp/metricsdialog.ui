@@ -1,4 +1,4 @@
-<?xml version='1.0' encoding='UTF-8'?>
+<?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
  <class>MetricsDialog</class>
  <widget class="QDialog" name="MetricsDialog">
@@ -6,37 +6,24 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>660</width>
-    <height>550</height>
+    <width>600</width>
+    <height>470</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Seismic Data Quality Metrics</string>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout_main">
-   <property name="spacing">
-    <number>12</number>
-   </property>
+  <layout class="QVBoxLayout" name="verticalLayout_2">
    <item>
-    <layout class="QHBoxLayout" name="bodyLayout">
+    <layout class="QHBoxLayout" name="horizontalLayout">
      <item>
-      <layout class="QVBoxLayout" name="settingsLayout">
+      <layout class="QVBoxLayout" name="verticalLayout">
        <item>
         <widget class="QGroupBox" name="groupBox_mode">
          <property name="title">
           <string>Mode</string>
          </property>
          <layout class="QGridLayout" name="verticalLayout_mode">
-          <item row="0" column="0">
-           <widget class="CustomRadioButton" name="rbCalculation">
-            <property name="checked">
-             <bool>true</bool>
-            </property>
-            <property name="text">
-             <string>Calculation mode</string>
-            </property>
-           </widget>
-          </item>
           <item row="0" column="1">
            <widget class="CustomRadioButton" name="rbEstimation">
             <property name="text">
@@ -44,12 +31,12 @@
             </property>
            </widget>
           </item>
-          <item row="1" column="0" colspan="2">
-           <widget class="QLabel" name="modeHint">
+          <item row="0" column="0">
+           <widget class="CustomRadioButton" name="rbCalculation">
             <property name="text">
-             <string />
+             <string>Calculation mode</string>
             </property>
-            <property name="wordWrap">
+            <property name="checked">
              <bool>true</bool>
             </property>
            </widget>
@@ -77,11 +64,11 @@
               <property name="enabled">
                <bool>true</bool>
               </property>
-              <property name="readOnly">
-               <bool>true</bool>
-              </property>
               <property name="toolTip">
                <string>Uses the file open in the main window as the reference.</string>
+              </property>
+              <property name="readOnly">
+               <bool>true</bool>
               </property>
              </widget>
             </item>
@@ -161,7 +148,7 @@
                </widget>
               </item>
               <item row="0" column="1">
-               <widget class="QLineEdit" name="edTrMin" />
+               <widget class="QLineEdit" name="edTrMin"/>
               </item>
               <item row="1" column="0">
                <widget class="QLabel" name="label_trmax">
@@ -171,7 +158,7 @@
                </widget>
               </item>
               <item row="1" column="1">
-               <widget class="QLineEdit" name="edTrMax" />
+               <widget class="QLineEdit" name="edTrMax"/>
               </item>
               <item row="2" column="0">
                <widget class="QLabel" name="label_trstp">
@@ -181,7 +168,7 @@
                </widget>
               </item>
               <item row="2" column="1">
-               <widget class="QLineEdit" name="edTrStp" />
+               <widget class="QLineEdit" name="edTrStp"/>
               </item>
              </layout>
             </item>
@@ -214,7 +201,7 @@
                </widget>
               </item>
               <item row="0" column="1">
-               <widget class="QLineEdit" name="edTmMin" />
+               <widget class="QLineEdit" name="edTmMin"/>
               </item>
               <item row="1" column="0">
                <widget class="QLabel" name="label_tmmax">
@@ -224,7 +211,7 @@
                </widget>
               </item>
               <item row="1" column="1">
-               <widget class="QLineEdit" name="edTmMax" />
+               <widget class="QLineEdit" name="edTmMax"/>
               </item>
              </layout>
             </item>
@@ -239,10 +226,20 @@
           <string>Metrics</string>
          </property>
          <layout class="QGridLayout" name="gridLayout_metrics">
-          <item row="0" column="0">
-           <widget class="CustomCheckBox" name="ckPSNR">
+          <item row="1" column="1">
+           <widget class="CustomCheckBox" name="chkTPRS">
+            <property name="toolTip">
+             <string>Signal power ratio estimated from adjacent traces (estimation mode only).</string>
+            </property>
             <property name="text">
-             <string>PSNR</string>
+             <string>TPRS</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="2">
+           <widget class="CustomCheckBox" name="ckMSE">
+            <property name="text">
+             <string>MSE / RMSE</string>
             </property>
             <property name="checked">
              <bool>true</bool>
@@ -259,13 +256,13 @@
             </property>
            </widget>
           </item>
-          <item row="0" column="2">
-           <widget class="CustomCheckBox" name="ckMSE">
+          <item row="0" column="0">
+           <widget class="CustomCheckBox" name="ckPSNR">
+            <property name="text">
+             <string>PSNR</string>
+            </property>
             <property name="checked">
              <bool>true</bool>
-            </property>
-            <property name="text">
-             <string>MSE / RMSE</string>
             </property>
            </widget>
           </item>
@@ -279,18 +276,21 @@
             </property>
            </widget>
           </item>
-          <item row="1" column="1">
-           <widget class="CustomCheckBox" name="chkTPRS">
-            <property name="toolTip">
-             <string>Signal power ratio estimated from adjacent traces (estimation mode only).</string>
-            </property>
-            <property name="text">
-             <string>TPRS</string>
-            </property>
-           </widget>
-          </item>
          </layout>
         </widget>
+       </item>
+       <item>
+        <spacer name="verticalSpacer">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>40</height>
+          </size>
+         </property>
+        </spacer>
        </item>
       </layout>
      </item>
@@ -308,7 +308,7 @@
            </attribute>
            <layout class="QVBoxLayout" name="summaryLayout">
             <item>
-             <widget class="MyStringTable" name="metricTable" />
+             <widget class="MyStringTable" name="metricTable"/>
             </item>
             <item>
              <widget class="QLabel" name="resultHint">
@@ -358,20 +358,29 @@
      <property name="enabled">
       <bool>true</bool>
      </property>
-     <property name="readOnly">
-      <bool>true</bool>
-     </property>
      <property name="text">
       <string>Ready</string>
+     </property>
+     <property name="readOnly">
+      <bool>true</bool>
      </property>
     </widget>
    </item>
    <item>
-    <widget class="QGroupBox" name="groupBox_buttons">
-     <property name="title">
-      <string />
-     </property>
+    <widget class="QFrame" name="frame_buttons">
      <layout class="QHBoxLayout" name="horizontalLayout_buttons">
+      <property name="leftMargin">
+       <number>0</number>
+      </property>
+      <property name="topMargin">
+       <number>0</number>
+      </property>
+      <property name="rightMargin">
+       <number>0</number>
+      </property>
+      <property name="bottomMargin">
+       <number>0</number>
+      </property>
       <item>
        <widget class="QToolButton" name="btnCalculate">
         <property name="minimumSize">
@@ -473,20 +482,16 @@
    </item>
   </layout>
  </widget>
- <resources>
-  <include location="myrc.qrc" />
- </resources>
- <connections />
  <customwidgets>
-  <customwidget>
-   <class>MyStringTable</class>
-   <extends>QTableView</extends>
-   <header>mystringtable.h</header>
-  </customwidget>
   <customwidget>
    <class>CustomCheckBox</class>
    <extends>QCheckBox</extends>
    <header>customcontrols.h</header>
+  </customwidget>
+  <customwidget>
+   <class>MyStringTable</class>
+   <extends>QTableView</extends>
+   <header>mystringtable.h</header>
   </customwidget>
   <customwidget>
    <class>CustomRadioButton</class>
@@ -494,4 +499,8 @@
    <header>customcontrols.h</header>
   </customwidget>
  </customwidgets>
+ <resources>
+  <include location="myrc.qrc"/>
+ </resources>
+ <connections/>
 </ui>

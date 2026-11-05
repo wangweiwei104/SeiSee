@@ -5,7 +5,6 @@
 #include <QFileInfo>
 #include <QFile>
 #include <QFrame>
-#include <QGroupBox>
 #include <QHBoxLayout>
 #include <QLayout>
 #include <QPushButton>
@@ -29,14 +28,48 @@ void SpectrumDialog::setCaptureRange(const QString &source, int first, int last,
 }
 
 void SpectrumDialog::updateResponsiveGroups(
-    QFrame *frame, const QList<QGroupBox *> &hideOrder)
+    QFrame *frame, const QList<QFrame *> &hideOrder)
 {
     auto layout = qobject_cast<QHBoxLayout *>(frame->layout());
     if (!layout)
         return;
 
-    for (QGroupBox *group : hideOrder)
+    for (QFrame *group : hideOrder)
         group->show();
+
+    const auto updateSeparators = [layout]() {
+        for (int i = 0; i < layout->count(); ++i) {
+            auto separator = qobject_cast<QFrame *>(
+                layout->itemAt(i)->widget());
+            if (!separator ||
+                !separator->objectName().endsWith("Separator")) {
+                continue;
+            }
+
+            QWidget *previous = nullptr;
+            QWidget *next = nullptr;
+            for (int j = i - 1; j >= 0; --j) {
+                QWidget *widget = layout->itemAt(j)->widget();
+                if (widget &&
+                    !widget->objectName().endsWith("Separator")) {
+                    previous = widget;
+                    break;
+                }
+            }
+            for (int j = i + 1; j < layout->count(); ++j) {
+                QWidget *widget = layout->itemAt(j)->widget();
+                if (widget &&
+                    !widget->objectName().endsWith("Separator")) {
+                    next = widget;
+                    break;
+                }
+            }
+            separator->setVisible(previous && next &&
+                                  !previous->isHidden() &&
+                                  !next->isHidden());
+        }
+    };
+    updateSeparators();
 
     const QMargins margins = layout->contentsMargins();
     const int availableWidth =
@@ -57,10 +90,11 @@ void SpectrumDialog::updateResponsiveGroups(
         return width;
     };
 
-    for (QGroupBox *group : hideOrder) {
+    for (QFrame *group : hideOrder) {
         if (minimumWidth() <= availableWidth)
             break;
         group->hide();
+        updateSeparators();
     }
 
     layout->invalidate();

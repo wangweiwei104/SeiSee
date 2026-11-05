@@ -12,15 +12,15 @@ SaveAsDialog::SaveAsDialog(QWidget *parent)
     , ui(new Ui::SaveAsDialog)
 {
     ui->setupUi(this);
-    QFont labelFont = QApplication::font();
-    labelFont.setPointSizeF(GfxStyle::SaveAsLabelFontPointSize);
-    ui->label_2->setFont(labelFont);
-    ui->label_3->setFont(labelFont);
-    ui->label_4->setFont(labelFont);
-    ui->label_5->setFont(labelFont);
-    ui->label_6->setFont(labelFont);
-    ui->label_7->setFont(labelFont);
-    ui->label_8->setFont(labelFont);
+    // QFont labelFont = QApplication::font();
+    // labelFont.setPointSizeF(GfxStyle::SaveAsLabelFontPointSize);
+    // ui->label_2->setFont(labelFont);
+    // ui->label_3->setFont(labelFont);
+    // ui->label_4->setFont(labelFont);
+    // ui->label_5->setFont(labelFont);
+    // ui->label_6->setFont(labelFont);
+    // ui->label_7->setFont(labelFont);
+    // ui->label_8->setFont(labelFont);
 
     hdrListGrid.setRowCount(0);
     hdrListGrid.setColCount(2);

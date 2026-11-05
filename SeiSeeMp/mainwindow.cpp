@@ -110,6 +110,16 @@ MainWindow::MainWindow(QWidget *parent)
     QCoreApplication::setLibraryPaths(paths);
 
     ui->setupUi(this);
+    const auto setWhiteBackground = [](QWidget *widget) {
+        widget->setAutoFillBackground(true);
+        QPalette palette = widget->palette();
+        palette.setColor(QPalette::Window, Qt::white);
+        palette.setColor(QPalette::Base, Qt::white);
+        widget->setPalette(palette);
+    };
+    setWhiteBackground(ui->seisFrame1);
+    setWhiteBackground(ui->seisFrame);
+
     // QAction::data is not a Qt property: Designer setProperty("data") does
     // not populate the value read by the DPI menu handler.
     ui->actionExportDpi300->setData(300);
@@ -136,18 +146,16 @@ MainWindow::MainWindow(QWidget *parent)
             "subcontrol-position: top left; left: 8px; top: 5px; } "
             "QMenuBar { background-color: palette(window); } "
 
-            // 3. 新增：QTabWidget 样式 (严格按指定版本)
+            // 3. 新增：QTabWidget 样式
             "QTabBar { qproperty-drawBase: 0; } "
-            "QTabWidget::pane { border: none; "
-            "background-color: #ffffff;} "
+            "QTabWidget::pane { border: none; } "
             "QTabBar::tab { background-color: transparent; "
-            "color: #777777; border: 1px solid transparent; "
-            "border-radius: 6px;"
-            "padding: 2px 2px; margin-right: 2px; } "
-            "QTabBar::tab:hover:!selected { color: #333333; "
-            "border: 1px solid #1c6dd1; background-color: #f5f5f5; } "
-            "QTabBar::tab:selected { background-color: transparent; "
-            "color: #1c6dd1; border: 1px solid transparent; font-weight: bold; } " 
+            "color: palette(windowText); border-bottom: 2px solid transparent; "
+            "padding: 2px 4px; margin-right: 12px; } "
+            "QTabBar::tab:hover:!selected { "
+            "border-bottom: 2px solid palette(mid); } "
+            "QTabBar::tab:selected { color: #1c6dd1; "
+            "border-bottom: 2px solid #1c6dd1;} "
         )
         .arg(GfxStyle::ButtonCornerRadius)
         .arg(QString::fromLatin1(GfxStyle::ButtonHoverBackground))
@@ -178,8 +186,6 @@ MainWindow::MainWindow(QWidget *parent)
     ui->HeBox->setMinimumWidth(0);
     ui->frame_6->setMinimumWidth(0);
 
-    QGridLayout *scaleLayout =
-        qobject_cast<QGridLayout *>(ui->groupBox_3->layout());
     const QList<QSlider *> scaleSliders = {
         ui->TrSlider, ui->TmSlider, ui->GnSlider
     };
@@ -187,8 +193,7 @@ MainWindow::MainWindow(QWidget *parent)
         slider->setMinimumWidth(0);
         slider->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
     }
-    if (scaleLayout)
-        scaleLayout->setColumnStretch(1, 1);
+    ui->gridLayout->setColumnStretch(1, 1);
 
     const int numericEditWidth =
         QFontMetrics(ui->edTr->font()).horizontalAdvance(
@@ -202,7 +207,7 @@ MainWindow::MainWindow(QWidget *parent)
     ui->groupBox_3->setMinimumWidth(
         ui->groupBox_3->minimumSizeHint().width());
 
-    for (QGroupBox *optionalGroup :
+    for (QWidget *optionalGroup :
          {ui->groupBox_2, ui->groupBox_13, ui->groupBox_15}) {
         optionalGroup->setMinimumWidth(0);
     }
@@ -2422,11 +2427,11 @@ void MainWindow::updateCompactSeismicControls()
 
     const int spacing = qMax(0, layout->spacing());
     const QMargins margins = layout->contentsMargins();
-    const QList<QGroupBox *> allGroups = {
-        ui->groupBox, ui->groupBox_2, ui->groupBox_3, ui->groupBox_4,
-        ui->groupBox_13, ui->groupBox_15
+    const QList<QWidget *> allGroups = {
+        ui->groupBox, ui->groupBox_2, ui->groupBox_15, ui->groupBox_3,
+        ui->groupBox_4, ui->groupBox_13
     };
-    for (QGroupBox *group : allGroups) {
+    for (QWidget *group : allGroups) {
         const bool wiggleControlsEnabled =
             ui->ckWiggle->isChecked() &&
             (group == ui->groupBox_2 || group == ui->groupBox_15);
@@ -2438,7 +2443,27 @@ void MainWindow::updateCompactSeismicControls()
     const int availableWidth = ui->frame->width();
     const int fixedWidth = margins.left() + margins.right() +
                            ui->frame->frameWidth() * 2;
-    const QList<QGroupBox *> collapseOrder = {
+    const QList<QFrame *> separators = {
+        ui->displayModeFillSeparator, ui->fillWiggleControlSeparator,
+        ui->wiggleControlScaleSeparator, ui->scaleProcessingSeparator,
+        ui->processingDirectionSeparator
+    };
+    const auto updateSeparators = [&allGroups, &separators]() {
+        for (int i = 0; i < separators.size(); ++i) {
+            bool hasVisibleGroupAfter = false;
+            for (int j = i + 1; j < allGroups.size(); ++j) {
+                if (!allGroups[j]->isHidden()) {
+                    hasVisibleGroupAfter = true;
+                    break;
+                }
+            }
+            separators[i]->setVisible(!allGroups[i]->isHidden() &&
+                                      hasVisibleGroupAfter);
+        }
+    };
+    updateSeparators();
+
+    const QList<QWidget *> collapseOrder = {
         ui->groupBox_13, ui->groupBox_2, ui->groupBox_4, ui->groupBox_15,
         ui->groupBox
     };
@@ -2446,7 +2471,7 @@ void MainWindow::updateCompactSeismicControls()
     const auto requiredWidth = [&allGroups, fixedWidth, spacing]() {
         int width = fixedWidth;
         int visibleCount = 0;
-        for (QGroupBox *group : allGroups) {
+        for (QWidget *group : allGroups) {
             if (group->isHidden())
                 continue;
             width += qMax(group->minimumWidth(),
@@ -2454,15 +2479,16 @@ void MainWindow::updateCompactSeismicControls()
             ++visibleCount;
         }
         if (visibleCount > 1)
-            width += spacing * (visibleCount - 1);
+            width += (spacing * 2 + 1) * (visibleCount - 1);
         return width;
     };
 
-    for (QGroupBox *group : collapseOrder) {
+    for (QWidget *group : collapseOrder) {
         if (requiredWidth() <= availableWidth)
             break;
         group->hide();
     }
+    updateSeparators();
 }
 
 void MainWindow::syncHorizontalAxisScrollBar(int minimum, int maximum)

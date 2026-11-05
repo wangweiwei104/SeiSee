@@ -345,10 +345,6 @@ FkSpectrumDialog::FkSpectrumDialog(SeisFile *file, const QString &dir,
 {
     ui->setupUi(this);
     updateResponsiveGroups(ui->frame, {ui->advanceGroup, ui->displayGroup});
-    for (auto layout : ui->frame->findChildren<QLayout *>()) {
-        layout->setSpacing(4);
-        layout->setContentsMargins(4, 4, 4, 4);
-    }
     setObjectName(frequencyOnly ? "FrequencySpectrumDialog"
                                 : "FkSpectrumDialog");
     setWindowTitle(frequencyOnly ? tr("Frequency Spectrum")

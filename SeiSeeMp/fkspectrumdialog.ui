@@ -18,7 +18,13 @@
     <enum>QLayout::SetNoConstraint</enum>
    </property>
    <item>
-    <widget class="QFrame" name="frame">
+    <widget class="CustomFrame" name="frame">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
      <property name="frameShape">
       <enum>QFrame::NoFrame</enum>
      </property>
@@ -26,12 +32,55 @@
       <enum>QFrame::Raised</enum>
      </property>
      <layout class="QHBoxLayout" name="horizontalLayout_15">
-      <item>
-       <widget class="QGroupBox" name="inputGroup">
-        <property name="title">
-         <string>Input Range</string>
+      <property name="spacing">
+       <number>2</number>
+      </property>
+      <property name="leftMargin">
+       <number>2</number>
+      </property>
+      <property name="topMargin">
+       <number>2</number>
+      </property>
+      <property name="rightMargin">
+       <number>2</number>
+      </property>
+      <property name="bottomMargin">
+       <number>2</number>
+      </property>
+      <item alignment="Qt::AlignTop">
+       <widget class="QFrame" name="inputGroup">
+        <property name="frameShape">
+         <enum>QFrame::NoFrame</enum>
+        </property>
+        <property name="frameShadow">
+         <enum>QFrame::Plain</enum>
         </property>
         <layout class="QVBoxLayout" name="verticalLayout">
+         <property name="spacing">
+          <number>2</number>
+         </property>
+         <property name="leftMargin">
+          <number>2</number>
+         </property>
+         <property name="topMargin">
+          <number>2</number>
+         </property>
+         <property name="rightMargin">
+          <number>2</number>
+         </property>
+         <property name="bottomMargin">
+          <number>2</number>
+         </property>
+         <item>
+          <widget class="QLabel" name="inputGroupTitle">
+           <property name="text">
+            <string>Input Range</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+           </property>
+          </widget>
+         </item>
          <item>
           <layout class="QHBoxLayout" name="horizontalLayout">
            <item>
@@ -113,7 +162,11 @@
             </widget>
            </item>
            <item>
-            <widget class="SpectrumSpinBox" name="fkStart"/>
+            <widget class="SpectrumSpinBox" name="fkStart">
+             <property name="decimals">
+              <number>0</number>
+             </property>
+            </widget>
            </item>
            <item>
             <widget class="QLabel" name="label_4">
@@ -129,7 +182,11 @@
             </widget>
            </item>
            <item>
-            <widget class="SpectrumSpinBox" name="fkEnd"/>
+            <widget class="SpectrumSpinBox" name="fkEnd">
+             <property name="decimals">
+              <number>0</number>
+             </property>
+            </widget>
            </item>
            <item>
             <widget class="QPushButton" name="fkAllTime">
@@ -174,6 +231,9 @@
              </item>
              <item>
               <widget class="SpectrumSpinBox" name="fkSpacing">
+               <property name="decimals">
+                <number>1</number>
+               </property>
                <property name="value">
                 <double>25.000000000000000</double>
                </property>
@@ -319,11 +379,70 @@
        </widget>
       </item>
       <item>
-       <widget class="QGroupBox" name="displayGroup">
-        <property name="title">
-         <string>Display</string>
+       <widget class="QFrame" name="inputDisplaySeparator">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Fixed" vsizetype="Expanding">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="minimumSize">
+         <size>
+          <width>1</width>
+          <height>0</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>1</width>
+          <height>16777215</height>
+         </size>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">background-color: palette(mid);</string>
+        </property>
+        <property name="frameShape">
+         <enum>QFrame::NoFrame</enum>
+        </property>
+        <property name="frameShadow">
+         <enum>QFrame::Plain</enum>
+        </property>
+       </widget>
+      </item>
+      <item alignment="Qt::AlignTop">
+       <widget class="QFrame" name="displayGroup">
+        <property name="frameShape">
+         <enum>QFrame::NoFrame</enum>
+        </property>
+        <property name="frameShadow">
+         <enum>QFrame::Plain</enum>
         </property>
         <layout class="QVBoxLayout" name="verticalLayout_5">
+         <property name="spacing">
+          <number>2</number>
+         </property>
+         <property name="leftMargin">
+          <number>2</number>
+         </property>
+         <property name="topMargin">
+          <number>2</number>
+         </property>
+         <property name="rightMargin">
+          <number>2</number>
+         </property>
+         <property name="bottomMargin">
+          <number>2</number>
+         </property>
+         <item>
+          <widget class="QLabel" name="displayGroupTitle">
+           <property name="text">
+            <string>Display</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+           </property>
+          </widget>
+         </item>
          <item>
           <layout class="QHBoxLayout" name="horizontalLayout_4">
            <item>
@@ -334,7 +453,11 @@
             </widget>
            </item>
            <item>
-            <widget class="SpectrumSpinBox" name="fkKmin"/>
+            <widget class="SpectrumSpinBox" name="fkKmin">
+             <property name="maximum">
+              <double>99999.000000000000000</double>
+             </property>
+            </widget>
            </item>
            <item>
             <widget class="QLabel" name="label_8">
@@ -359,7 +482,11 @@
             </widget>
            </item>
            <item>
-            <widget class="SpectrumSpinBox" name="fkKmax"/>
+            <widget class="SpectrumSpinBox" name="fkKmax">
+             <property name="maximum">
+              <double>99999.000000000000000</double>
+             </property>
+            </widget>
            </item>
            <item>
             <widget class="QPushButton" name="fkFullK">
@@ -405,7 +532,14 @@
             </widget>
            </item>
            <item>
-            <widget class="SpectrumSpinBox" name="fkFmin"/>
+            <widget class="SpectrumSpinBox" name="fkFmin">
+             <property name="decimals">
+              <number>1</number>
+             </property>
+             <property name="maximum">
+              <double>99999.000000000000000</double>
+             </property>
+            </widget>
            </item>
            <item>
             <widget class="QLabel" name="label_9">
@@ -430,7 +564,14 @@
             </widget>
            </item>
            <item>
-            <widget class="SpectrumSpinBox" name="fkFmax"/>
+            <widget class="SpectrumSpinBox" name="fkFmax">
+             <property name="decimals">
+              <number>1</number>
+             </property>
+             <property name="maximum">
+              <double>99999.000000000000000</double>
+             </property>
+            </widget>
            </item>
            <item>
             <widget class="QPushButton" name="fkFullF">
@@ -541,11 +682,70 @@
        </widget>
       </item>
       <item>
-       <widget class="QGroupBox" name="advanceGroup">
-        <property name="title">
-         <string>Advance</string>
+       <widget class="QFrame" name="displayAdvanceSeparator">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Fixed" vsizetype="Expanding">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="minimumSize">
+         <size>
+          <width>1</width>
+          <height>0</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>1</width>
+          <height>16777215</height>
+         </size>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">background-color: palette(mid);</string>
+        </property>
+        <property name="frameShape">
+         <enum>QFrame::NoFrame</enum>
+        </property>
+        <property name="frameShadow">
+         <enum>QFrame::Plain</enum>
+        </property>
+       </widget>
+      </item>
+      <item alignment="Qt::AlignTop">
+       <widget class="QFrame" name="advanceGroup">
+        <property name="frameShape">
+         <enum>QFrame::NoFrame</enum>
+        </property>
+        <property name="frameShadow">
+         <enum>QFrame::Plain</enum>
         </property>
         <layout class="QVBoxLayout" name="verticalLayout_3">
+         <property name="spacing">
+          <number>2</number>
+         </property>
+         <property name="leftMargin">
+          <number>2</number>
+         </property>
+         <property name="topMargin">
+          <number>2</number>
+         </property>
+         <property name="rightMargin">
+          <number>2</number>
+         </property>
+         <property name="bottomMargin">
+          <number>2</number>
+         </property>
+         <item>
+          <widget class="QLabel" name="advanceGroupTitle">
+           <property name="text">
+            <string>Advance</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+           </property>
+          </widget>
+         </item>
          <item>
           <layout class="QHBoxLayout" name="horizontalLayout_12">
            <item>
@@ -926,17 +1126,17 @@
      </item>
      <item>
       <widget class="QFrame" name="plotFrame">
-       <property name="minimumSize">
-        <size>
-         <width>0</width>
-         <height>0</height>
-        </size>
-       </property>
        <property name="sizePolicy">
         <sizepolicy hsizetype="Ignored" vsizetype="Expanding">
          <horstretch>1</horstretch>
          <verstretch>1</verstretch>
         </sizepolicy>
+       </property>
+       <property name="minimumSize">
+        <size>
+         <width>0</width>
+         <height>0</height>
+        </size>
        </property>
        <property name="styleSheet">
         <string notr="true">background-color: white;</string>
@@ -961,6 +1161,12 @@
    <class>SpectrumSpinBox</class>
    <extends>QDoubleSpinBox</extends>
    <header>spectrumspinbox.h</header>
+  </customwidget>
+  <customwidget>
+   <class>CustomFrame</class>
+   <extends>QFrame</extends>
+   <header>customcontrols.h</header>
+   <container>1</container>
   </customwidget>
  </customwidgets>
  <resources>
