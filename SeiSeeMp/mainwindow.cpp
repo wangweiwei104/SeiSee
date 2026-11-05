@@ -2002,13 +2002,16 @@ int MainWindow::checkBinHdrChange()
     //  0 - not changed
     // -1 - data error
     //  1 - changed
+    ui->btnBinRst->setVisible(true);
+    ui->btnBinUpd->setVisible(true);
 
     int nr = binHdrGrid.RowCount();
     SeisFile *sf = seisSrc.Sfile();
 
     if (sf == NULL || !sf->Active() || nr < 1) {
-        ui->btnBinRst->hide();
-        ui->btnBinUpd->hide();
+        ui->btnBinRst->setEnabled(false);
+        ui->btnBinUpd->setEnabled(false);
+        dirGrid.setEnabled(true);
         return 0;
     }
 
@@ -2026,12 +2029,12 @@ int MainWindow::checkBinHdrChange()
     changed = sf->binHed()->check(vals);
 
     if (changed == 1) {
-        ui->btnBinRst->show();
-        ui->btnBinUpd->show();
+        ui->btnBinRst->setEnabled(true);
+        ui->btnBinUpd->setEnabled(true);
         dirGrid.setEnabled(false);
     } else {
-        ui->btnBinRst->hide();
-        ui->btnBinUpd->hide();
+        ui->btnBinRst->setEnabled(changed != 0);
+        ui->btnBinUpd->setEnabled(false);
         dirGrid.setEnabled(true);
     }
 
@@ -2310,6 +2313,10 @@ int MainWindow::allSectWidth()
 
 void MainWindow::ArrangeSections()
 {
+    // Hidden scrollbars can retain size hints cached before the native style
+    // is ready.
+    horizontalAxisScrollBar->updateGeometry();
+    verticalAxisScrollBar->updateGeometry();
     ui->seisFrame->setVisible(true);
 
     double xs = seisView.Xs();
