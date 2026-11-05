@@ -111,6 +111,7 @@ MainWindow::MainWindow(QWidget *parent)
     QCoreApplication::setLibraryPaths(paths);
 
     ui->setupUi(this);
+    ui->goBackBtn->setEnabled(false);
     const auto setWhiteBackground = [](QWidget *widget) {
         widget->setAutoFillBackground(true);
         QPalette palette = widget->palette();
@@ -1159,12 +1160,24 @@ void MainWindow::sclZoom(double zx, double zy, int xc, int yc)
     SetZoomC(xs * zx, ys * zy, xc, yc);
 }
 
-void MainWindow::ChangeDataDir(QString Dname, QString Find)
+void MainWindow::ChangeDataDir(QString Dname, QString Find, bool addToHistory)
 {
     emit stop_dirs();
 
+    const QString normalizedNewDir =
+        QDir::cleanPath(QFileInfo(Dname).absoluteFilePath());
+    const QString normalizedCurrentDir =
+        curDir.isEmpty()
+            ? QString()
+            : QDir::cleanPath(QFileInfo(curDir).absoluteFilePath());
+    if (addToHistory && !curDir.isEmpty() &&
+        normalizedCurrentDir != normalizedNewDir) {
+        m_directoryHistory.push(normalizedCurrentDir);
+    }
+
     addRecentDirectory(Dname);
     curDir = Dname;
+    ui->goBackBtn->setEnabled(!m_directoryHistory.isEmpty());
     MetricsDlg.curDir = QDir(curDir).absolutePath();
 
     find = Find;
@@ -3248,6 +3261,15 @@ void MainWindow::on_refreshBtn_pressed()
             ChangeDataDir(curDir, name);
         }
     }
+}
+
+void MainWindow::on_goBackBtn_clicked()
+{
+    if (m_directoryHistory.isEmpty())
+        return;
+
+    const QString previousDirectory = m_directoryHistory.pop();
+    ChangeDataDir(previousDirectory, QString(), false);
 }
 
 void MainWindow::on_procParmBtn_pressed()

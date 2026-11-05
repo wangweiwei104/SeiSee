@@ -87,7 +87,7 @@ process</br>
 - 改进图标在不同 DPI 屏幕上的显示，并支持窗口在不同 DPI 屏幕间移动
 - 补全道头字段（至240，兼容GeoEast）显示
 - 实现 Save as 界面 apply process的实际功能
-- 精心设计的高DPI图标
+- 精心设计的高DPI图标和新的界面
 
 ## 未来计划
 

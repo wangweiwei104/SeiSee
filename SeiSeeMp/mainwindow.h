@@ -252,6 +252,8 @@ private slots:
 
     void on_refreshBtn_pressed();
 
+    void on_goBackBtn_clicked();
+
     void on_opFileBtn_pressed();
 
     void on_procParmBtn_pressed();
@@ -542,6 +544,7 @@ private:
     QString txtHdrFile;
     QString savDir;
     QString curDir;
+    QStack<QString> m_directoryHistory;
     QString curHdr;
     QString curFn; // file number in ltod
 
@@ -563,7 +566,8 @@ private:
 
     void SelectTrace(int it);
 
-    void ChangeDataDir(QString Dname, QString Find = "");
+    void ChangeDataDir(QString Dname, QString Find = "",
+                       bool addToHistory = true);
     void ScanLtod();
 
     void SetZoomC(double xs, double ys, int xc, int yc);
