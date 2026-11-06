@@ -2,6 +2,7 @@
 #define CUSTOMCONTROLS_H
 
 #include <QCheckBox>
+#include <QEvent>
 #include <QFrame>
 #include <QRadioButton>
 #include <QScrollBar>
@@ -9,6 +10,29 @@
 #include <QStylePainter>
 
 class QPainter;
+
+inline void ensureScrollBarMinimumExtent(QScrollBar *scrollBar)
+{
+    constexpr int minimumExtent = 17;
+    if (scrollBar->orientation() == Qt::Horizontal)
+        scrollBar->setMinimumHeight(qMax(scrollBar->minimumHeight(), minimumExtent));
+    else
+        scrollBar->setMinimumWidth(qMax(scrollBar->minimumWidth(), minimumExtent));
+}
+
+class ScrollBarExtentFilter : public QObject
+{
+protected:
+    bool eventFilter(QObject *watched, QEvent *event) override
+    {
+        if (event->type() == QEvent::Polish || event->type() == QEvent::Show) {
+            QScrollBar *scrollBar = qobject_cast<QScrollBar *>(watched);
+            if (scrollBar)
+                ensureScrollBarMinimumExtent(scrollBar);
+        }
+        return QObject::eventFilter(watched, event);
+    }
+};
 
 // 与 QGroupBox 样式一致的圆角边框容器，但没有标题。
 class CustomFrame : public QFrame
@@ -53,6 +77,7 @@ public:
     explicit AxisScrollBar(Qt::Orientation orientation, QWidget *parent = nullptr)
         : QScrollBar(orientation, parent)
     {
+        ensureScrollBarMinimumExtent(this);
     }
 
 protected:

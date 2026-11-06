@@ -1,4 +1,5 @@
 #include "mainwindow.h"
+#include "customcontrols.h"
 
 #include <QApplication>
 #include <QFontDatabase>
@@ -169,6 +170,8 @@ int main(int argc, char *argv[])
 #endif
 
     QApplication a(argc, argv);
+    ScrollBarExtentFilter scrollBarExtentFilter;
+    a.installEventFilter(&scrollBarExtentFilter);
     a.setWindowIcon(QIcon(":/images/SeiSeeMp.ico"));
     if (!setDefaultFont(&a))
         return 1;

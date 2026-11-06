@@ -274,6 +274,8 @@ MainWindow::MainWindow(QWidget *parent)
 
     eExpIdx = 0;
 
+    statusBar()->setContentsMargins(6, 0, 6, 2);
+
     m_statMess = new QLabel("SeiSeeMp", this);
     m_statMess->setFrameStyle(QFrame::Panel | QFrame::Sunken);
 
@@ -1417,6 +1419,10 @@ void MainWindow::SelectTrace(int it)
 
         SeisFile *sf = seisSrc.Sfile();
         float *smp = sf->Rs(it);
+        const double timeOriginMs =
+            sf->Dly() && sf->ThIdx("DELRECT") >= 0
+                ? sf->Th(it, "DELRECT")
+                : 0.0;
 
         if (smp)
             for (int i = 0; i < trcDatGrid.RowCount(); i++) {
@@ -1426,7 +1432,9 @@ void MainWindow::SelectTrace(int it)
                 v.sprintf("%10.6f", val);
 
                 trcDatGrid.setCell(i, 0, QString::number(i));
-                trcDatGrid.setCell(i, 1, QString::number(i * sf->Si() * 1000.));
+                trcDatGrid.setCell(
+                    i, 1,
+                    QString::number(timeOriginMs + i * sf->Si() * 1000.));
                 trcDatGrid.setCell(i, 2, v);
             }
 
@@ -1454,48 +1462,65 @@ void MainWindow::viewMouseEvent(QMouseEvent *event)
         int x = event->x() - seisView.x();
         int y = event->y() - seisView.y();
         double it = round(seisSct.pix2x(x));
-        // 设置时间随鼠标显示
+        const int traceCount = seisSrc.Nt();
+        const int sampleCount = seisSrc.Ns();
         const double sampleInterval = seisSrc.Si();
-        const double samplePosition =
-            sampleInterval > 0
-                ? (seisSct.pix2y(y) - seisSrc.To()) / sampleInterval
-                : -1;
-        int sample = -1;
-        if (samplePosition >= 0 && samplePosition < seisSrc.Ns()) {
-            sample = qBound(0, qRound(samplePosition), seisSrc.Ns() - 1);
-            const double sampleTime =
-                (seisSrc.To() + sample * sampleInterval) * 1000;
-            m_statTime->setText(Tprintf("Time= %.12g", sampleTime));
+        const double timeOrigin = seisSrc.To();
+        const double cursorTime = seisSct.pix2y(y);
+        // 设置时间随鼠标显示
+        const double displaySamplePosition = sampleInterval > 0
+                                                 ? (cursorTime - timeOrigin) /
+                                                       sampleInterval
+                                                 : -1;
+        int displaySample = -1;
+        if (displaySamplePosition >= 0 &&
+            displaySamplePosition < sampleCount) {
+            displaySample =
+                qBound(0, qRound(displaySamplePosition), sampleCount - 1);
+            m_statTime->setText(
+                Tprintf("Time= %.12g",
+                        (timeOrigin + displaySample * sampleInterval) * 1000));
         } else {
             m_statTime->setText("Time=");
         }
 
+        const bool validCursorTrace = it >= 0 && it < traceCount;
+        const int cursorTrace =
+            validCursorTrace ? static_cast<int>(it) : -1;
+
         // 设置振幅随鼠标显示
         m_statAmp->setText("Amp=");
-        if (sample >= 0 && it >= 0 && it < seisSrc.Nt()) {
-            Ttr trace = seisSrc.Tt(static_cast<int>(it));
+        if (displaySample >= 0 && validCursorTrace) {
+            Ttr trace = seisSrc.Tt(cursorTrace);
             if (trace._buf && trace._smp) {
                 m_statAmp->setText(
-                    Tprintf("Amp= %g", static_cast<double>(trace[sample])));
+                    Tprintf("Amp= %g",
+                            static_cast<double>(trace[displaySample])));
             }
         }
 
+        const bool traceDataVisible =
+            ui->InfoTab->currentWidget() == ui->TrcTab &&
+            ui->TracePg->currentWidget() == ui->TrcDatTab;
+        const int selectedTrace = seisSct.selTr();
         // 设置数据表格随鼠标显示
-        if (ui->InfoTab->currentWidget() == ui->TrcTab &&
-            ui->TracePg->currentWidget() == ui->TrcDatTab &&
-            seisSct.selTr() >= 0 && sampleInterval > 0 &&
-            sample >= 0 && sample < trcDatGrid.RowCount()) {
-            if (trcDatGrid.curRow() != sample) {
-                trcDatGrid.setCurCell(sample);
-                trcDatGrid.selectRow(sample);
+        if (traceDataVisible && displaySample >= 0 &&
+            selectedTrace >= 0 && selectedTrace < traceCount) {
+            const Ttr trace = seisSrc.Tt(selectedTrace);
+            const int tableSample = displaySample - trace._dly;
+            if (tableSample >= 0 && tableSample < trcDatGrid.RowCount()) {
+                if (trcDatGrid.curRow() != tableSample) {
+                    trcDatGrid.setCurCell(tableSample);
+                    trcDatGrid.selectRow(tableSample);
+                }
+                trcDatGrid.scrollTo(
+                    trcDatGrid.model()->index(tableSample, 0),
+                    QAbstractItemView::PositionAtCenter);
             }
-            trcDatGrid.scrollTo(
-                trcDatGrid.model()->index(sample, 0),
-                QAbstractItemView::PositionAtCenter);
         }
 
-        if (it >= 0 && it < seisSrc.Nt()) {
-            int trcn = seisSrc.Th(it, 0);
+        if (validCursorTrace) {
+            int trcn = seisSrc.Th(cursorTrace, 0);
             m_statTrcn->setText(Tprintf("Trace %d", trcn));
         } else {
             m_statTrcn->setText(Tprintf("Trace "));
