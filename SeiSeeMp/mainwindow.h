@@ -51,7 +51,7 @@
 
 #include "workthread.h"
 
-#define VERSION "4.0.0-beta.4"
+#define VERSION "4.0.0-beta.5"
 
 /*
 class zdata

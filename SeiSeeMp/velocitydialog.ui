@@ -309,6 +309,12 @@
           </item>
           <item row="4" column="1" colspan="2">
            <widget class="QPushButton" name="velocityCancel">
+            <property name="styleSheet">
+             <string notr="true">QPushButton#velocityCancel:enabled {
+    color: #ef4444;
+    font-weight: bold;
+}</string>
+            </property>
             <property name="enabled">
              <bool>false</bool>
             </property>
