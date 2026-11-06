@@ -2,6 +2,16 @@
 
 本文件记录 SeiSee 独立维护版本的用户可见变更。版本号与 `SeiSeeMp/mainwindow.h` 中的 `VERSION` 保持一致。
 
+## [4.0.0-beta.4] - 2026-11-6
+
+### 改进
+
+-  自定义ScrollBar\Slider样式美化重构；Check\Radio 颜色统一主题色
+  
+### 修复
+
+-  彻底修复ScrollBar宽度识别不准的bug
+
 ## [4.0.0-beta.3] - 2026-11-5
 
 ### 新增
