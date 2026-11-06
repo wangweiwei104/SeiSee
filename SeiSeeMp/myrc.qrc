@@ -41,6 +41,21 @@
         <file>images/RemoveALL.png</file>
         <file>images/Reset.png</file>
         <file>images/Run.png</file>
+        <file>images/scroll-down.svg</file>
+        <file>images/scroll-left.svg</file>
+        <file>images/scroll-right.svg</file>
+        <file>images/scroll-up.svg</file>
+        <file>images/scroll-down-hover.svg</file>
+        <file>images/scroll-left-hover.svg</file>
+        <file>images/scroll-right-hover.svg</file>
+        <file>images/scroll-up-hover.svg</file>
+        <file>images/scroll-down-pressed.svg</file>
+        <file>images/scroll-left-pressed.svg</file>
+        <file>images/scroll-right-pressed.svg</file>
+        <file>images/scroll-up-pressed.svg</file>
+        <file>images/slider-handle.svg</file>
+        <file>images/slider-handle-hover.svg</file>
+        <file>images/slider-handle-pressed.svg</file>
         <file>images/segdfile.png</file>
         <file>images/segdfile.svg</file>
         <file>images/segyfile.ico</file>

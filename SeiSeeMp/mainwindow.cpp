@@ -162,6 +162,7 @@ MainWindow::MainWindow(QWidget *parent)
         .arg(GfxStyle::ButtonCornerRadius)
         .arg(QString::fromLatin1(GfxStyle::ButtonHoverBackground))
         .arg(QString::fromLatin1(GfxStyle::ButtonPressedBackground))
+        + scrollBarStyleSheet() + QStringLiteral(" ") + sliderStyleSheet()
     );
 
     QSettings settings("WW", "SeiSeeMp");

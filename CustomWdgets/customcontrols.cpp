@@ -36,7 +36,7 @@ QColor indicatorColor(const QStyleOptionButton &option)
     if (!(option.state & QStyle::State_Enabled))
         return option.palette.color(QPalette::Disabled, QPalette::Text);
     if (option.state & QStyle::State_MouseOver)
-        return option.palette.color(QPalette::Active, QPalette::Highlight);
+        return QColor(QLatin1String(ControlAccentColor));
     return option.palette.color(QPalette::Active, QPalette::Mid);
 }
 
@@ -120,8 +120,7 @@ void CustomCheckBox::paintOn(QPainter *painter,
     painter->translate(position);
     painter->setRenderHint(QPainter::Antialiasing, true);
     painter->setPen(QPen(border, 1.5));
-    painter->setBrush(checked ? option.palette.color(QPalette::Active,
-                                                     QPalette::Highlight)
+    painter->setBrush(checked ? QColor(QLatin1String(ControlAccentColor))
                               : option.palette.color(QPalette::Base));
     painter->drawRoundedRect(box, 2.5, 2.5);
 
@@ -177,8 +176,7 @@ void CustomRadioButton::paintEvent(QPaintEvent *event)
     if (option.state & QStyle::State_On) {
         const qreal dotSize = outer.width() * 0.5;
         painter.setPen(Qt::NoPen);
-        painter.setBrush(option.palette.color(QPalette::Active,
-                                              QPalette::Highlight));
+        painter.setBrush(QColor(QLatin1String(ControlAccentColor)));
         painter.drawEllipse(QRectF(outer.center().x() - dotSize / 2,
                                    outer.center().y() - dotSize / 2, dotSize,
                                    dotSize));
