@@ -85,6 +85,7 @@ Makefile*
 
 # AI测试文件
 tests/
+SeiSeeMp/regression/
 
 # 日志文件
 *.log
