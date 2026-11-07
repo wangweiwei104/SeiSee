@@ -69,8 +69,8 @@ EditHdrDialog::EditHdrDialog(QWidget *parent)
 
     setChanged(false);
 
-    ui->btnUpdate->hide();
-    ui->btnReset->hide();
+    ui->btnUpdate->setEnabled(false);
+    ui->btnReset->setEnabled(false);
 
     connect(&hdrGrid, SIGNAL(rowEvent(int, int)), this,
             SLOT(hdrTabEvent(int, int)));
@@ -89,14 +89,14 @@ void EditHdrDialog::setChanged(bool v)
 
     if (v) {
         ui->cbSet->setEnabled(false);
-        ui->btnApply->show();
-        ui->btnDiscard->show();
-        ui->btnClose->hide();
+        ui->btnApply->setEnabled(hdrGrid.isEnabled());
+        ui->btnDiscard->setEnabled(hdrGrid.isEnabled());
+        ui->btnClose->setEnabled(false);
     } else {
         ui->cbSet->setEnabled(true);
-        ui->btnApply->hide();
-        ui->btnDiscard->hide();
-        ui->btnClose->show();
+        ui->btnApply->setEnabled(false);
+        ui->btnDiscard->setEnabled(false);
+        ui->btnClose->setEnabled(hdrGrid.isEnabled());
     }
 }
 
@@ -300,8 +300,8 @@ void EditHdrDialog::onUserInput()
     if (hdrGrid.curRow() < 0)
         return;
 
-    ui->btnUpdate->show();
-    ui->btnReset->show();
+    ui->btnUpdate->setEnabled(true);
+    ui->btnReset->setEnabled(true);
     hdrGrid.setEnabled(false);
     ui->btnApply->setEnabled(false);
     ui->btnDiscard->setEnabled(false);
@@ -320,12 +320,12 @@ void EditHdrDialog::on_btnReset_clicked()
         return;
 
     hdrTabEvent(hdrGrid.curRow(), 1);
-    ui->btnUpdate->hide();
-    ui->btnReset->hide();
+    ui->btnUpdate->setEnabled(false);
+    ui->btnReset->setEnabled(false);
     hdrGrid.setEnabled(true);
-    ui->btnApply->setEnabled(true);
-    ui->btnDiscard->setEnabled(true);
-    ui->btnClose->setEnabled(true);
+    ui->btnApply->setEnabled(changed);
+    ui->btnDiscard->setEnabled(changed);
+    ui->btnClose->setEnabled(!changed);
 
     ui->lbErr->setText("");
 }
@@ -386,15 +386,11 @@ void EditHdrDialog::on_btnUpdate_clicked()
     hdrGrid.setTag(crow, 1, frmt);
     hdrGrid.setData(crow, 1, estr);
 
-    ui->btnUpdate->hide();
-    ui->btnReset->hide();
+    ui->btnUpdate->setEnabled(false);
+    ui->btnReset->setEnabled(false);
     hdrGrid.setEnabled(true);
 
     setChanged(true);
-
-    ui->btnApply->setEnabled(true);
-    ui->btnDiscard->setEnabled(true);
-    ui->btnClose->setEnabled(true);
 }
 
 void EditHdrDialog::on_edName_textChanged(const QString &arg1)
