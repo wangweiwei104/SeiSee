@@ -557,8 +557,8 @@ int Spectrum(float *inp, int *out, int StartFreq, int EndFreq)
 ERREXIT:
     if (fftdatar)
         MFree(fftdatar);
-    if (fftdatar)
-        MFree(fftdatar);
+    if (fftdatai)
+        MFree(fftdatai);
     if (ampspec)
         MFree(ampspec);
     return -1;
