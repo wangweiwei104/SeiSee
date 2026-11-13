@@ -350,10 +350,21 @@ MainWindow::MainWindow(QWidget *parent)
     _dly_max = 0;
 
     //----------------------------------------------------------
+    const auto setHorizontalOnlyTableLines = [](MyStringTable *table) {
+        table->setShowGrid(false);
+        table->setStyleSheet(
+            "QTableView { border: 1px solid #C0C0C0; }"
+            "QTableView::item { border: none;"
+            "border-bottom: 1px solid #DCDCDC; }"
+            "QHeaderView::section { background-color: #F5F5F5; padding: 4px;"
+            "border: none; border-bottom: 1px solid #C0C0C0; }");
+    };
+
     dirGrid.setRowCount(0);
     dirGrid.setColCount(2);
     dirGrid.setIconSize(QSize(16, 16));
     dirGrid.verticalHeader()->setVisible(false);
+    setHorizontalOnlyTableLines(&dirGrid);
 
     dirGrid.setColLabel(0, "Name");
     dirGrid.setColLabel(1, "Type");
@@ -381,6 +392,7 @@ MainWindow::MainWindow(QWidget *parent)
     comparisonGrid.setColCount(3);
     comparisonGrid.setIconSize(QSize(16, 16));
     comparisonGrid.verticalHeader()->setVisible(false);
+    setHorizontalOnlyTableLines(&comparisonGrid);
     comparisonGrid.setColLabel(0, "Key");
     comparisonGrid.setColLabel(1, "Name");
     comparisonGrid.setColLabel(2, "Type");
