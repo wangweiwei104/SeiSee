@@ -352,12 +352,16 @@ MainWindow::MainWindow(QWidget *parent)
     //----------------------------------------------------------
     const auto setHorizontalOnlyTableLines = [](MyStringTable *table) {
         table->setShowGrid(false);
-        table->setStyleSheet(
-            "QTableView { border: 1px solid #C0C0C0; }"
+        table->setStyleSheet(QStringLiteral(
+            "QTableView { border: none; border-top: 1px solid #C0C0C0;"
+            // "border-bottom: 1px solid #C0C0C0;"
+            "selection-background-color: %1; selection-color: %2; }"
             "QTableView::item { border: none;"
             "border-bottom: 1px solid #DCDCDC; }"
+            "QTableView::item:selected { background-color: %1; color: %2; }"
             "QHeaderView::section { background-color: #F5F5F5; padding: 4px;"
-            "border: none; border-bottom: 1px solid #C0C0C0; }");
+            "border: none; border-bottom: 1px solid #C0C0C0; }")
+            .arg(QStringLiteral("#1c6dd1"), QStringLiteral("#ffffff")));
     };
 
     dirGrid.setRowCount(0);
