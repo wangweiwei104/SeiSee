@@ -1840,6 +1840,7 @@ void MainWindow::showFileContextMenu(MyStringTable *grid,
         removeAction = menu.addAction(tr("Remove from comparison"));
     } else {
         comparisonAction = menu.addAction(tr("Add to comparison"));
+        comparisonAction->setEnabled(comparisonRowForPath(fullPath) < 0);
     }
 
     connect(copyNameAction, &QAction::triggered, this, [fileName]() {
@@ -1872,32 +1873,45 @@ void MainWindow::showFileContextMenu(MyStringTable *grid,
     menu.exec(grid->viewport()->mapToGlobal(position));
 }
 
+QString MainWindow::normalizedComparisonPath(const QString &path) const
+{
+    const QFileInfo info(path);
+    QString normalizedPath = info.canonicalFilePath();
+    if (normalizedPath.isEmpty())
+        normalizedPath = info.absoluteFilePath();
+    return QDir::cleanPath(normalizedPath);
+}
+
+int MainWindow::comparisonRowForPath(const QString &path) const
+{
+    const QString normalizedPath = normalizedComparisonPath(path);
+#ifdef Q_OS_WIN
+    const Qt::CaseSensitivity sensitivity = Qt::CaseInsensitive;
+#else
+    const Qt::CaseSensitivity sensitivity = Qt::CaseSensitive;
+#endif
+    for (int row = 0; row < comparisonFiles.size(); ++row) {
+        if (comparisonFiles.at(row).path.compare(normalizedPath, sensitivity) ==
+            0) {
+            return row;
+        }
+    }
+    return -1;
+}
+
 void MainWindow::addToComparison(const QString &path, int type)
 {
     if (type < 1 || type > 3)
         return;
 
-    const QFileInfo info(path);
-    QString absolutePath = info.canonicalFilePath();
-    if (absolutePath.isEmpty())
-        absolutePath = info.absoluteFilePath();
-    absolutePath = QDir::cleanPath(absolutePath);
-
-    for (int row = 0; row < comparisonFiles.size(); ++row) {
-#ifdef Q_OS_WIN
-        const Qt::CaseSensitivity sensitivity = Qt::CaseInsensitive;
-#else
-        const Qt::CaseSensitivity sensitivity = Qt::CaseSensitive;
-#endif
-        if (comparisonFiles.at(row).path.compare(absolutePath, sensitivity) ==
-            0) {
-            comparisonGrid.setCurCell(row);
-            return;
-        }
+    const int existingRow = comparisonRowForPath(path);
+    if (existingRow >= 0) {
+        comparisonGrid.setCurCell(existingRow);
+        return;
     }
 
     ComparisonFile file;
-    file.path = absolutePath;
+    file.path = normalizedComparisonPath(path);
     file.type = type;
     comparisonFiles.append(file);
     refreshComparisonGrid();

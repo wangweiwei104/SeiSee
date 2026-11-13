@@ -413,6 +413,8 @@ private:
     void finishHighResolutionExport();
     void showFileContextMenu(MyStringTable *grid, const QPoint &position,
                              bool comparisonGrid);
+    QString normalizedComparisonPath(const QString &path) const;
+    int comparisonRowForPath(const QString &path) const;
     void addToComparison(const QString &path, int type);
     void removeFromComparison(int row);
     void refreshComparisonGrid();
