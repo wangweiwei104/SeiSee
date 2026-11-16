@@ -28,6 +28,13 @@ APPIMAGETOOL="${APPIMAGETOOL:-appimagetool}"
 JOBS="${JOBS:-$(getconf _NPROCESSORS_ONLN 2>/dev/null || echo 2)}"
 OUTPUT_DIR="$REPO_ROOT/dist/linux"
 OUTPUT="$OUTPUT_DIR/SeiSee-$SAFE_VERSION-x86_64.AppImage"
+if [[ -n "${SEISEE_BUILD_DIR:-}" ]]; then
+    BUILD_DIR="$SEISEE_BUILD_DIR"
+elif [[ -f /.dockerenv ]]; then
+    BUILD_DIR="$REPO_ROOT/build/docker-release"
+else
+    BUILD_DIR="$REPO_ROOT/build/linux-package-release"
+fi
 WORK_DIR="$(mktemp -d "${TMPDIR:-/tmp}/seisee-appimage.XXXXXX")"
 APP_DIR="$WORK_DIR/SeiSee.AppDir"
 DESKTOP_FILE="$WORK_DIR/seisee.desktop"
@@ -59,22 +66,22 @@ command -v "$APPIMAGETOOL" >/dev/null 2>&1 ||
 
 export PATH="$(dirname "$(command -v "$QMAKE")"):$PATH"
 export QMAKE
-mkdir -p "$OUTPUT_DIR" "$APP_DIR/usr/bin" \
+mkdir -p "$BUILD_DIR" "$OUTPUT_DIR" "$APP_DIR/usr/bin" \
     "$APP_DIR/usr/share/applications" \
     "$APP_DIR/usr/share/mime/packages" \
     "$APP_DIR/usr/share/icons/hicolor/scalable/mimetypes" \
     "$APP_DIR/usr/share/icons/hicolor/256x256/mimetypes" \
     "$APP_DIR/usr/share/icons/hicolor/256x256/apps"
 
-cd "$REPO_ROOT"
-"$QMAKE" "$REPO_ROOT/GxApps.pro" -r CONFIG+=release
+cd "$BUILD_DIR"
+"$QMAKE" "$REPO_ROOT/GxApps.pro" -r CONFIG+=release CONFIG-=debug
 "$MAKE" distclean
-"$QMAKE" "$REPO_ROOT/GxApps.pro" -r CONFIG+=release
+"$QMAKE" "$REPO_ROOT/GxApps.pro" -r CONFIG+=release CONFIG-=debug
 "$MAKE" -j"$JOBS"
 
 for candidate in \
-    "$REPO_ROOT/SeiSeeMp/release/SeiSeeMp" \
-    "$REPO_ROOT/SeiSeeMp/SeiSeeMp"; do
+    "$BUILD_DIR/SeiSeeMp/release/SeiSeeMp" \
+    "$BUILD_DIR/SeiSeeMp/SeiSeeMp"; do
     if [[ -x "$candidate" ]]; then
         EXECUTABLE="$candidate"
         break

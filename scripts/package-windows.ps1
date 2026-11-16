@@ -42,15 +42,16 @@ $stageDir = Join-Path $tempRoot "app"
 $outputDir = Join-Path $repoRoot "dist\windows"
 $outputName = "SeiSee-$safeVersion-Setup"
 $issPath = Join-Path $tempRoot "SeiSee.iss"
-$exePath = Join-Path $repoRoot "SeiSeeMp\release\SeiSeeMp.exe"
+$buildDir = Join-Path $repoRoot "build\windows-release"
+$exePath = Join-Path $buildDir "SeiSeeMp\release\SeiSeeMp.exe"
 $iconPath = Join-Path $repoRoot "SeiSeeMp\images\SeiSeeSetup.ico"
 
-New-Item -ItemType Directory -Path $stageDir, $outputDir -Force | Out-Null
+New-Item -ItemType Directory -Path $stageDir, $outputDir, $buildDir -Force | Out-Null
 try {
     $env:PATH = "$QtBin;$MinGWBin;$env:PATH"
-    Push-Location $repoRoot
+    Push-Location $buildDir
     try {
-        & $qmake "GxApps.pro" "-r" "CONFIG+=release"
+        & $qmake (Join-Path $repoRoot "GxApps.pro") "-r" "CONFIG+=release" "CONFIG-=debug"
         if ($LASTEXITCODE -ne 0) {
             throw "qmake failed with exit code $LASTEXITCODE"
         }

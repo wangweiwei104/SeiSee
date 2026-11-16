@@ -13,6 +13,7 @@ ENV CMAKE_PREFIX_PATH=${QT_ROOT}
 ENV PKG_CONFIG_PATH=${QT_ROOT}/lib/pkgconfig
 ENV LINUXDEPLOY=/usr/local/bin/linuxdeploy
 ENV APPIMAGETOOL=/usr/local/bin/appimagetool
+ENV SEISEE_BUILD_DIR=/workspace/build/docker-release
 ENV HOME=/tmp
 
 RUN yum --disablerepo='*' \
@@ -51,8 +52,7 @@ RUN curl -fsSL \
 WORKDIR /workspace
 COPY . /workspace
 
-# Qt is bind-mounted at QT_ROOT when running the container. qmake writes generated
-# files alongside the sources, so builds run as the host UID.
+# Qt is bind-mounted at QT_ROOT when running the container; builds use the host UID.
 RUN chmod -R a+rwX /workspace
 
 ENTRYPOINT ["/bin/bash", "/workspace/scripts/package-linux.sh"]

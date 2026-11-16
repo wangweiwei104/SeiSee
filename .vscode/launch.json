@@ -5,7 +5,7 @@
             "name": "SeiSeeMp (Windows)",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/SeiSeeMp/debug/SeiSeeMp.exe",
+            "program": "${workspaceFolder}/build/windows-debug/SeiSeeMp/debug/SeiSeeMp.exe",
             "args": [],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
@@ -24,7 +24,7 @@
             "name": "SegDSeeMp (Windows)",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/SegDSeeMp/debug/SegDSeeMp.exe",
+            "program": "${workspaceFolder}/build/windows-debug/SegDSeeMp/debug/SegDSeeMp.exe",
             "args": [],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
@@ -43,7 +43,7 @@
             "name": "SeiSeeMp (Linux)",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/SeiSeeMp/SeiSeeMp",
+            "program": "${workspaceFolder}/build/linux-debug/SeiSeeMp/SeiSeeMp",
             "args": [],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
@@ -57,7 +57,7 @@
             "miDebuggerPath": "/usr/bin/gdb",
             "preLaunchTask": "Build Debug",
             "windows": {
-                "program": "${workspaceFolder}/SeiSeeMp/debug/SeiSeeMp.exe",
+                "program": "${workspaceFolder}/build/windows-debug/SeiSeeMp/debug/SeiSeeMp.exe",
                 "environment": [
                     {
                         "name": "PATH",
@@ -72,7 +72,7 @@
             "name": "SegDSeeMp (Linux)",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/SegDSeeMp/SegDSeeMp",
+            "program": "${workspaceFolder}/build/linux-debug/SegDSeeMp/SegDSeeMp",
             "args": [],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
@@ -86,7 +86,7 @@
             "miDebuggerPath": "/usr/bin/gdb",
             "preLaunchTask": "Build Debug",
             "windows": {
-                "program": "${workspaceFolder}/SegDSeeMp/debug/SegDSeeMp.exe",
+                "program": "${workspaceFolder}/build/windows-debug/SegDSeeMp/debug/SegDSeeMp.exe",
                 "environment": [
                     {
                         "name": "PATH",

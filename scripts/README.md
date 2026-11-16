@@ -63,6 +63,7 @@ Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
 ```
 
 生成的安装程序位于 `dist\windows`，文件名中的版本号也取自 `SeiSeeMp/mainwindow.h`。
+Windows 打包构建使用 `build\windows-release`，与 VS Code Release 构建共享；Debug 构建则使用独立的 `build\windows-debug`。
 
 ## Linux AppImage
 
@@ -86,7 +87,7 @@ docker run --rm \
   seisee-linux-builder
 ```
 
-打包脚本会从 `SeiSeeMp/mainwindow.h` 中读取 `#define VERSION`。为兼容旧命令，也可以继续通过 `-e VERSION="$VERSION"` 显式传入版本；本机直接运行脚本时同样可用 `VERSION=...` 覆盖头文件中的版本。打包脚本先通过 qmake `distclean` 清除生成型构建输出，再在容器中完整重建，避免复用宿主机上使用其他 glibc 版本编译的目标文件。清理会移除 `.o`、`.a`、可执行文件和 qmake Makefile 等生成文件，不会删除源码。`docker build` 只需首次运行，或修改 Dockerfile/容器工具后重新运行。打包时会将当前项目目录挂载到容器，使用最新源码并把产物写入宿主机的 `dist/linux`。镜像构建需要网络访问 AppImage 工具的下载地址；Qt SDK 从宿主机只读挂载，不会在镜像中重新下载。此 Docker 配置仅构建 x86_64 Linux AppImage，不提供图形桌面容器。
+打包脚本会从 `SeiSeeMp/mainwindow.h` 中读取 `#define VERSION`。为兼容旧命令，也可以继续通过 `-e VERSION="$VERSION"` 显式传入版本；本机直接运行脚本时同样可用 `VERSION=...` 覆盖头文件中的版本。Docker 在 `build/docker-release` 中通过 qmake `distclean` 清除构建输出并完整重建，与宿主机的构建文件隔离。本机直接运行脚本时使用 `build/linux-package-release`。`docker build` 只需首次运行，或修改 Dockerfile/容器工具后重新运行。打包时会将当前项目目录挂载到容器，使用最新源码并把产物写入宿主机的 `dist/linux`。镜像构建需要网络访问 AppImage 工具的下载地址；Qt SDK 从宿主机只读挂载，不会在镜像中重新下载。此 Docker 配置仅构建 x86_64 Linux AppImage，不提供图形桌面容器。
 
 ### 前置条件
 
@@ -98,6 +99,8 @@ docker run --rm \
 
 Ubuntu 本机开发可通过 `sudo apt install build-essential gdb` 安装编译器、Make 和调试器。
 使用 Qt 的 XCB 图形平台插件还需要安装 `libxcb-xinerama0`：`sudo apt install libxcb-xinerama0`。缺少它时，Qt 可能显示已找到 `libqxcb.so`，但仍无法加载 XCB 平台插件。
+
+VS Code 的 Linux 构建任务分别使用 `build/linux-release` 和 `build/linux-debug`，与 Docker 打包构建隔离。`Run SeiSeeMp` 构建并运行 Release 版本；`SeiSeeMp (Linux)` 调试配置构建并运行带调试信息的 Debug 版本。`Run SeiSeeMp (no build)` 需要先运行一次 `Build all`。更换编译器或 Qt SDK 后，需重新创建对应的构建目录，避免复用旧工具链的目标文件；请先确认目录内没有需要保留的文件。
 
 建议在计划支持的较旧 Linux 发行版上构建，以提高生成的 AppImage 对不同 glibc 版本的兼容性。
 
@@ -263,7 +266,7 @@ bash ./scripts/publish-linux-release.sh --publish
 
 ### VS Code（Windows 和 Linux 共用）
 
-仓库中的 `.vscode` 配置同时包含 Windows 和 Linux 工具链：任务会按当前操作系统选择 qmake、make、运行程序及 Qt Designer；调试器分别提供 Linux 和 Windows 启动项。C/C++ 扩展的配置可在状态栏的配置选择器中切换 `Linux` 或 `Windows MinGW`。两边需要分别安装与各自 Qt 工具链相匹配的 C/C++ 扩展及编译工具。qmake 会在源码目录生成平台相关的 Makefile 和目标文件；如果在同一工作区切换操作系统，先运行 `Clean build outputs` 再重新构建。
+仓库中的 `.vscode` 配置同时包含 Windows 和 Linux 工具链：任务会按当前操作系统选择 qmake、make、运行程序及 Qt Designer；调试器分别提供 Linux 和 Windows 启动项。C/C++ 扩展的配置可在状态栏的配置选择器中切换 `Linux` 或 `Windows MinGW`。两边需要分别安装与各自 Qt 工具链相匹配的 C/C++ 扩展及编译工具。Windows 和 Linux 的 Debug、Release 构建分别放在 `build/windows-debug`、`build/windows-release`、`build/linux-debug`、`build/linux-release`。Qt 界面头文件按 qmake 默认规则生成在对应的构建目录。若源码目录中存在旧的 `ui_*.h` 生成文件，需在确认没有需要保留的修改后移除，以免编译时优先引用旧文件。`Clean build outputs` 删除这些构建目录以及 `build/docker-release`、`build/linux-package-release`，不删除安装包，也不删除源码目录中的生成文件；运行前请确认这些构建目录没有需要保留的数据。
 
 ### Git 用户名和邮箱
 

@@ -68,7 +68,7 @@ docker run --rm \
   seisee-linux-builder
 ```
 
-打包脚本会从 `SeiSeeMp/mainwindow.h` 读取 `#define VERSION`，安装包写入宿主机的 `dist/linux`。命令会把当前工作区挂载到容器，因此使用最新源码。为兼容旧命令，也可以继续通过 `-e VERSION="$VERSION"` 显式传入版本；本机直接运行脚本时同样可用 `VERSION=...` 覆盖头文件中的版本。打包脚本会先运行 qmake `distclean`，再在容器中重新生成并编译所有目标，避免复用由较新 Linux/glibc 构建的宿主机 `.o` 和 `.a` 文件。清理会移除项目中的生成型构建输出（目标文件、静态库、可执行文件和 qmake Makefile），不会删除源码。可通过修改 `JOBS` 调整并行构建任务数。只有修改 `docker/linux.Dockerfile` 或需要更新容器内工具时，才需要重新运行 `docker build`。首次构建镜像需要网络访问基础镜像仓库和 Dockerfile 中使用的 AppImage 工具下载地址。
+打包脚本会从 `SeiSeeMp/mainwindow.h` 读取 `#define VERSION`，安装包写入宿主机的 `dist/linux`。命令会把当前工作区挂载到容器，因此使用最新源码。为兼容旧命令，也可以继续通过 `-e VERSION="$VERSION"` 显式传入版本；本机直接运行脚本时同样可用 `VERSION=...` 覆盖头文件中的版本。Docker 构建的 Makefile、目标文件、界面头文件、静态库和可执行文件写入 `build/docker-release`，每次打包先在该目录执行 qmake `distclean` 再完整重建，不会清理本机 VS Code 构建目录。本机直接运行打包脚本则使用 `build/linux-package-release`。可通过修改 `JOBS` 调整并行构建任务数。只有修改 `docker/linux.Dockerfile` 或需要更新容器内工具时，才需要重新运行 `docker build`。首次构建镜像需要网络访问基础镜像仓库和 Dockerfile 中使用的 AppImage 工具下载地址。
 
 CentOS 7 已停止维护，Dockerfile 从 Tsinghua 镜像的 CentOS 7.9.2009 归档仓库安装构建依赖；若该镜像无法访问，可在 `docker/linux.Dockerfile` 中替换对应仓库 URL。
 

@@ -13,8 +13,13 @@
 					"LD_LIBRARY_PATH": "/home/ww/Qt/5.15.2/gcc_64/lib:${env:LD_LIBRARY_PATH}"
 				}
 			},
+			"linux": {
+				"command": "bash",
+				"args": ["-c", "mkdir -p \"$1\" && cd \"$1\" && exec \"$2\" \"$3\" -r CONFIG+=release CONFIG-=debug", "--", "${workspaceFolder}/build/linux-release", "/home/ww/Qt/5.15.2/gcc_64/bin/qmake", "${workspaceFolder}/GxApps.pro"]
+			},
 			"windows": {
-				"command": "C:/Qt/5.15.2/mingw81_64/bin/qmake.exe",
+				"command": "powershell.exe",
+				"args": ["-NoProfile", "-Command", "$ErrorActionPreference = 'Stop'; $root = (Get-Location).ProviderPath; $dir = Join-Path $root 'build/windows-release'; New-Item -ItemType Directory -Path $dir -Force | Out-Null; Set-Location -LiteralPath $dir; & 'C:/Qt/5.15.2/mingw81_64/bin/qmake.exe' (Join-Path $root 'GxApps.pro') '-r' 'CONFIG+=release' 'CONFIG-=debug'; if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }"],
 				"options": {
 					"cwd": "${workspaceFolder}",
 					"env": {
@@ -36,8 +41,13 @@
 					"LD_LIBRARY_PATH": "/home/ww/Qt/5.15.2/gcc_64/lib:${env:LD_LIBRARY_PATH}"
 				}
 			},
+			"linux": {
+				"command": "bash",
+				"args": ["-c", "mkdir -p \"$1\" && cd \"$1\" && exec \"$2\" \"$3\" -r CONFIG+=debug CONFIG-=release", "--", "${workspaceFolder}/build/linux-debug", "/home/ww/Qt/5.15.2/gcc_64/bin/qmake", "${workspaceFolder}/GxApps.pro"]
+			},
 			"windows": {
-				"command": "C:/Qt/5.15.2/mingw81_64/bin/qmake.exe",
+				"command": "powershell.exe",
+				"args": ["-NoProfile", "-Command", "$ErrorActionPreference = 'Stop'; $root = (Get-Location).ProviderPath; $dir = Join-Path $root 'build/windows-debug'; New-Item -ItemType Directory -Path $dir -Force | Out-Null; Set-Location -LiteralPath $dir; & 'C:/Qt/5.15.2/mingw81_64/bin/qmake.exe' (Join-Path $root 'GxApps.pro') '-r' 'CONFIG+=debug' 'CONFIG-=release'; if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }"],
 				"options": {
 					"cwd": "${workspaceFolder}",
 					"env": {
@@ -55,7 +65,7 @@
 			"options": {"cwd": "${workspaceFolder}"},
 			"linux": {
 				"options": {
-					"cwd": "${workspaceFolder}",
+					"cwd": "${workspaceFolder}/build/linux-debug",
 					"env": {
 						"PATH": "/home/ww/Qt/5.15.2/gcc_64/bin:${env:PATH}",
 						"LD_LIBRARY_PATH": "/home/ww/Qt/5.15.2/gcc_64/lib:${env:LD_LIBRARY_PATH}"
@@ -65,7 +75,7 @@
 			"windows": {
 				"command": "C:/Qt/Tools/mingw810_64/bin/mingw32-make.exe",
 				"options": {
-					"cwd": "${workspaceFolder}",
+					"cwd": "${workspaceFolder}/build/windows-debug",
 					"env": {
 						"PATH": "C:/Qt/5.15.2/mingw81_64/bin;C:/Qt/Tools/mingw810_64/bin;${env:PATH}"
 					}
@@ -83,7 +93,7 @@
 			"options": {"cwd": "${workspaceFolder}"},
 			"linux": {
 				"options": {
-					"cwd": "${workspaceFolder}",
+					"cwd": "${workspaceFolder}/build/linux-release",
 					"env": {
 						"PATH": "/home/ww/Qt/5.15.2/gcc_64/bin:${env:PATH}",
 						"LD_LIBRARY_PATH": "/home/ww/Qt/5.15.2/gcc_64/lib:${env:LD_LIBRARY_PATH}"
@@ -93,7 +103,7 @@
 			"windows": {
 				"command": "C:/Qt/Tools/mingw810_64/bin/mingw32-make.exe",
 				"options": {
-					"cwd": "${workspaceFolder}",
+					"cwd": "${workspaceFolder}/build/windows-release",
 					"env": {
 						"PATH": "C:/Qt/5.15.2/mingw81_64/bin;C:/Qt/Tools/mingw810_64/bin;${env:PATH}"
 					}
@@ -112,8 +122,8 @@
 			"type": "process",
 			"command": "bash",
 			"args": [
-				"-lc",
-				"find . -type f \\( -name 'Makefile*' -o -name '.qmake.stash' -o -name '*.Debug' -o -name '*.Release' -o -name '*.o' -o -name '*.a' \\) -delete && find . -depth -type d \\( -name debug -o -name release \\) -exec rm -rf -- {} +"
+				"-c",
+				"rm -rf -- build/linux-debug build/linux-release build/linux-package-release build/docker-release build/windows-debug build/windows-release"
 			],
 			"options": {"cwd": "${workspaceFolder}"},
 			"windows": {
@@ -121,7 +131,7 @@
 				"args": [
 					"-NoProfile",
 					"-Command",
-					"Get-ChildItem -Path . -File -Recurse -Force | Where-Object { $_.Name -like 'Makefile*' -or $_.Name -eq '.qmake.stash' -or $_.Extension -in @('.Debug','.Release','.o','.a') } | Remove-Item -Force; Get-ChildItem -Path . -Directory -Recurse -Force | Where-Object { $_.Name -in @('debug','release') } | Sort-Object { $_.FullName.Length } -Descending | Remove-Item -Recurse -Force"
+					"$ErrorActionPreference = 'Stop'; foreach ($name in @('linux-debug','linux-release','linux-package-release','docker-release','windows-debug','windows-release')) { $path = Join-Path 'build' $name; if (Test-Path -LiteralPath $path) { Remove-Item -LiteralPath $path -Recurse -Force } }"
 				]
 			},
 			"problemMatcher": "$gcc"
@@ -129,7 +139,7 @@
 		{
 			"label": "Run SeiSeeMp",
 			"type": "process",
-			"command": "${workspaceFolder}/SeiSeeMp/SeiSeeMp",
+			"command": "${workspaceFolder}/build/linux-release/SeiSeeMp/SeiSeeMp",
 			"options": {
 				"cwd": "${workspaceFolder}",
 				"env": {
@@ -139,7 +149,7 @@
 				}
 			},
 			"windows": {
-				"command": "${workspaceFolder}/SeiSeeMp/release/SeiSeeMp.exe",
+				"command": "${workspaceFolder}/build/windows-release/SeiSeeMp/release/SeiSeeMp.exe",
 				"options": {
 					"cwd": "${workspaceFolder}",
 					"env": {
@@ -154,7 +164,7 @@
 		{
 			"label": "Run SeiSeeMp (no build)",
 			"type": "process",
-			"command": "${workspaceFolder}/SeiSeeMp/SeiSeeMp",
+			"command": "${workspaceFolder}/build/linux-release/SeiSeeMp/SeiSeeMp",
 			"options": {
 				"cwd": "${workspaceFolder}",
 				"env": {
@@ -164,7 +174,7 @@
 				}
 			},
 			"windows": {
-				"command": "${workspaceFolder}/SeiSeeMp/release/SeiSeeMp.exe",
+				"command": "${workspaceFolder}/build/windows-release/SeiSeeMp/release/SeiSeeMp.exe",
 				"options": {
 					"cwd": "${workspaceFolder}",
 					"env": {
@@ -198,7 +208,7 @@
 		{
 			"label": "Run SegDSeeMp",
 			"type": "process",
-			"command": "${workspaceFolder}/SegDSeeMp/SegDSeeMp",
+			"command": "${workspaceFolder}/build/linux-release/SegDSeeMp/SegDSeeMp",
 			"options": {
 				"cwd": "${workspaceFolder}",
 				"env": {
@@ -208,7 +218,7 @@
 				}
 			},
 			"windows": {
-				"command": "${workspaceFolder}/SegDSeeMp/release/SegDSeeMp.exe",
+				"command": "${workspaceFolder}/build/windows-release/SegDSeeMp/release/SegDSeeMp.exe",
 				"options": {
 					"cwd": "${workspaceFolder}",
 					"env": {
