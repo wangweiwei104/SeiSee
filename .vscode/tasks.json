@@ -18,7 +18,7 @@
 				"args": ["-c", "mkdir -p \"$1\" && cd \"$1\" && exec \"$2\" \"$3\" -r CONFIG+=release CONFIG-=debug", "--", "${workspaceFolder}/build/linux-release", "/home/ww/Qt/5.15.2/gcc_64/bin/qmake", "${workspaceFolder}/GxApps.pro"]
 			},
 			"windows": {
-				"command": "powershell.exe",
+				"command": "${env:SystemRoot}\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
 				"args": ["-NoProfile", "-Command", "$ErrorActionPreference = 'Stop'; $root = (Get-Location).ProviderPath; $dir = Join-Path $root 'build/windows-release'; New-Item -ItemType Directory -Path $dir -Force | Out-Null; Set-Location -LiteralPath $dir; & 'C:/Qt/5.15.2/mingw81_64/bin/qmake.exe' (Join-Path $root 'GxApps.pro') '-r' 'CONFIG+=release' 'CONFIG-=debug'; if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }"],
 				"options": {
 					"cwd": "${workspaceFolder}",
@@ -46,7 +46,7 @@
 				"args": ["-c", "mkdir -p \"$1\" && cd \"$1\" && exec \"$2\" \"$3\" -r CONFIG+=debug CONFIG-=release", "--", "${workspaceFolder}/build/linux-debug", "/home/ww/Qt/5.15.2/gcc_64/bin/qmake", "${workspaceFolder}/GxApps.pro"]
 			},
 			"windows": {
-				"command": "powershell.exe",
+				"command": "${env:SystemRoot}\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
 				"args": ["-NoProfile", "-Command", "$ErrorActionPreference = 'Stop'; $root = (Get-Location).ProviderPath; $dir = Join-Path $root 'build/windows-debug'; New-Item -ItemType Directory -Path $dir -Force | Out-Null; Set-Location -LiteralPath $dir; & 'C:/Qt/5.15.2/mingw81_64/bin/qmake.exe' (Join-Path $root 'GxApps.pro') '-r' 'CONFIG+=debug' 'CONFIG-=release'; if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }"],
 				"options": {
 					"cwd": "${workspaceFolder}",
@@ -127,7 +127,7 @@
 			],
 			"options": {"cwd": "${workspaceFolder}"},
 			"windows": {
-				"command": "powershell.exe",
+				"command": "${env:SystemRoot}\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
 				"args": [
 					"-NoProfile",
 					"-Command",
@@ -196,7 +196,7 @@
 				"cwd": "${workspaceFolder}"
 			},
 			"windows": {
-				"command": "powershell.exe",
+				"command": "${env:SystemRoot}\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
 				"args": [
 					"-NoProfile",
 					"-Command",
