@@ -4101,14 +4101,30 @@ void MainWindow::exportTxtHdr(QString fileName)
     bool ok = file.open(QIODevice::ReadWrite);
 
     if (!ok) {
-        QMessageBox::critical(this, "Error",
-                              "Cannot create text file: " + fileName,
-                              QMessageBox::Discard);
+        showScreenshotToast(
+            this, tr("Text header export failed"),
+            tr("Cannot create %1: %2")
+                .arg(QDir::toNativeSeparators(fileName), file.errorString()),
+            ToastPreset::ERROR_NOTIFICATION);
         return;
     }
 
     QTextStream stream(&file);
     stream << sf->TxtHed();
+    stream.flush();
+    const bool streamOk = stream.status() == QTextStream::Ok;
+    const bool fileOk = file.flush();
+    if (!streamOk || !fileOk) {
+        QString reason = file.errorString();
+        if (reason.isEmpty())
+            reason = tr("The file could not be completely written.");
+        showScreenshotToast(
+            this, tr("Text header export failed"),
+            tr("Cannot write %1: %2")
+                .arg(QDir::toNativeSeparators(fileName), reason),
+            ToastPreset::ERROR_NOTIFICATION);
+        return;
+    }
     file.close();
 
     //  Modified = CheckChanges();

@@ -16,6 +16,22 @@
 #include <QIntValidator>
 #include <QSignalBlocker>
 #include <QFileInfo>
+#include "Toast.h"
+
+namespace {
+
+void showWriteFailureToast(QWidget *parent, const QString &message)
+{
+    Toast *toast = new Toast(parent);
+    toast->setDuration(6000);
+    toast->setTitle(QObject::tr("Metrics export failed"));
+    toast->setText(message);
+    toast->setMaximumWidth(qMax(300, parent->width() / 2));
+    toast->applyPreset(ToastPreset::ERROR_NOTIFICATION);
+    toast->show();
+}
+
+} // namespace
 
 MetricsDialog::MetricsDialog(QWidget *parent) :
     QDialog(parent),
@@ -417,13 +433,28 @@ void MetricsDialog::on_btnSaveResults_clicked()
     QFile file(fileName);
     if(!file.open(QIODevice::WriteOnly | QIODevice::Text))
     {
-        showMessage( "Error", "Cannot create file!");
+        const QString message = tr("Cannot create %1: %2")
+                                    .arg(fileName, file.errorString());
+        showMessage(tr("Error"), message);
+        showWriteFailureToast(this, message);
         return;
     }
 
     QTextStream out(&file);
     out.setCodec("UTF-8");
     out << results;
+    out.flush();
+    const bool streamOk = out.status() == QTextStream::Ok;
+    const bool fileOk = file.flush();
+    if (!streamOk || !fileOk) {
+        QString reason = file.errorString();
+        if (reason.isEmpty())
+            reason = tr("The file could not be completely written.");
+        const QString message = tr("Cannot write %1: %2").arg(fileName, reason);
+        showMessage(tr("Error"), message);
+        showWriteFailureToast(this, message);
+        return;
+    }
     file.close();
 
     QFileInfo fi(fileName);

@@ -2,6 +2,12 @@
 
 本文件记录 SeiSee 独立维护版本的用户可见变更。版本号与 `SeiSeeMp/mainwindow.h` 中的 `VERSION` 保持一致。
 
+## [未发布]
+
+### 修复
+
+- Save As、Difference、Metrics 及文本头导出写出失败时通过 toast 显示错误原因。
+
 ## [4.0.1] - 2026-11-7
 
 ### 说明
