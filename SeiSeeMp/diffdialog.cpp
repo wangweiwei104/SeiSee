@@ -2,6 +2,7 @@
 #include <QThread>
 #include <QMessageBox>
 
+#include "Toast.h"
 #include "diffdialog.h"
 #include "ui_diffdialog.h"
 
@@ -337,6 +338,15 @@ void DiffDialog::x_fin(QString mess)
     ui->btnSave->setIcon(QIcon(":/images/FileSave.png"));
     ShowProgress(mess, -1);
     ui->edMess->setText(mess);
+    if (!mess.isEmpty()) {
+        Toast *toast = new Toast(this);
+        toast->setDuration(6000);
+        toast->setTitle(tr("Difference export failed"));
+        toast->setText(mess);
+        toast->setMaximumWidth(qMax(300, width() / 2));
+        toast->applyPreset(ToastPreset::ERROR_NOTIFICATION);
+        toast->show();
+    }
 }
 
 void DiffDialog::x_progr(int pers, QString mess)

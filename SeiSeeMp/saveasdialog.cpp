@@ -3,6 +3,7 @@
 #include <QFileInfo>
 #include <QThread>
 
+#include "Toast.h"
 #include "gfxstyle.h"
 #include "saveasdialog.h"
 #include "ui_saveasdialog.h"
@@ -149,6 +150,15 @@ void SaveAsDialog::x_fin(QString mess)
     ui->btnSave->setIcon(QIcon(":/images/FileSave.png"));
     ShowProgress(mess, -1);
     ui->edMess->setText(mess);
+    if (!mess.isEmpty()) {
+        Toast *toast = new Toast(this);
+        toast->setDuration(6000);
+        toast->setTitle(tr("Save As failed"));
+        toast->setText(mess);
+        toast->setMaximumWidth(qMax(300, width() / 2));
+        toast->applyPreset(ToastPreset::ERROR_NOTIFICATION);
+        toast->show();
+    }
 }
 
 void SaveAsDialog::x_progr(int pers, QString mess)

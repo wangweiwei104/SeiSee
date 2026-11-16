@@ -202,6 +202,7 @@ protected:
     int m_frmt;
     bool m_rev;
     bool m_isProc;
+    QString m_error;
 
     QString save();
 
@@ -235,6 +236,7 @@ protected:
     int m_tmmin;
     int m_tmmax;
     int m_frmt;
+    QString m_error;
     //    bool                      m_rev;
     //    bool                      m_isProc;
 

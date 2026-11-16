@@ -26,12 +26,52 @@
 #include <algorithm>
 #include <limits>
 #include <cmath>
+#include <cerrno>
+#include <cstring>
 #ifdef min
 #undef min
 #endif
 #ifdef max
 #undef max
 #endif
+
+namespace {
+
+bool writeOutput(int fileDescriptor, const void *data, int size,
+                 const QString &fileName, QString *error)
+{
+    const char *bytes = static_cast<const char *>(data);
+    int written = 0;
+    while (written < size) {
+        const int count = write(fileDescriptor, bytes + written, size - written);
+        if (count < 0 && errno == EINTR)
+            continue;
+        if (count <= 0) {
+            const QString reason = count == 0
+                ? QObject::tr("No data was written.")
+                : QString::fromLocal8Bit(std::strerror(errno));
+            *error = QObject::tr("Cannot write output file: %1 (%2)")
+                         .arg(fileName, reason);
+            return false;
+        }
+        written += count;
+    }
+    return true;
+}
+
+QString outputFileError(const QString &fileName)
+{
+    return QObject::tr("Cannot create output file: %1 (%2)")
+        .arg(fileName, QString::fromLocal8Bit(std::strerror(errno)));
+}
+
+QString outputCloseError(const QString &fileName)
+{
+    return QObject::tr("Cannot finish writing output file: %1 (%2)")
+        .arg(fileName, QString::fromLocal8Bit(std::strerror(errno)));
+}
+
+} // namespace
 
 //---------------------------------------------------------------------------------------------
 
@@ -542,7 +582,7 @@ void SaveAsWorker::process()
     int outf = open_q(m_outfn, O_CREAT | O_TRUNC | O_WRONLY | O_BINARY, 0664);
 
     if (outf < 0) {
-        mess = "Cannot create output file: " + m_outfn;
+        mess = outputFileError(m_outfn);
         goto END;
     }
 
@@ -564,19 +604,24 @@ void SaveAsWorker::process()
 
     asebdn(ebuf, buf, 3200);
 
-    cnt = write(outf, ebuf, 3200);
+    writeOutput(outf, ebuf, 3200, m_outfn, &mess);
 
     binhed.set(1, m_frmt, m_sf->binHed());
     binhed.setVal(7, out_Ns);
 
-    cnt = write(outf, binhed.buf(), 400);
+    if (mess.isEmpty())
+        writeOutput(outf, binhed.buf(), 400, m_outfn, &mess);
 
-    if (m_selhi == 0)
-        CopyTrcByIdx(outf);
-    else
-        CopyTrcByHdr(outf);
+    if (mess.isEmpty()) {
+        if (m_selhi == 0)
+            CopyTrcByIdx(outf);
+        else
+            CopyTrcByHdr(outf);
+        mess = m_error;
+    }
 
-    close(outf);
+    if (close(outf) != 0 && mess.isEmpty())
+        mess = outputCloseError(m_outfn);
 
 END:
     emit efin(mess);
@@ -600,14 +645,14 @@ void SaveAsWorker::CopyTrcByIdx(int outf)
 
     if (m_trstp < 1)
 
-        for (tidx = m_trmin; tidx < m_trmax; tidx += inc) {
+        for (tidx = m_trmin; tidx < m_trmax && m_error.isEmpty(); tidx += inc) {
             long long ti = tidx;
             if (m_rev)
                 ti = tcount - tidx - 1;
 
             trbuf =
                 m_sf->MakeTrace(cnt, ti, 1, m_frmt, m_tmmin, m_tmmax, m_isProc);
-            cnt = write(outf, trbuf, cnt);
+            writeOutput(outf, trbuf, cnt, m_outfn, &m_error);
             pers = (100. * (tidx - m_trmin)) / trccount;
             if (pp != pers) {
                 xpers(pers, "Saving...");
@@ -627,7 +672,7 @@ void SaveAsWorker::CopyTrcByHdr(int outf)
     int pp = -1;
     int pers;
 
-    for (tidx = 0; tidx < tcount; tidx++) {
+    for (tidx = 0; tidx < tcount && m_error.isEmpty(); tidx++) {
         long long ti = tidx;
         if (m_rev)
             ti = tcount - tidx - 1;
@@ -642,7 +687,7 @@ void SaveAsWorker::CopyTrcByHdr(int outf)
             continue;
 
         trbuf = m_sf->MakeTrace(cnt, ti, 1, m_frmt, m_tmmin, m_tmmax, m_isProc);
-        cnt = write(outf, trbuf, cnt);
+        writeOutput(outf, trbuf, cnt, m_outfn, &m_error);
         pers = (100. * tidx) / tcount;
         if (pp != pers) {
             xpers(pers, "Saving...");
@@ -707,7 +752,7 @@ void DiffWorker::process()
     int outf = open_q(m_outfn, O_CREAT | O_TRUNC | O_WRONLY | O_BINARY, 0664);
 
     if (outf < 0) {
-        mess = "Cannot create output file: " + m_outfn;
+        mess = outputFileError(m_outfn);
         goto END;
     }
 
@@ -729,16 +774,21 @@ void DiffWorker::process()
 
     asebdn(ebuf, buf, 3200);
 
-    cnt = write(outf, ebuf, 3200);
+    writeOutput(outf, ebuf, 3200, m_outfn, &mess);
 
     binhed.set(1, m_frmt, m_sf1->binHed());
     binhed.setVal(7, out_Ns);
 
-    cnt = write(outf, binhed.buf(), 400);
+    if (mess.isEmpty())
+        writeOutput(outf, binhed.buf(), 400, m_outfn, &mess);
 
-    DiffTrcByIdx(outf);
+    if (mess.isEmpty()) {
+        DiffTrcByIdx(outf);
+        mess = m_error;
+    }
 
-    close(outf);
+    if (close(outf) != 0 && mess.isEmpty())
+        mess = outputCloseError(m_outfn);
 
 END:
     emit efin(mess);
@@ -764,7 +814,7 @@ void DiffWorker::DiffTrcByIdx(int outf)
 
     if (m_trstp < 1)
 
-        for (tidx = m_trmin; tidx < m_trmax; tidx += inc) {
+        for (tidx = m_trmin; tidx < m_trmax && m_error.isEmpty(); tidx += inc) {
             long long ti = tidx;
             //        if(m_rev)  ti = tcount-tidx-1;
             data2 = m_sf2->GetTraceSample(cnt, ti, 1, m_frmt, m_tmmin,
@@ -773,7 +823,7 @@ void DiffWorker::DiffTrcByIdx(int outf)
             trbuf = m_sf1->MakeTraceDiff(cnt, ti, 1, m_frmt, m_tmmin, m_tmmax,
                                          data2); // data1 - data2
 
-            cnt = write(outf, trbuf, cnt);
+            writeOutput(outf, trbuf, cnt, m_outfn, &m_error);
             pers = (100. * (tidx - m_trmin)) / trccount;
             if (pp != pers) {
                 xpers(pers, "Saving...");
