@@ -1182,17 +1182,17 @@ void MetricsWorker::process()
 
             int pers = (int)(100.0 * (double)(tidx - m_trmin) / (double)trccount);
 
-            if (tidx % 10 == 0) // 每 10 个 trace 输出一次
-                {
-                    qDebug() << "tidx=" << tidx
-                             << "m_trmin=" << m_trmin
-                             << "trccount=" << trccount
-                             << "pers=" << pers;
-                }
+            // if (tidx % 10 == 0) // 每 10 个 trace 输出一次
+            // {
+            //     qDebug() << "tidx=" << tidx
+            //              << "m_trmin=" << m_trmin
+            //              << "trccount=" << trccount
+            //              << "pers=" << pers;
+            // }
 
-                if (pp != pers)
+            if (pp != pers)
                 {
-                    qDebug() << "Calling xpers:" << pers;  // ← 添加这行
+                    // qDebug() << "Calling xpers:" << pers;
                     emit eprogr(pers, "Computing metrics...");
                     pp = pers;
                 }

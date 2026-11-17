@@ -1297,7 +1297,7 @@ void MainWindow::x_dir(DirList dlist)
 
 void MainWindow::x_delay(int dmin, int dmax)
 {
-    qDebug() << dmin << dmax;
+    // qDebug() << dmin << dmax;
     _dly_min = dmin;
     _dly_max = dmax;
 

@@ -44,7 +44,7 @@ void MxStringTable::paintEvent(QPaintEvent *event)
 
         int rh = rowHeight(0);
 
-        qDebug() << "rowHeight: " << rh;
+        // qDebug() << "rowHeight: " << rh;
 
         for(nr=0; nr<RowCount() && nr<100 ;nr++)
         {

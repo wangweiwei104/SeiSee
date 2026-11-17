@@ -282,7 +282,7 @@ void MyHugeTable::hChanged(int val)
 
 void MyHugeTable::hcCol(int col)
 {
-    qDebug() << "c=" << col;
+    // qDebug() << "c=" << col;
     emit headerEvent(col);
 }
 
@@ -599,7 +599,7 @@ void MyHtWidget::mouseDoubleClickEvent(QMouseEvent *event)
         if(c<0) return;
 
 
-        qDebug() << "ro=" << ro << "r=" << r;
+        // qDebug() << "ro=" << ro << "r=" << r;
 
         QString data = p->getCellData(r,c);
 
