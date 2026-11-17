@@ -4,7 +4,7 @@
 #include <string>
 
 #include <QCache>
-#include <QDebug>
+
 #include <QMap>
 #include <QMutex>
 #include <QObject>

@@ -2,7 +2,7 @@
 #include "gfxsrc.h"
 #include "gfxview.h"
 
-#include <QDebug>
+
 
 GfxObj::GfxObj(QObject *parent)
     : QObject(parent)

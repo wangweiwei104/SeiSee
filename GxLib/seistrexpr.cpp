@@ -31,8 +31,10 @@ SeisTrExpr::SeisTrExpr(const SeisTrExpr &src)
 {
     Hdr = src.Hdr;
     Len = src.Len;
-    L = src.L;
-    N = src.N;
+    Swp = src.Swp;          // ← 原来漏了
+    L   = src.L;
+    N   = src.N;
+    V   = src.V;
 
     val_list.AddDefaultValues();
     val_list.AddAddress("_Hdr_", (double *)&Hdr);
@@ -55,6 +57,13 @@ SeisTrExpr &SeisTrExpr::operator=(const SeisTrExpr &src)
 {
     if (this == &src)
         return *this;
+
+    Hdr = src.Hdr;
+    Len = src.Len;
+    Swp = src.Swp;
+    L   = src.L;
+    N   = src.N;
+    V   = src.V;
 
     ExprStr = src.ExprStr;
     Parse();

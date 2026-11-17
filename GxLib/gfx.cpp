@@ -4,7 +4,7 @@
 #include "gfx.h"
 
 #include <QApplication>
-#include <QDebug>
+
 #include <QFont>
 #include <QFontMetrics>
 #include <QPainterPath>

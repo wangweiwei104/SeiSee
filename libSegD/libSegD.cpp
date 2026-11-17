@@ -12,7 +12,7 @@
 
 #include "util2.h"
 
-#include <QDebug>
+
 
 // #include <vld.h>
 

@@ -1,7 +1,7 @@
 #ifndef SeisTrExpr_H
 #define SeisTrExpr_H
 
-#include <QDebug>
+#include <QString>
 
 #include <iostream>
 #include <string>

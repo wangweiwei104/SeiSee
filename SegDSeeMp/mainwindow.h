@@ -2,7 +2,7 @@
 #define MAINWINDOW_H
 
 #include <QApplication>
-#include <QDebug>
+
 #include <QLabel>
 #include <QMainWindow>
 #include <QProgressBar>

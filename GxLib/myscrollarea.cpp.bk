@@ -1,7 +1,7 @@
 #include <QWidget>
 #include <QWheelEvent>
 #include <QApplication>
-#include <QDebug>
+
 
 #include "myscrollarea.h"
 

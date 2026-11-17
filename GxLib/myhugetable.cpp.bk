@@ -1,6 +1,6 @@
 #include "myhugetable.h"
 
-#include <QDebug>
+
 #include <QKeyEvent>
 #include <QApplication>
 

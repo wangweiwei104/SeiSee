@@ -12,7 +12,7 @@
 #include "util2.h"
 
 #include <QColor>
-#include <QDebug>
+
 #include <QDir>
 #include <QFile>
 #include <QRgb>

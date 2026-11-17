@@ -1,4 +1,4 @@
-#include <QDebug>
+
 #include <QEvent>
 #include <QApplication>
 #include <QTimer>

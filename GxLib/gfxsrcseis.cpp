@@ -1,6 +1,6 @@
 #include "gfxsrcseis.h"
 
-#include <QDebug>
+
 
 GfxSrcSeis::GfxSrcSeis(QObject *parent)
     : GfxSrc(parent)

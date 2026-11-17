@@ -3,6 +3,7 @@
 #include "sgyfile.h"
 #include <QFileInfo>
 #include <QRegularExpression>
+#include <QSet>
 #include <QStringList>
 #include <algorithm>
 #include <cmath>

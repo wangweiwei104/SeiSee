@@ -5,7 +5,7 @@
 
 #include <QAbstractTableModel>
 #include <QColor>
-#include <QDebug>
+
 #include <QHeaderView>
 #include <QPainter>
 #include <QResizeEvent>

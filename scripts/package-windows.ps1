@@ -35,6 +35,25 @@ foreach ($tool in @($qmake, $windeployqt, $make, $InnoSetupCompiler)) {
 if ($Version -notmatch '^[A-Za-z0-9][A-Za-z0-9 ._-]*$') {
     throw 'Version may contain only letters, numbers, spaces, dots, underscores, and hyphens.'
 }
+$numericVersionMatch = [regex]::Match(
+    $Version,
+    '^(?<numericVersion>\d+(?:\.\d+){0,3})(?:[-+].*)?$'
+)
+if (-not $numericVersionMatch.Success) {
+    throw "Version '$Version' cannot be represented as a Windows file version."
+}
+
+$versionParts = @($numericVersionMatch.Groups["numericVersion"].Value.Split('.'))
+foreach ($part in $versionParts) {
+    $component = 0
+    if (-not [int]::TryParse($part, [ref]$component) -or $component -gt 65535) {
+        throw "Version '$Version' contains a file-version component outside the supported range."
+    }
+}
+while ($versionParts.Count -lt 4) {
+    $versionParts += "0"
+}
+$versionInfoVersion = $versionParts -join "."
 
 $safeVersion = $Version -replace '[^A-Za-z0-9._-]', '-'
 $tempRoot = Join-Path ([IO.Path]::GetTempPath()) ("SeiSee-package-" + [guid]::NewGuid())
@@ -91,6 +110,11 @@ try {
 AppId={{4F15CB68-BEB3-4C36-9E98-61F9BCAC8125}
 AppName=SeiSee
 AppVersion=$Version
+VersionInfoDescription=SeiSee Setup
+VersionInfoVersion=$versionInfoVersion
+VersionInfoProductName=SeiSee
+VersionInfoProductVersion=$versionInfoVersion
+VersionInfoCopyright=Copyright (C) WW. All rights reserved.
 DefaultDirName={autopf}\SeiSee
 DisableDirPage=no
 DefaultGroupName=SeiSee
@@ -150,7 +174,11 @@ Filename: "{app}\SeiSeeMp.exe"; Description: "Launch SeiSee"; Flags: postinstall
         throw "Inno Setup compilation failed with exit code $LASTEXITCODE"
     }
 
-    Write-Output "Created installer: $(Join-Path $outputDir "$outputName.exe")"
+    $installerPath = Join-Path $outputDir "$outputName.exe"
+    & (Join-Path $PSScriptRoot "set-windows-version-language.ps1") `
+        -ExecutablePath $installerPath
+
+    Write-Output "Created installer: $installerPath"
 } finally {
     if (Test-Path -LiteralPath $tempRoot) {
         Remove-Item -LiteralPath $tempRoot -Recurse -Force

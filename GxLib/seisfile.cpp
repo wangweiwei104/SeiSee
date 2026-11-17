@@ -1,7 +1,7 @@
 #include "seisfile.h"
 #include "gfxsrcfile.h"
 
-#include <QDebug>
+
 
 #include "util2.h"
 

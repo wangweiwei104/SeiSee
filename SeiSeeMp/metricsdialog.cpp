@@ -8,7 +8,7 @@
 #include <QTextStream>
 #include <QApplication>
 #include <QDir>
-#include <QDebug>
+
 #include <QHeaderView>
 #include <QCloseEvent>
 #include <QFontDatabase>

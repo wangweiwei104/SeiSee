@@ -9,7 +9,7 @@
 
 #include "math.h"
 
-#include <QDebug>
+
 
 SgyFile::SgyFile(QObject *parent)
     : SeisFile(parent)

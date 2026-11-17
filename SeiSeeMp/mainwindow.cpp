@@ -4,7 +4,7 @@
 #include <QBoxLayout>
 #include <QComboBox>
 #include <QClipboard>
-#include <QDebug>
+
 #include <QDesktopServices>
 #include <QDir>
 #include <QEventLoop>

@@ -2,7 +2,7 @@
 #define MAINWINDOW_H
 
 #include <QApplication>
-#include <QDebug>
+
 #include <QDragEnterEvent>
 #include <QDropEvent>
 #include <QFont>

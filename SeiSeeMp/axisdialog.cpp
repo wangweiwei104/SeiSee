@@ -5,7 +5,7 @@
 #include "sgyfile.h"
 #include "ui_axisdialog.h"
 
-#include <QDebug>
+
 #include <QPainter>
 #include <QPixmap>
 #include <QSignalBlocker>

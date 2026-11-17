@@ -24,6 +24,8 @@
 
 Inno Setup 安装程序使用 `SeiSeeMp/images/SeiSeeSetup.ico`；安装后的应用仍使用 `SeiSeeMp.ico`。修改安装图标时，应从独立的 `SeiSeeSetup.svg` 重新生成透明 PNG 和多尺寸 ICO，再运行打包脚本。
 
+安装程序文件属性使用项目版本号作为文件版本和产品版本（统一为四段版本号），语言设置为 English (United States)，版权信息为 `Copyright (C) WW`。
+
 安装向导会显示安装目录页面，默认位置为当前系统的 64 位 Program Files 下的 `SeiSee` 文件夹，用户可以在安装时选择其他位置。
 
 Windows 应用和安装快捷方式使用相同的 AppUserModelID，以保持任务栏分组和图标一致。若已经固定过旧快捷方式，升级后请先取消固定，再从新版开始菜单快捷方式启动并重新固定。

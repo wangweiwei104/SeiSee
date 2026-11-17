@@ -1,7 +1,7 @@
 #include "myhugetable.h"
 
 #include <QApplication>
-#include <QDebug>
+
 #include <QFontMetrics>
 #include <QKeyEvent>
 

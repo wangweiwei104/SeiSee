@@ -1,7 +1,7 @@
 #ifndef GFXSRCFILE_H
 #define GFXSRCFILE_H
 
-#include <QDebug>
+
 
 #include "gfxsrcseis.h"
 #include "hdrdef.h"

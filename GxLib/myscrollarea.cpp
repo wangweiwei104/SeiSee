@@ -1,5 +1,5 @@
 #include <QApplication>
-#include <QDebug>
+
 #include <QWheelEvent>
 #include <QWidget>
 

@@ -3,7 +3,7 @@
 
 #include "gfxsrcseismemsegd.h"
 
-#include <QDebug>
+
 #include <QDesktopServices>
 #include <QDir>
 #include <QFileDialog>

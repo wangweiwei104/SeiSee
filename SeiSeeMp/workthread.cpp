@@ -2,7 +2,7 @@
 #include "cwp.h"
 
 #include <QCoreApplication>
-#include <QDebug>
+
 #include <QDir>
 #include <QEvent>
 #include <QFileInfoList>

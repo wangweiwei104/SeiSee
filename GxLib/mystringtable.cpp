@@ -1,5 +1,5 @@
 #include <QApplication>
-#include <QDebug>
+
 #include <QFontMetrics>
 #include <QHeaderView>
 #include <QPushButton>
