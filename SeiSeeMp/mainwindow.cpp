@@ -3626,8 +3626,8 @@ void MainWindow::captureCurrentView(int requestedDpi)
             : qMax(1, qRound(timeView.dpiY() * captureScaleY));
     const QRect captureRect(
         QPoint(0, 0),
-        QPoint(timeRightScrl->geometry().right() + 1,
-               hdrsBottomScrl->geometry().bottom() + 1));
+        QSize(timeRightScrl->geometry().right() + 1,
+              hdrsBottomScrl->geometry().bottom() + 1));
     const QSize captureSize(
         qMax(1, qRound(captureRect.width() * captureScaleX)),
         qMax(1, qRound(captureRect.height() * captureScaleY)));
