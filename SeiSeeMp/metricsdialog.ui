@@ -302,11 +302,26 @@
        <layout class="QVBoxLayout" name="verticalLayout_results">
         <item>
          <widget class="QTabWidget" name="resultTabs">
+          <property name="currentIndex">
+           <number>0</number>
+          </property>
           <widget class="QWidget" name="summaryTab">
            <attribute name="title">
             <string>Overview</string>
            </attribute>
            <layout class="QVBoxLayout" name="summaryLayout">
+            <property name="leftMargin">
+             <number>0</number>
+            </property>
+            <property name="topMargin">
+             <number>9</number>
+            </property>
+            <property name="rightMargin">
+             <number>0</number>
+            </property>
+            <property name="bottomMargin">
+             <number>0</number>
+            </property>
             <item>
              <widget class="MyStringTable" name="metricTable"/>
             </item>
@@ -327,6 +342,15 @@
             <string>Details</string>
            </attribute>
            <layout class="QVBoxLayout" name="detailsLayout">
+            <property name="leftMargin">
+             <number>0</number>
+            </property>
+            <property name="rightMargin">
+             <number>0</number>
+            </property>
+            <property name="bottomMargin">
+             <number>0</number>
+            </property>
             <item>
              <widget class="QPlainTextEdit" name="txtResults">
               <property name="readOnly">
