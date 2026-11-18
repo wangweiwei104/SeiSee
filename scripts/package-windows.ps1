@@ -174,11 +174,7 @@ Filename: "{app}\SeiSeeMp.exe"; Description: "Launch SeiSee"; Flags: postinstall
         throw "Inno Setup compilation failed with exit code $LASTEXITCODE"
     }
 
-    $installerPath = Join-Path $outputDir "$outputName.exe"
-    & (Join-Path $PSScriptRoot "set-windows-version-language.ps1") `
-        -ExecutablePath $installerPath
-
-    Write-Output "Created installer: $installerPath"
+    Write-Output "Created installer: $(Join-Path $outputDir "$outputName.exe")"
 } finally {
     if (Test-Path -LiteralPath $tempRoot) {
         Remove-Item -LiteralPath $tempRoot -Recurse -Force
